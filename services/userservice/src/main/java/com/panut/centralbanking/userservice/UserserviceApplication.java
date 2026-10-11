@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication(exclude = {
 		UserDetailsServiceAutoConfiguration.class,
 		ReactiveUserDetailsServiceAutoConfiguration.class,
-		R2dbcAutoConfiguration.class
 })
 public class UserserviceApplication {
 
