@@ -23,19 +23,19 @@ DROP TABLE IF EXISTS `transaction_profiles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transaction_profiles` (
-  `transaction_id` varchar(255) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `fx_direction` varchar(45) NOT NULL,
   `fx_rate_id` varchar(255) NOT NULL,
   `posted_at` timestamp NULL DEFAULT NULL,
   `reversed_of` varchar(255) DEFAULT NULL,
   `version` bigint NOT NULL,
-  PRIMARY KEY (`transaction_id`),
-  UNIQUE KEY `transaction_id_UNIQUE` (`transaction_id`),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `transaction_id_UNIQUE` (`id`),
   KEY `fk_transaction_profiles_fx_rate_id_idx` (`fx_rate_id`),
   KEY `fk_transaction_profiles_reversed_of_transaction_id_optional_idx` (`reversed_of`),
   CONSTRAINT `fk_transaction_profiles_fx_rate_id` FOREIGN KEY (`fx_rate_id`) REFERENCES `fx_rates` (`id`),
   CONSTRAINT `fk_transaction_profiles_reversed_of_transaction_id_optional` FOREIGN KEY (`reversed_of`) REFERENCES `transactions` (`id`),
-  CONSTRAINT `fk_transaction_profiles_transaction_id` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`)
+  CONSTRAINT `fk_transaction_profiles_transaction_id` FOREIGN KEY (`id`) REFERENCES `transactions` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -57,4 +57,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-11 16:34:50
+-- Dump completed on 2026-10-12 16:16:20

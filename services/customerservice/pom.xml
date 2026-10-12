@@ -43,6 +43,14 @@
 
 		<dependency>
 			<groupId>com.panut.centralbanking</groupId>
+			<artifactId>appcore</artifactId>
+			<version>0.0.1</version>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>com.panut.centralbanking</groupId>
 			<artifactId>appR2dbccore</artifactId>
 			<version>0.0.1</version>
 		</dependency>

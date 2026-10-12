@@ -23,16 +23,16 @@ DROP TABLE IF EXISTS `customer_profiles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `customer_profiles` (
-  `customer_id` varchar(255) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `firstname` varchar(100) NOT NULL,
   `lastname` varchar(100) NOT NULL,
   `address` varchar(255) NOT NULL,
   `age` int NOT NULL,
   `gender` varchar(45) NOT NULL,
   `version` bigint NOT NULL,
-  PRIMARY KEY (`customer_id`),
-  UNIQUE KEY `customer_id_UNIQUE` (`customer_id`),
-  CONSTRAINT `fk_customer_profiles_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `customer_id_UNIQUE` (`id`),
+  CONSTRAINT `fk_customer_profiles_customer_id` FOREIGN KEY (`id`) REFERENCES `customers` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -54,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-11 16:34:50
+-- Dump completed on 2026-10-12 16:16:22

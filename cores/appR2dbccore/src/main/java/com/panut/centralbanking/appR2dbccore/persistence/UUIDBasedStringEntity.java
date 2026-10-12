@@ -16,13 +16,21 @@ public class UUIDBasedStringEntity implements Persistable<String> {
     @Transient
     private boolean newEntity = false;
 
-
-    public void setInsert() {
+    private void handleinsert() {
         if (id != null) throw new IllegalStateException("Id already existed for" +
                 " set insert.");
 
         this.newEntity = true;
+    }
+
+    public void setInsert() {
+        handleinsert();
         id = UUID.randomUUID().toString();
+    }
+
+    public void setInsert(String customId) {
+        handleinsert();
+        id = customId;
     }
 
 

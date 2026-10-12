@@ -23,13 +23,13 @@ DROP TABLE IF EXISTS `user_profiles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_profiles` (
-  `user_id` varchar(255) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `version` bigint NOT NULL,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `user_id_UNIQUE` (`user_id`),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id_UNIQUE` (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
-  CONSTRAINT `fk_user_profiles_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `fk_user_profiles_user_id` FOREIGN KEY (`id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -51,4 +51,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-11 16:34:50
+-- Dump completed on 2026-10-12 16:16:21

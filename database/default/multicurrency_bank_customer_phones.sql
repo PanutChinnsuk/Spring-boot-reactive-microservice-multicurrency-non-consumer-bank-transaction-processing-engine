@@ -23,13 +23,13 @@ DROP TABLE IF EXISTS `customer_phones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `customer_phones` (
-  `customer_id` varchar(255) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `phone` varchar(50) NOT NULL,
   `verified` tinyint(1) NOT NULL,
   `version` bigint NOT NULL,
-  PRIMARY KEY (`customer_id`),
+  PRIMARY KEY (`id`),
   UNIQUE KEY `phone_UNIQUE` (`phone`),
-  CONSTRAINT `fk_customer_phones_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`)
+  CONSTRAINT `fk_customer_phones_customer_id` FOREIGN KEY (`id`) REFERENCES `customers` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -39,6 +39,7 @@ CREATE TABLE `customer_phones` (
 
 LOCK TABLES `customer_phones` WRITE;
 /*!40000 ALTER TABLE `customer_phones` DISABLE KEYS */;
+INSERT INTO `customer_phones` VALUES ('857f5ca0-f362-4756-8b12-48728fd1e3d7','phone2',0,2);
 /*!40000 ALTER TABLE `customer_phones` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-11 16:34:49
+-- Dump completed on 2026-10-12 16:16:19

@@ -23,14 +23,14 @@ DROP TABLE IF EXISTS `account_profiles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `account_profiles` (
-  `account_id` varchar(255) NOT NULL,
+  `id` varchar(255) NOT NULL,
   `currency` varchar(45) NOT NULL,
   `type` varchar(45) NOT NULL,
   `status` varchar(45) NOT NULL,
   `version` bigint NOT NULL,
-  PRIMARY KEY (`account_id`),
-  UNIQUE KEY `account_id_UNIQUE` (`account_id`),
-  CONSTRAINT `fk_account_profiles_account_id` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `account_id_UNIQUE` (`id`),
+  CONSTRAINT `fk_account_profiles_account_id` FOREIGN KEY (`id`) REFERENCES `accounts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -52,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-11 16:34:49
+-- Dump completed on 2026-10-12 16:16:22

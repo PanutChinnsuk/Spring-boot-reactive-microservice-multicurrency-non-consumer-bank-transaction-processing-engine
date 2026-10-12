@@ -27,6 +27,7 @@ CREATE TABLE `customer_user_activation_codes` (
   `customer_id` varchar(255) NOT NULL,
   `code` varchar(255) NOT NULL,
   `expires_at` timestamp NOT NULL,
+  `version` bigint NOT NULL,
   `revoked` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code_UNIQUE` (`code`),
@@ -53,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-11 16:34:49
+-- Dump completed on 2026-10-12 16:16:23
