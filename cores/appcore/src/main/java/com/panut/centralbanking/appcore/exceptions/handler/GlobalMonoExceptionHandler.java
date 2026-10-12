@@ -1,6 +1,9 @@
 package com.panut.centralbanking.appcore.exceptions.handler;
 
 import com.panut.centralbanking.appcore.exceptions.*;
+import org.springframework.dao.DeadlockLoserDataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -56,13 +59,20 @@ public class GlobalMonoExceptionHandler {
     @ExceptionHandler(RateLimtExceeded.class)
     public Mono<ResponseEntity<Map<String,String>>> handleTooManyRequest(RateLimtExceeded e,
                                                                        ServerWebExchange ex) {
-        return createError(e, HttpStatus.UNAUTHORIZED, ex);
+        return createError(e, HttpStatus.TOO_MANY_REQUESTS, ex);
     }
 
     @ExceptionHandler(NotFound.class)
     public Mono<ResponseEntity<Map<String,String>>> handleNotFound(NotFound e,
                                                                    ServerWebExchange ex) {
         return createError(e, HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler({Exception.class, OptimisticLockingFailureException.class,
+    PessimisticLockingFailureException.class, DeadlockLoserDataAccessException.class})
+    public Mono<ResponseEntity<Map<String,String>>> handleException(Exception e,
+                                                                   ServerWebExchange ex) {
+        return createError(e, HttpStatus.INTERNAL_SERVER_ERROR, ex);
     }
 
 }

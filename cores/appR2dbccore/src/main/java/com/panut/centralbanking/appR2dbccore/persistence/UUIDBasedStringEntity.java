@@ -2,6 +2,7 @@ package com.panut.centralbanking.appR2dbccore.persistence;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 
@@ -12,6 +13,7 @@ public class UUIDBasedStringEntity implements Persistable<String> {
     @Column("id")
     private String id;
 
+    @Transient
     private boolean newEntity = false;
 
 
