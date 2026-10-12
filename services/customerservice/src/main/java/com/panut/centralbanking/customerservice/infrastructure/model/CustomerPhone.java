@@ -41,7 +41,5 @@ public class CustomerPhone extends UUIDBasedStringEntity {
     }
 
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+
 }
