@@ -25,13 +25,13 @@ DROP TABLE IF EXISTS `customer_types`;
 CREATE TABLE `customer_types` (
   `id` varchar(255) NOT NULL,
   `customer_id` varchar(255) NOT NULL,
-  `customer_type_enum_id` varchar(255) NOT NULL,
+  `customer_type_list_id` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `fk_customer_types_customer_id_idx` (`customer_id`),
-  KEY `fk_customer_types_customer_type_enum_id_idx` (`customer_type_enum_id`),
+  KEY `fk_customer_types_customer_type_enum_id_idx` (`customer_type_list_id`),
   CONSTRAINT `fk_customer_types_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
-  CONSTRAINT `fk_customer_types_customer_type_enum_id` FOREIGN KEY (`customer_type_enum_id`) REFERENCES `customer_type_enum` (`id`)
+  CONSTRAINT `fk_customer_types_customer_type_enum_id` FOREIGN KEY (`customer_type_list_id`) REFERENCES `customer_type_list` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -53,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 16:16:23
+-- Dump completed on 2026-10-12 21:06:58

@@ -16,13 +16,13 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `customer_type_enum`
+-- Table structure for table `customer_type_list`
 --
 
-DROP TABLE IF EXISTS `customer_type_enum`;
+DROP TABLE IF EXISTS `customer_type_list`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `customer_type_enum` (
+CREATE TABLE `customer_type_list` (
   `id` varchar(255) NOT NULL,
   `type_enum` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
@@ -32,12 +32,12 @@ CREATE TABLE `customer_type_enum` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `customer_type_enum`
+-- Dumping data for table `customer_type_list`
 --
 
-LOCK TABLES `customer_type_enum` WRITE;
-/*!40000 ALTER TABLE `customer_type_enum` DISABLE KEYS */;
-/*!40000 ALTER TABLE `customer_type_enum` ENABLE KEYS */;
+LOCK TABLES `customer_type_list` WRITE;
+/*!40000 ALTER TABLE `customer_type_list` DISABLE KEYS */;
+/*!40000 ALTER TABLE `customer_type_list` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +49,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 16:16:19
+-- Dump completed on 2026-10-12 21:06:55
