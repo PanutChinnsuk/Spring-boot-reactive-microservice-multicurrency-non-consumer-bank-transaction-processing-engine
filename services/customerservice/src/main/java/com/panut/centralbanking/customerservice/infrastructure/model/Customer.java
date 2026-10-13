@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import reactor.core.publisher.Mono;
 
 @Table("customers")
 @Getter
@@ -28,5 +29,15 @@ public class Customer extends UUIDBasedStringEntity {
         this.userId = userId;
         this.customerStatus = customerStatus;
         setInsert();
+    }
+
+    public Customer activateWithUser(String userId) {
+        if (userId != null) throw new IllegalStateException("Customer's user id " +
+                "is already set.");
+
+        this.userId = userId;
+        this.customerStatus = CustomerStatus.ACTIVE_WITH_USER;
+
+        return this;
     }
 }
