@@ -1,52 +1,63 @@
 package com.panut.centralbanking.appsecuritycore.signature.jwt;
 
-import com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureConfig;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import javax.crypto.SecretKey;
 import java.util.List;
 
 public class CoreClaims {
     public static final String USER_ID_CLAIM = "userId";
     public static final String USER_AUTHORITIES_CLAIM = "userAuthorities";
+    public static final String USER_NAME_CLAIM = "username";
+
     public static final String SERVICE_AUTHORITIES_CLAIM = "serviceAuthorities";
 
 
 
 
     public static Mono<Claims> toClaims(String token,
-                                        MyServiceSignatureConfig config) {
+                                        SecretKey secretKey) {
        return Mono.defer(() -> {
            return Mono.just(Jwts.parser()
-                   .verifyWith(HMACs.stringToSecretKey(config.getMySecretKey()))
+                   .verifyWith(secretKey)
                    .build()
                    .parseSignedClaims(token)
                    .getPayload());
-       });
+       }).subscribeOn(Schedulers.boundedElastic());
     }
 
 
 
-    public static Mono<List<String>> getCollections(Claims validatedClaim,
-                                             String claim) {
-        return Mono.fromCallable(() -> {
-            List<String> listOf = validatedClaim.get(claim, List.class);
-            if (listOf == null) throwClaimNotFound(claim);
+    public static List<String> getCollection(Claims validatedClaim,
+                                      String claim) {
+        List<String> listOf = validatedClaim.get(claim, List.class);
+        if (listOf == null) throwClaimNotFound(claim);
 
-            return listOf;
-        });
+        return listOf;
     }
 
-    public static Mono<String> getValue(Claims validatedClaim,
-                                 String claim) {
-        return Mono.fromCallable(() -> {
-            String value = validatedClaim.get(claim, String.class);
-            if (value == null) throwClaimNotFound(claim);
+    public static String getValue(Claims validatedClaim,
+                                  String claim) {
+        String value = validatedClaim.get(claim, String.class);
+        if (value == null) throwClaimNotFound(claim);
 
-            return value;
-        });
+        return value;
+    }
+
+    public static Mono<List<String>> getCollectionMono(Claims validatedClaim,
+                                                       String claim) {
+        return Mono.fromCallable(() -> getCollection(validatedClaim, claim))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public static Mono<String> getValueMono(Claims validatedClaim,
+                                            String claim) {
+        return Mono.fromCallable(() -> getValue(validatedClaim, claim))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
 

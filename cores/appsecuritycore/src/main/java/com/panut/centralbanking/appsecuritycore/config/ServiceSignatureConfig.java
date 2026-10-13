@@ -81,4 +81,8 @@ public class ServiceSignatureConfig {
     public String getBetweenServicesSecretKey() {
         return betweenServicesSecretKey;
     }
+
+    public SecretKey getBetweenServicesSecretKeyHMAC() {
+        return HMACs.stringToSecretKey(betweenServicesSecretKey);
+    }
 }

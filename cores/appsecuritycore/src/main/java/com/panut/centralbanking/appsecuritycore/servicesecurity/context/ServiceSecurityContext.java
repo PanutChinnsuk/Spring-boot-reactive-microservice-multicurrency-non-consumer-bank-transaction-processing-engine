@@ -15,6 +15,10 @@ public class ServiceSecurityContext {
         return new ServiceSecurityContext(Collections.emptyList());
     }
 
+    public static ServiceSecurityContext defaultContext(String authority) {
+        return new ServiceSecurityContext(List.of(authority));
+    }
+
 
     public List<String> getAuthorities() {
         return authorities;

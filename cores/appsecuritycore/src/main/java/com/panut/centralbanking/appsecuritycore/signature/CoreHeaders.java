@@ -1,12 +1,14 @@
 package com.panut.centralbanking.appsecuritycore.signature;
 
 import com.panut.centralbanking.appsecuritycore.signature.body.CoreHeadersBody;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 
+@Slf4j
 public class CoreHeaders {
     public static final String USER_AUTHORIZATION_HEADER = "Authorization";
     public static final String SERVICE_AUTHORIZATION_HEADER = "ServiceAuthorization";
@@ -19,9 +21,12 @@ public class CoreHeaders {
                                                         String... userRelatedHeaders) {
         return Mono.fromCallable(() -> {
             HttpHeaders httpHeaders = ex.getRequest().getHeaders();
-            boolean userCallRequest = Arrays.stream(userRelatedHeaders)
+            boolean userCallRequest = userRelatedHeaders.length <= 0
+                    ? true
+                    : Arrays.stream(userRelatedHeaders)
                     .anyMatch(related -> httpHeaders
                             .containsHeader(related));
+            log.debug("is userCallRequest: {}", userCallRequest);
 
             return new CoreHeadersBody(httpHeaders.containsHeader(expectedHeader),
                     userCallRequest,

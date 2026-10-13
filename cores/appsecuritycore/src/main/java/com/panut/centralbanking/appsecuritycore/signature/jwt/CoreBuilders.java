@@ -19,9 +19,7 @@ public class CoreBuilders {
                                 .plus(config.getRenewMinutes(), ChronoUnit.MINUTES)
                 ))
                 .claim(CoreClaims.SERVICE_AUTHORITIES_CLAIM, config.getServiceAuthorities())
-                .signWith(HMACs
-                        .stringToSecretKey(config
-                                .getBetweenServicesSecretKey()))
+                .signWith(config.getBetweenServicesSecretKeyHMAC())
                 .compact();
     }
 }

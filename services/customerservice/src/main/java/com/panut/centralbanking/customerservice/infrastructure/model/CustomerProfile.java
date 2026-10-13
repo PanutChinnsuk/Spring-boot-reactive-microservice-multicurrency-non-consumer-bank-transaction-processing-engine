@@ -15,9 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 public class CustomerProfile extends UUIDBasedStringEntity {
-    @Column("customer_id")
-    private String customerId;
-
     @Column("firstname")
     private String firstname;
 
@@ -47,12 +44,11 @@ public class CustomerProfile extends UUIDBasedStringEntity {
                            String address,
                            Integer age,
                            Gender gender) {
-        this.customerId = customerId;
         this.firstname = firstname;
         this.lastname = lastname;
         this.address = address;
         this.age = age;
         this.gender = gender;
-        setInsert();
+        setInsert(customerId);
     }
 }

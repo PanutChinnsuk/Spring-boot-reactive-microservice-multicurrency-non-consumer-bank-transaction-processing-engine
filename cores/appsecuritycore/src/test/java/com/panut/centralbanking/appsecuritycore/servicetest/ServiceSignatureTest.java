@@ -1,14 +1,12 @@
 package com.panut.centralbanking.appsecuritycore.servicetest;
 
-import com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureConfig;
+import com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureAutoConfiguration;
 import com.panut.centralbanking.appsecuritycore.config.ServiceSignatureConfig;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
 import com.panut.centralbanking.appsecuritycore.signature.jwt.CoreClaims;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.List;
 
@@ -27,8 +25,8 @@ public class ServiceSignatureTest {
                     .renewMinutes(5)
                     .build());
 
-    private MyServiceSignatureConfig myServiceSignatureConfig =
-            MyServiceSignatureConfig.create(matchedSecretKey);
+    private MyServiceSignatureAutoConfiguration myServiceSignatureAutoConfiguration =
+            MyServiceSignatureAutoConfiguration.create(matchedSecretKey);
 
 
 
@@ -38,8 +36,8 @@ public class ServiceSignatureTest {
         String token = serviceSignature.getCurrentSignature();
 
         Claims claims = CoreClaims
-                .toClaims(token, myServiceSignatureConfig).block();
-        List<String> authorities = CoreClaims.getCollections(claims,
+                .toClaims(token, myServiceSignatureAutoConfiguration.getMySecretKeyHMAC()).block();
+        List<String> authorities = CoreClaims.getCollectionMono(claims,
                 CoreClaims.SERVICE_AUTHORITIES_CLAIM).block();
         Assertions.assertTrue(authorities.contains(authority));
         Assertions.assertTrue(authorities.size() == 1);

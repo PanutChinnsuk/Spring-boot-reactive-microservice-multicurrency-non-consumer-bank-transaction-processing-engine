@@ -1,6 +1,6 @@
 package com.panut.centralbanking.appsecuritycore.servicesecurity.filter;
 
-import com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureConfig;
+import com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureAutoConfiguration;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.context.ServiceSecurityContext;
 import com.panut.centralbanking.appsecuritycore.signature.CoreHeaders;
 import com.panut.centralbanking.appsecuritycore.signature.jwt.CoreClaims;
@@ -18,10 +18,10 @@ import java.util.Collections;
 
 @Slf4j
 public class MyServiceSignatureFilter implements WebFilter, Ordered {
-    private final MyServiceSignatureConfig myServiceSignatureConfig;
+    private final MyServiceSignatureAutoConfiguration myServiceSignatureAutoConfiguration;
 
-    public MyServiceSignatureFilter(MyServiceSignatureConfig myServiceSignatureConfig) {
-        this.myServiceSignatureConfig = myServiceSignatureConfig;
+    public MyServiceSignatureFilter(MyServiceSignatureAutoConfiguration myServiceSignatureAutoConfiguration) {
+        this.myServiceSignatureAutoConfiguration = myServiceSignatureAutoConfiguration;
     }
 
     @Override
@@ -43,11 +43,11 @@ public class MyServiceSignatureFilter implements WebFilter, Ordered {
                     return CoreHeaders.getExistTokenFromHeader(body)
                             .doOnNext(a -> log.debug("after CoreHeaders.getExistTokenFromHeader"))
                             .flatMap(token -> CoreClaims.toClaims(
-                                    token, myServiceSignatureConfig))
+                                    token, myServiceSignatureAutoConfiguration.getMySecretKeyHMAC()))
                             .doOnNext(a -> log.debug("after CoreClaims.toClaims"))
                             .flatMap(validated -> CoreClaims
-                                    .getCollections(validated, CoreClaims.SERVICE_AUTHORITIES_CLAIM))
-                            .doOnNext(a -> log.debug("after CoreClaims.getCollections"))
+                                    .getCollectionMono(validated, CoreClaims.SERVICE_AUTHORITIES_CLAIM))
+                            .doOnNext(a -> log.debug("after CoreClaims.getCollectionMono"))
                             .map(authorities -> new ServiceSecurityContext(
                                     authorities))
                             .doOnNext(a -> log.debug("after constructed" +
