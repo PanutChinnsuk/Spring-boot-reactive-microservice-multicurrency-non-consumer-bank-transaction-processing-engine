@@ -1,9 +1,20 @@
 package com.panut.centralbanking.customerservice;
 
 import com.panut.centralbanking.appcore.exceptions.handler.GlobalMonoExceptionHandler;
+import com.panut.centralbanking.customerservice.api.data.CustomerEmailCreateData;
+import com.panut.centralbanking.customerservice.api.data.CustomerPhoneCreateData;
+import com.panut.centralbanking.customerservice.api.data.CustomerProfileCreateData;
+import com.panut.centralbanking.customerservice.api.request.CustomerCreateRequest;
+import com.panut.centralbanking.customerservice.api.response.CustomerCreatedData;
+import com.panut.centralbanking.customerservice.application.customer.service.CustomerCreateService;
+import com.panut.centralbanking.customerservice.application.customertypelist.implement.CustomerTypeListServiceImpl;
+import com.panut.centralbanking.customerservice.application.customertypelist.service.CustomerTypeListService;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
+import com.panut.centralbanking.customerservice.core.enums.CustomerTypeEnum;
+import com.panut.centralbanking.customerservice.core.enums.Gender;
 import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
 import com.panut.centralbanking.customerservice.infrastructure.model.CustomerPhone;
+import com.panut.centralbanking.customerservice.infrastructure.model.CustomerTypeList;
 import com.panut.centralbanking.customerservice.infrastructure.repository.CustomerPhoneRepository;
 import com.panut.centralbanking.customerservice.infrastructure.repository.CustomerRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -20,7 +31,6 @@ import reactor.core.publisher.Mono;
 		ReactiveUserDetailsServiceAutoConfiguration.class
 })
 public class CustomerserviceApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerserviceApplication.class, args);
 	}

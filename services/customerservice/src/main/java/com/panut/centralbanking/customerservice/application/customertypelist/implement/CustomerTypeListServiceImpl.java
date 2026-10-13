@@ -1,6 +1,7 @@
 package com.panut.centralbanking.customerservice.application.customertypelist.implement;
 
 import com.panut.centralbanking.customerservice.application.customertypelist.CustomerTypeListRepositoryManager;
+import com.panut.centralbanking.customerservice.application.customertypelist.service.CustomerTypeListService;
 import com.panut.centralbanking.customerservice.application.customertypelist.validate.CustomerTypeListPersistValidator;
 import com.panut.centralbanking.customerservice.core.enums.CustomerTypeEnum;
 import com.panut.centralbanking.customerservice.infrastructure.model.CustomerTypeList;
@@ -10,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
-public class CustomerTypeListServiceImpl {
+public class CustomerTypeListServiceImpl implements CustomerTypeListService {
     private final CustomerTypeListPersistValidator customerTypeListPersistValidator;
     private final CustomerTypeListRepositoryManager customerTypeListRepositoryManager;
 
@@ -21,6 +22,7 @@ public class CustomerTypeListServiceImpl {
     }
 
 
+    @Override
     public Mono<CustomerTypeList> add(CustomerTypeEnum customerTypeEnum) {
         return customerTypeListPersistValidator
                 .validateDuplicates(customerTypeEnum)

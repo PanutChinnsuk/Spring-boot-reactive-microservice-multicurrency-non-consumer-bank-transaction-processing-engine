@@ -3,18 +3,23 @@ package com.panut.centralbanking.customerservice.application.customer.implement;
 import com.panut.centralbanking.customerservice.api.data.CustomerEmailCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerPhoneCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerProfileCreateData;
+import com.panut.centralbanking.customerservice.api.response.CustomerCreatedData;
 import com.panut.centralbanking.customerservice.application.customer.CustomerRepositoryManager;
+import com.panut.centralbanking.customerservice.application.customer.service.CustomerCreateService;
 import com.panut.centralbanking.customerservice.application.customeremail.service.CustomerEmailCreateService;
 import com.panut.centralbanking.customerservice.application.customerphone.service.CustomerPhoneCreateService;
 import com.panut.centralbanking.customerservice.application.customerprofile.service.CustomerProfileCreateService;
 import com.panut.centralbanking.customerservice.application.customertype.service.CustomerTypeCreateService;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
 import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
-public class CustomerCreateServiceImpl {
+public class CustomerCreateServiceImpl implements CustomerCreateService {
     private final CustomerProfileCreateService customerProfileCreateService;
     private final CustomerEmailCreateService customerEmailCreateService;
     private final CustomerPhoneCreateService customerPhoneCreateService;
@@ -34,13 +39,33 @@ public class CustomerCreateServiceImpl {
     }
 
 
-
-    public Mono<Customer> createCustomer(CustomerPhoneCreateData phoneData,
+    @Override
+    public Mono<CustomerCreatedData> createCustomer(CustomerPhoneCreateData phoneData,
                                          CustomerEmailCreateData emailData,
                                          CustomerProfileCreateData profileData) {
         return customerRepositoryManager.save(
                 Customer.builder()
                         .customerStatus(CustomerStatus.ACTIVE_NO_USER)
-                        .build());
+                        .build())
+                .doOnNext(a -> log.info("Created customer mono chain."))
+                .flatMap(customer -> new CustomerCreatedData().customer(customer))
+                .flatMap(data -> customerEmailCreateService
+                        .createDefaultCustomerEmail(emailData, data.getCustomerId())
+                        .flatMap(email -> data.customerEmail(email)))
+                .flatMap(data -> customerPhoneCreateService
+                        .createDefaultCustomerPhone(phoneData, data.getCustomerId())
+                        .flatMap(phone -> data.customerPhone(phone)))
+                .flatMap(data -> customerProfileCreateService
+                        .createCustomerProfile(profileData, data.getCustomerId())
+                        .flatMap(profile -> data.customerProfile(profile)))
+                .flatMap(data -> customerTypeCreateService
+                        .addDefault(data.getCustomerId())
+                        .flatMap(customerType -> data
+                                .customerType(customerType)))
+                .doOnSuccess(a -> log.info("Created customer."))
+                .doOnError(error -> log.error("Failed to create customer:" +
+                        " {}", error.getLocalizedMessage()));
+
+
     }
 }
