@@ -16,7 +16,8 @@ public class PrimarySignatureSecretKeyAutoConfiguration {
 
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
-        log.info("PrimarySignatureSecretKeyAutoConfiguration apiKey auto config.");
+
+        log.info("PrimarySignatureSecretKeyAutoConfiguration apiKey auto configuration.");
     }
 
     public String getApiKey() {

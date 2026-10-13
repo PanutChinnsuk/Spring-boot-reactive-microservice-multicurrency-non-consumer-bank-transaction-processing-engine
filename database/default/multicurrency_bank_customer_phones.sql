@@ -39,7 +39,6 @@ CREATE TABLE `customer_phones` (
 
 LOCK TABLES `customer_phones` WRITE;
 /*!40000 ALTER TABLE `customer_phones` DISABLE KEYS */;
-INSERT INTO `customer_phones` VALUES ('857f5ca0-f362-4756-8b12-48728fd1e3d7','phone2',0,2);
 /*!40000 ALTER TABLE `customer_phones` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +51,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 21:06:54
+-- Dump completed on 2026-10-13 21:54:35

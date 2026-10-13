@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.concurrent.atomic.AtomicReference;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class CustomerCreateTest implements IntegrationDev {
+public class CustomerCreateServiceTest implements IntegrationDev {
     @Autowired
     private CustomerCreateService customerCreateService;
 
@@ -36,9 +36,12 @@ public class CustomerCreateTest implements IntegrationDev {
     @Autowired
     private CustomerPhoneRepository customerPhoneRepository;
 
+    @Autowired
+    private CustomerUserActivationCodeRepository customerUserActivationCodeRepository;
+
     private AtomicReference<String> parentId = new AtomicReference<>();
     private AtomicReference<String> defaultCustomerTypeId = new AtomicReference<>();
-
+    private AtomicReference<String> userActivationCodeId = new AtomicReference<>();
 
 
 
@@ -46,6 +49,16 @@ public class CustomerCreateTest implements IntegrationDev {
     public void cleanUp() {
         String parentId = this.parentId.get();
         String customerTypeId = this.defaultCustomerTypeId.get();
+        String userActivationCodeId = this.userActivationCodeId.get();
+
+        if (userActivationCodeId != null) {
+            customerUserActivationCodeRepository.deleteById(userActivationCodeId)
+                    .block();
+        }
+
+        if (customerTypeId != null) {
+            customerTypeRepository.deleteById(customerTypeId).block();
+        }
 
         if (parentId != null) {
             customerPhoneRepository.deleteById(parentId).block();
@@ -54,9 +67,6 @@ public class CustomerCreateTest implements IntegrationDev {
             customerRepository.deleteById(parentId).block();
         }
 
-        if (customerTypeId != null) {
-            customerTypeRepository.deleteById(customerTypeId).block();
-        }
 
 
     }
@@ -105,9 +115,12 @@ public class CustomerCreateTest implements IntegrationDev {
 
         Assertions.assertNotNull(created.getCustomerTypeId());
 
+        Assertions.assertNotNull(created.getCustomerUserActivationCodeId());
+        Assertions.assertNotNull(created.getCustomerUserActivationCode());
 
         this.parentId.set(parentId);
         this.defaultCustomerTypeId.set(created.getCustomerTypeId());
+        this.userActivationCodeId.set(created.getCustomerUserActivationCodeId());
 
     }
 

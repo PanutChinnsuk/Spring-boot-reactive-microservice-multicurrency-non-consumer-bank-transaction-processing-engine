@@ -29,6 +29,7 @@ CREATE TABLE `customer_contact_verification_codes` (
   `verifying_contact_type` varchar(45) NOT NULL,
   `verifying` varchar(255) NOT NULL,
   `expires_at` timestamp NOT NULL,
+  `revoked` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `customer_contact_verification_codescol_UNIQUE` (`code`),
@@ -55,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-13 17:31:01
+-- Dump completed on 2026-10-13 21:54:33

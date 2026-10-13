@@ -10,6 +10,7 @@ import com.panut.centralbanking.customerservice.application.customeremail.servic
 import com.panut.centralbanking.customerservice.application.customerphone.service.CustomerPhoneCreateService;
 import com.panut.centralbanking.customerservice.application.customerprofile.service.CustomerProfileCreateService;
 import com.panut.centralbanking.customerservice.application.customertype.service.CustomerTypeCreateService;
+import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeCreateService;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
 import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
 import lombok.extern.slf4j.Slf4j;
@@ -25,17 +26,20 @@ public class CustomerCreateServiceImpl implements CustomerCreateService {
     private final CustomerPhoneCreateService customerPhoneCreateService;
     private final CustomerTypeCreateService customerTypeCreateService;
     private final CustomerRepositoryManager customerRepositoryManager;
+    private final CustomerUserActivationCodeCreateService customerUserActivationCodeCreateService;
 
     public CustomerCreateServiceImpl(CustomerProfileCreateService customerProfileCreateService,
                                      CustomerEmailCreateService customerEmailCreateService,
                                      CustomerPhoneCreateService customerPhoneCreateService,
                                      CustomerTypeCreateService customerTypeCreateService,
-                                     CustomerRepositoryManager customerRepositoryManager) {
+                                     CustomerRepositoryManager customerRepositoryManager,
+                                     CustomerUserActivationCodeCreateService customerUserActivationCodeCreateService) {
         this.customerProfileCreateService = customerProfileCreateService;
         this.customerEmailCreateService = customerEmailCreateService;
         this.customerPhoneCreateService = customerPhoneCreateService;
         this.customerTypeCreateService = customerTypeCreateService;
         this.customerRepositoryManager = customerRepositoryManager;
+        this.customerUserActivationCodeCreateService = customerUserActivationCodeCreateService;
     }
 
 
@@ -62,6 +66,10 @@ public class CustomerCreateServiceImpl implements CustomerCreateService {
                         .addDefault(data.getCustomerId())
                         .flatMap(customerType -> data
                                 .customerType(customerType)))
+                .flatMap(data -> customerUserActivationCodeCreateService
+                        .createCode(data.getCustomerId())
+                        .flatMap(activationCode -> data
+                                .customerUserActivationCode(activationCode)))
                 .doOnSuccess(a -> log.info("Created customer."))
                 .doOnError(error -> log.error("Failed to create customer:" +
                         " {}", error.getLocalizedMessage()));

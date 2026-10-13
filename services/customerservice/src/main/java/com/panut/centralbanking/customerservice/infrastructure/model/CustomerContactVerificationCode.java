@@ -30,6 +30,9 @@ public class CustomerContactVerificationCode extends UUIDBasedStringEntity {
     @Column("expires_at")
     private LocalDateTime expiresAt;
 
+    @Column("revoked")
+    private Boolean revoked;
+
     @Builder
     public CustomerContactVerificationCode(String customerId,
                                            String code,
@@ -41,5 +44,12 @@ public class CustomerContactVerificationCode extends UUIDBasedStringEntity {
         this.verifyingContactType = verifyingContactType;
         this.verifying = verifying;
         this.expiresAt = expiresAt;
+        this.revoked = false;
+        setInsert();
+    }
+
+    public CustomerContactVerificationCode revoke() {
+        this.revoked = true;
+        return this;
     }
 }

@@ -37,6 +37,7 @@ CREATE TABLE `customer_type_list` (
 
 LOCK TABLES `customer_type_list` WRITE;
 /*!40000 ALTER TABLE `customer_type_list` DISABLE KEYS */;
+INSERT INTO `customer_type_list` VALUES ('1c95b5e5-ed25-48ec-92d3-4b3da21451d8','REGULAR');
 /*!40000 ALTER TABLE `customer_type_list` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -49,4 +50,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 21:06:55
+-- Dump completed on 2026-10-13 21:54:31

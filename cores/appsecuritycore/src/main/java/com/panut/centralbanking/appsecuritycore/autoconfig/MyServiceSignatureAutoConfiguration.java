@@ -24,7 +24,8 @@ public class MyServiceSignatureAutoConfiguration {
 
     public void setMySecretKey(String mySecretKey) {
         this.mySecretKey = mySecretKey;
-        log.info("MyServiceSignatureAutoConfiguration auto configuration.");
+
+        log.info("MyServiceSignatureAutoConfiguration mySecretKey auto configuration.");
     }
 
     public String getMySecretKey() {

@@ -9,7 +9,15 @@ spring:
     password: a11211121A_
 
 
+app:
+  customer:
+    userActivationCode:
+      expireMinutes: 30
 
+  security:
+    core:
+      mySecretkey: a
+      apiKey: b
 
 eureka:
   client:

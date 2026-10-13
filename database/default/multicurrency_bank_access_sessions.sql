@@ -16,13 +16,13 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `user_access_sessions`
+-- Table structure for table `access_sessions`
 --
 
-DROP TABLE IF EXISTS `user_access_sessions`;
+DROP TABLE IF EXISTS `access_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_access_sessions` (
+CREATE TABLE `access_sessions` (
   `id` varchar(255) NOT NULL,
   `user_id` varchar(255) NOT NULL,
   `revoked` tinyint(1) NOT NULL,
@@ -37,12 +37,12 @@ CREATE TABLE `user_access_sessions` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `user_access_sessions`
+-- Dumping data for table `access_sessions`
 --
 
-LOCK TABLES `user_access_sessions` WRITE;
-/*!40000 ALTER TABLE `user_access_sessions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user_access_sessions` ENABLE KEYS */;
+LOCK TABLES `access_sessions` WRITE;
+/*!40000 ALTER TABLE `access_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `access_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -54,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 21:06:56
+-- Dump completed on 2026-10-13 21:54:34

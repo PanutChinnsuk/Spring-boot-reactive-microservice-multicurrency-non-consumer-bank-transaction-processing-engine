@@ -41,4 +41,10 @@ public class CustomerUserActivationCode extends UUIDBasedStringEntity {
         this.revoked = false;
         setInsert();
     }
+
+
+    public CustomerUserActivationCode revoke() {
+        this.revoked = true;
+        return this;
+    }
 }
