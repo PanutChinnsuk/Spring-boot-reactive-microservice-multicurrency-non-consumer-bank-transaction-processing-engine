@@ -1,7 +1,9 @@
 package com.panut.centralbanking.customerservice.application.customeruseractivationcode.implement;
 
 import com.panut.centralbanking.appcore.common.response.CommonResult;
+import com.panut.centralbanking.customerservice.api.response.UserDefaultPasswordData;
 import com.panut.centralbanking.customerservice.application.CodeGenerator;
+import com.panut.centralbanking.customerservice.application.CustomerDefaultPasswordGenerator;
 import com.panut.centralbanking.customerservice.application.customer.CustomerRepositoryManager;
 import com.panut.centralbanking.customerservice.application.customer.query.CustomerQuery;
 import com.panut.centralbanking.customerservice.application.customerprofile.query.CustomerProfileQuery;
@@ -29,6 +31,7 @@ implements CustomerUserActivationCodeService {
     private final CustomerUserActivationCodeQuery userActivationCodeQuery;
     private final CustomerRepositoryManager customerRepositoryManager;
     private final CustomerProfileQuery customerProfileQuery;
+    private final CustomerDefaultPasswordGenerator defaultPassword;
 
     public CustomerUserActivationCodeServiceImpl(CustomerUserActivationCodeProperty property,
                                                  CodeGenerator codeGenerator,
@@ -36,7 +39,8 @@ implements CustomerUserActivationCodeService {
                                                  CustomerQuery customerQuery,
                                                  CustomerUserActivationCodeQuery userActivationCodeQuery,
                                                  CustomerRepositoryManager customerRepositoryManager,
-                                                 CustomerProfileQuery customerProfileQuery) {
+                                                 CustomerProfileQuery customerProfileQuery,
+                                                 CustomerDefaultPasswordGenerator defaultPassword) {
         this.property = property;
         this.codeGenerator = codeGenerator;
         this.repoManager = repoManager;
@@ -44,6 +48,7 @@ implements CustomerUserActivationCodeService {
         this.userActivationCodeQuery = userActivationCodeQuery;
         this.customerRepositoryManager = customerRepositoryManager;
         this.customerProfileQuery = customerProfileQuery;
+        this.defaultPassword = defaultPassword;
     }
 
     @Override
@@ -85,26 +90,45 @@ implements CustomerUserActivationCodeService {
 
 
     @Override
-    public Mono<CommonResult<String>> consumeValidCode(final String customerId,
-                                               final String code,
-                                               final String userId) {
+    public Mono<CommonResult<UserDefaultPasswordData>> getCode(final String customerId,
+                                                               final String code) {
+        return userActivationCodeQuery.findValid(customerId, code)
+                .then(customerQuery.findGeneric(customerId))
+                .flatMap(customer ->
+                        customerProfileQuery.findGeneric(customerId))
+                .map(profile ->
+                    new CommonResult<>("Get default data for user.",
+                            new UserDefaultPasswordData(
+                                    profile.getFirstname(),
+                                    profile.getLastname(),
+                                    defaultPassword.simple(profile.getCitizenId())
+                            )))
+                .onErrorResume(error -> {
+                    String errMsg = error.getLocalizedMessage();
+                    log.error("Failed to consume customer activation code: {}", errMsg);
+
+                    return Mono.just(new CommonResult<>(false, errMsg));
+                });
+    }
+
+    @Override
+    public Mono<CommonResult> consume(final String customerId,
+                                      final String code,
+                                      final String userId) {
         return userActivationCodeQuery.findValid(customerId, code)
                 .flatMap(activationCode -> activationCode
                         .revoke()
                         .then(repoManager.save(activationCode)))
                 .then(customerQuery.findGeneric(customerId))
                 .flatMap(customer -> customer.activateWithUser(userId)
-                        .then(customerRepositoryManager.save(customer))
-                        .then(customerProfileQuery.findGeneric(customerId))
-                )
-                .map(profile ->
-                    new CommonResult<>("Successfully applied user data to customer.",
-                            profile.getCitizenId()))
+                        .then(customerRepositoryManager.save(customer)))
+                .thenReturn(CommonResult.defaultSuccess("Successfully consumed" +
+                        " user activation code."))
                 .onErrorResume(error -> {
                     String errMsg = error.getLocalizedMessage();
                     log.error("Failed to consume customer activation code: {}", errMsg);
 
-                    return Mono.just(new CommonResult<>(false, errMsg));
+                    return Mono.just(CommonResult.defaultFailed(errMsg));
                 });
     }
 }

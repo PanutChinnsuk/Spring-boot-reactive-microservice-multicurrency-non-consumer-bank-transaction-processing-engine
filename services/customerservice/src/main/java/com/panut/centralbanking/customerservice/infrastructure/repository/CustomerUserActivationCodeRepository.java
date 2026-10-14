@@ -24,6 +24,8 @@ public interface CustomerUserActivationCodeRepository extends ReactiveCrudReposi
     Mono<Void> revokeAll(@Param("customerId")String customerId,
                          @Param("currentTimestamp")LocalDateTime currentTimestamp);
 
+    Mono<CustomerUserActivationCode> findByCustomerIdAndCode(String customerId,
+                                                             String code);
 
     @Query("""
             SELECT c.* FROM customer_user_activation_codes c

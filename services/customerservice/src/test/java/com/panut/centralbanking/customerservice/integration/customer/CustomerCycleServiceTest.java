@@ -5,6 +5,7 @@ import com.panut.centralbanking.customerservice.api.data.CustomerEmailCreateData
 import com.panut.centralbanking.customerservice.api.data.CustomerPhoneCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerProfileCreateData;
 import com.panut.centralbanking.customerservice.api.response.CustomerCreatedData;
+import com.panut.centralbanking.customerservice.api.response.UserDefaultPasswordData;
 import com.panut.centralbanking.customerservice.application.customer.service.CustomerCreateService;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
@@ -49,6 +50,7 @@ public class CustomerCycleServiceTest implements IntegrationDev {
 
     private AtomicReference<String> parentId = new AtomicReference<>();
     private AtomicReference<String> defaultCustomerTypeId = new AtomicReference<>();
+    private AtomicReference<CustomerProfileCreateData> customerProfileCreateData = new AtomicReference<>();
     private AtomicReference<String> userActivationCodeId = new AtomicReference<>();
     private AtomicReference<String> userActivationCode = new AtomicReference<>();
     private String citizenId = "11111111111111";
@@ -101,6 +103,7 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         profileData.setLastname("lastname");
         profileData.setGender(Gender.MALE);
         profileData.setCitizenId(citizenId);
+        this.customerProfileCreateData.set(profileData);
 
         CommonResult<CustomerCreatedData> result = customerCreateService.createCustomer(
                 phoneData,
@@ -169,16 +172,37 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         String code = this.userActivationCode.get();
         String codeId = this.userActivationCodeId.get();
         String userId = IntegrationTestReference.TEST_USER_ID;
+        CustomerProfileCreateData fromProfile = this.customerProfileCreateData.get();
 
-        Assertions.assertNotNull(customerId, "customerId != null");
-        Assertions.assertNotNull(code, "code != null");
-        Assertions.assertNotNull(codeId, "codeId != null");
+        Assertions.assertNotNull(customerId, "customerId == null");
+        Assertions.assertNotNull(code, "code == null");
+        Assertions.assertNotNull(codeId, "codeId == null");
+        Assertions.assertNotNull(fromProfile, "fromProfile == null");
 
-        CommonResult result = activationCodeService
-                .consumeValidCode(customerId, code, userId).block();
+        CommonResult<UserDefaultPasswordData> data = activationCodeService
+                .getCode(customerId, code).block();
+        UserDefaultPasswordData body = data.getOptionalBody();
 
-        Assertions.assertTrue(result.isSuccess(), "result.isSuccess != true");
-        Assertions.assertEquals(citizenId, result.getOptionalBody());
+        Assertions.assertTrue(data.isSuccess(), "result.isSuccess != true");
+        Assertions.assertNotNull(body.getDefaultPassword(), "body.getDefaultPassword() == null");
+        Assertions.assertEquals(fromProfile.getFirstname(),
+                body.getFirstname(),
+                "fromProfile.getFirstname != body.getFirstname");
+        Assertions.assertEquals(fromProfile.getFirstname(),
+                body.getFirstname(),
+                "fromProfile.getLastname != body.getLastname");
+
+        CommonResult consumed = activationCodeService.consume(
+                customerId, code, userId).block();
+
+
+
+        Customer customer = customerRepository.findById(customerId).block();
+        Assertions.assertEquals(CustomerStatus.ACTIVE_WITH_USER,
+                customer.getCustomerStatus(), "customer.getCustomerStatus " +
+                        "!= CustomerStatus.ACTIVE_WITH_USER");
+        Assertions.assertEquals(userId, customer.getUserId(),
+                "userId != customer.getUserId.");
 
         Assertions.assertTrue(
                 customerUserActivationCodeRepository
@@ -187,13 +211,6 @@ public class CustomerCycleServiceTest implements IntegrationDev {
                         .getRevoked(), "Assert customerUserActivationCode.revoked" +
                         " != true."
         );
-
-        Customer customer = customerRepository.findById(customerId).block();
-        Assertions.assertEquals(CustomerStatus.ACTIVE_WITH_USER,
-                customer.getCustomerStatus(), "customer.getCustomerStatus " +
-                        "!= CustomerStatus.ACTIVE_WITH_USER");
-        Assertions.assertEquals(userId, customer.getUserId(),
-                "userId != customer.getUserId.");
 
 
     }

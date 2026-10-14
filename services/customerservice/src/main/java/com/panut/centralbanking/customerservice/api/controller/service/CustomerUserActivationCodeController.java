@@ -4,6 +4,8 @@ import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.CustomerService;
 import com.panut.centralbanking.customerservice.api.request.ActivateUserRequest;
+import com.panut.centralbanking.customerservice.api.request.GetUserActivationCodeRequest;
+import com.panut.centralbanking.customerservice.api.response.UserDefaultPasswordData;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,11 +24,19 @@ public class CustomerUserActivationCodeController {
     }
 
 
-    @PostMapping(CustomerService.ACTIVATE_USER_METHOD)
-    public Mono<CommonResult<String>> activateUser(@RequestBody
-                                           @Valid ActivateUserRequest r) {
+    @PostMapping(CustomerService.GET_ACTIVATION_CODE_METHOD)
+    public Mono<CommonResult<UserDefaultPasswordData>> getActivationCode(
+            @RequestBody @Valid GetUserActivationCodeRequest r) {
         return customerUserActivationCodeService
-                .consumeValidCode(r.getCustomerId(),
+                .getCode(r.getCustomerId(),
+                        r.getCode());
+    }
+
+    @PostMapping(CustomerService.ACTIVATE_USER_METHOD)
+    public Mono<CommonResult> activateUser(
+            @RequestBody @Valid ActivateUserRequest r) {
+        return customerUserActivationCodeService
+                .consume(r.getCustomerId(),
                         r.getCode(),
                         r.getUserId());
     }

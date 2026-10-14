@@ -21,6 +21,7 @@ public class CustomerUserActivationCodeQuery {
 
 
 
+
     public Mono<CustomerUserActivationCode> findValid(String customerId,
                                                       String code) {
         return customerUserActivationCodeRepository.findValid(customerId, code,
