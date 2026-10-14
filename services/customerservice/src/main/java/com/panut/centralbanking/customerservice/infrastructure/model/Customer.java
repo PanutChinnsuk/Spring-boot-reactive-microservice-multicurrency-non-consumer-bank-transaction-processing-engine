@@ -34,8 +34,8 @@ public class Customer extends UUIDBasedStringEntity {
     public Mono<Customer> activateWithUser(String userId) {
        return Mono.defer(() -> {
            if (this.userId != null)
-               return Mono.error(() -> new IllegalStateException("Customer's user id " +
-                       "is already set."));
+               return Mono.error(() -> new IllegalStateException("Customer is already" +
+                       " activated with user."));
 
            this.userId = userId;
            this.customerStatus = CustomerStatus.ACTIVE_WITH_USER;
