@@ -1,5 +1,6 @@
 package com.panut.centralbanking.customerservice.application.customer.implement;
 
+import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.customerservice.api.data.CustomerEmailCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerPhoneCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerProfileCreateData;
@@ -10,43 +11,45 @@ import com.panut.centralbanking.customerservice.application.customeremail.servic
 import com.panut.centralbanking.customerservice.application.customerphone.service.CustomerPhoneCreateService;
 import com.panut.centralbanking.customerservice.application.customerprofile.service.CustomerProfileCreateService;
 import com.panut.centralbanking.customerservice.application.customertype.service.CustomerTypeCreateService;
-import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeCreateService;
+import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
 import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
+@Transactional(propagation = Propagation.REQUIRED)
 public class CustomerCreateServiceImpl implements CustomerCreateService {
     private final CustomerProfileCreateService customerProfileCreateService;
     private final CustomerEmailCreateService customerEmailCreateService;
     private final CustomerPhoneCreateService customerPhoneCreateService;
     private final CustomerTypeCreateService customerTypeCreateService;
     private final CustomerRepositoryManager customerRepositoryManager;
-    private final CustomerUserActivationCodeCreateService customerUserActivationCodeCreateService;
+    private final CustomerUserActivationCodeService customerUserActivationCodeService;
 
     public CustomerCreateServiceImpl(CustomerProfileCreateService customerProfileCreateService,
                                      CustomerEmailCreateService customerEmailCreateService,
                                      CustomerPhoneCreateService customerPhoneCreateService,
                                      CustomerTypeCreateService customerTypeCreateService,
                                      CustomerRepositoryManager customerRepositoryManager,
-                                     CustomerUserActivationCodeCreateService customerUserActivationCodeCreateService) {
+                                     CustomerUserActivationCodeService customerUserActivationCodeService) {
         this.customerProfileCreateService = customerProfileCreateService;
         this.customerEmailCreateService = customerEmailCreateService;
         this.customerPhoneCreateService = customerPhoneCreateService;
         this.customerTypeCreateService = customerTypeCreateService;
         this.customerRepositoryManager = customerRepositoryManager;
-        this.customerUserActivationCodeCreateService = customerUserActivationCodeCreateService;
+        this.customerUserActivationCodeService = customerUserActivationCodeService;
     }
 
 
     @Override
-    public Mono<CustomerCreatedData> createCustomer(CustomerPhoneCreateData phoneData,
-                                         CustomerEmailCreateData emailData,
-                                         CustomerProfileCreateData profileData) {
+    public Mono<CommonResult<CustomerCreatedData>> createCustomer(CustomerPhoneCreateData phoneData,
+                                             CustomerEmailCreateData emailData,
+                                             CustomerProfileCreateData profileData) {
         return customerRepositoryManager.save(
                 Customer.builder()
                         .customerStatus(CustomerStatus.ACTIVE_NO_USER)
@@ -66,13 +69,20 @@ public class CustomerCreateServiceImpl implements CustomerCreateService {
                         .addDefault(data.getCustomerId())
                         .flatMap(customerType -> data
                                 .customerType(customerType)))
-                .flatMap(data -> customerUserActivationCodeCreateService
+                .flatMap(data -> customerUserActivationCodeService
                         .createCode(data.getCustomerId())
                         .flatMap(activationCode -> data
                                 .customerUserActivationCode(activationCode)))
+                .map(data -> new CommonResult<CustomerCreatedData>(
+                        "Successfully created customer.", data))
                 .doOnSuccess(a -> log.info("Created customer."))
-                .doOnError(error -> log.error("Failed to create customer:" +
-                        " {}", error.getLocalizedMessage()));
+                .onErrorResume(error -> {
+                    String errMsg = error.getLocalizedMessage();
+                    log.error("Failed to create customer:" +
+                            " {}", errMsg);
+
+                    return Mono.just(new CommonResult<>(false, errMsg));
+                });
 
 
     }

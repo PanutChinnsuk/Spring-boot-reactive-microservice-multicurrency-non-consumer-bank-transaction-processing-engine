@@ -5,6 +5,7 @@ import com.panut.centralbanking.customerservice.core.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -12,7 +13,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 
 @Table("customer_profiles")
-@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class CustomerProfile extends UUIDBasedStringEntity {
     @Column("firstname")

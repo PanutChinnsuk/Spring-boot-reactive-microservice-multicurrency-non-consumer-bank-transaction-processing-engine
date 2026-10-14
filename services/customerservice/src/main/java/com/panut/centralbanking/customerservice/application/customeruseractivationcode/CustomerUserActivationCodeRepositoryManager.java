@@ -5,6 +5,8 @@ import com.panut.centralbanking.customerservice.infrastructure.repository.Custom
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 @Component
 public class CustomerUserActivationCodeRepositoryManager {
     private final CustomerUserActivationCodeRepository customerUserActivationCodeRepository;
@@ -18,5 +20,13 @@ public class CustomerUserActivationCodeRepositoryManager {
     public Mono<CustomerUserActivationCode> save(CustomerUserActivationCode customerUserActivationCode) {
         return customerUserActivationCodeRepository.save(customerUserActivationCode);
     }
+
+
+    public Mono<Void> revokeAllOfCustomer(String customerId) {
+        return customerUserActivationCodeRepository
+                .revokeAll(customerId, LocalDateTime.now());
+    }
+
+
 
 }

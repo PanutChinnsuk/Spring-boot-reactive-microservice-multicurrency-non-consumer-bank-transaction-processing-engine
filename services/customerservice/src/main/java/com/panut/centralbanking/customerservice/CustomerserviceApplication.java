@@ -24,12 +24,14 @@ import org.springframework.boot.security.autoconfigure.ReactiveUserDetailsServic
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication(exclude = {
 		UserDetailsServiceAutoConfiguration.class,
 		ReactiveUserDetailsServiceAutoConfiguration.class
 })
+@EnableScheduling
 public class CustomerserviceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerserviceApplication.class, args);

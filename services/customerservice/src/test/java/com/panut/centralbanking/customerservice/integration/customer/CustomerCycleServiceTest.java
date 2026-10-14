@@ -1,23 +1,28 @@
 package com.panut.centralbanking.customerservice.integration.customer;
 
+import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.customerservice.api.data.CustomerEmailCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerPhoneCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerProfileCreateData;
 import com.panut.centralbanking.customerservice.api.response.CustomerCreatedData;
 import com.panut.centralbanking.customerservice.application.customer.service.CustomerCreateService;
+import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
+import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
 import com.panut.centralbanking.customerservice.core.enums.Gender;
+import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
+import com.panut.centralbanking.customerservice.infrastructure.model.CustomerUserActivationCode;
 import com.panut.centralbanking.customerservice.infrastructure.repository.*;
 import com.panut.centralbanking.customerservice.integration.IntegrationDev;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import com.panut.centralbanking.customerservice.integration.IntegrationTestReference;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class CustomerCreateServiceTest implements IntegrationDev {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class CustomerCycleServiceTest implements IntegrationDev {
     @Autowired
     private CustomerCreateService customerCreateService;
 
@@ -39,10 +44,13 @@ public class CustomerCreateServiceTest implements IntegrationDev {
     @Autowired
     private CustomerUserActivationCodeRepository customerUserActivationCodeRepository;
 
+    @Autowired
+    private CustomerUserActivationCodeService activationCodeService;
+
     private AtomicReference<String> parentId = new AtomicReference<>();
     private AtomicReference<String> defaultCustomerTypeId = new AtomicReference<>();
     private AtomicReference<String> userActivationCodeId = new AtomicReference<>();
-
+    private AtomicReference<String> userActivationCode = new AtomicReference<>();
 
 
     @AfterAll
@@ -66,12 +74,10 @@ public class CustomerCreateServiceTest implements IntegrationDev {
             customerProfileRepository.deleteById(parentId).block();
             customerRepository.deleteById(parentId).block();
         }
-
-
-
     }
 
     @Test
+    @Order(1)
     public void shouldCreateUser() {
         CustomerEmailCreateData emailData = new CustomerEmailCreateData();
         CustomerPhoneCreateData phoneData = new CustomerPhoneCreateData();
@@ -86,10 +92,13 @@ public class CustomerCreateServiceTest implements IntegrationDev {
         profileData.setLastname("lastname");
         profileData.setGender(Gender.MALE);
 
-        CustomerCreatedData created = customerCreateService.createCustomer(
+        CommonResult<CustomerCreatedData> result = customerCreateService.createCustomer(
                 phoneData,
                 emailData,
                 profileData).block();
+
+        CustomerCreatedData created = result.getOptionalBody();
+        Assertions.assertNotNull(created);
 
         String parentId = created.getCustomerId();
         Assertions.assertNotNull(parentId);
@@ -121,6 +130,47 @@ public class CustomerCreateServiceTest implements IntegrationDev {
         this.parentId.set(parentId);
         this.defaultCustomerTypeId.set(created.getCustomerTypeId());
         this.userActivationCodeId.set(created.getCustomerUserActivationCodeId());
+        this.userActivationCode.set(created.getCustomerUserActivationCode());
+
+
+
+    }
+
+    @Test
+    @Order(2)
+    public void shouldConsumedAndAppliedUser() {
+        String customerId = this.parentId.get();
+        String code = this.userActivationCode.get();
+        String codeId = this.userActivationCodeId.get();
+        String userId = IntegrationTestReference.TEST_USER_ID;
+
+        Assertions.assertNotNull(customerId, "customerId != null");
+        Assertions.assertNotNull(code, "code != null");
+        Assertions.assertNotNull(codeId, "codeId != null");
+
+
+
+
+        CommonResult result = activationCodeService
+                .consumeValidCode(customerId, code, userId).block();
+
+        Assertions.assertTrue(result.isSuccess(), "result.isSuccess != true");
+
+        Assertions.assertTrue(
+                customerUserActivationCodeRepository
+                        .findById(codeId)
+                        .block()
+                        .getRevoked(), "Assert customerUserActivationCode.revoked" +
+                        " != true."
+        );
+
+        Customer customer = customerRepository.findById(customerId).block();
+        Assertions.assertEquals(CustomerStatus.ACTIVE_WITH_USER,
+                customer.getCustomerStatus(), "customer.getCustomerStatus " +
+                        "!= CustomerStatus.ACTIVE_WITH_USER");
+        Assertions.assertEquals(userId, customer.getUserId(),
+                "userId != customer.getUserId.");
+
 
     }
 

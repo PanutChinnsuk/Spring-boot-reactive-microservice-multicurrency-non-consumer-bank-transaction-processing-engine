@@ -31,13 +31,16 @@ public class Customer extends UUIDBasedStringEntity {
         setInsert();
     }
 
-    public Customer activateWithUser(String userId) {
-        if (userId != null) throw new IllegalStateException("Customer's user id " +
-                "is already set.");
+    public Mono<Customer> activateWithUser(String userId) {
+       return Mono.defer(() -> {
+           if (this.userId != null)
+               return Mono.error(() -> new IllegalStateException("Customer's user id " +
+                       "is already set."));
 
-        this.userId = userId;
-        this.customerStatus = CustomerStatus.ACTIVE_WITH_USER;
+           this.userId = userId;
+           this.customerStatus = CustomerStatus.ACTIVE_WITH_USER;
 
-        return this;
+           return Mono.just(this);
+       });
     }
 }
