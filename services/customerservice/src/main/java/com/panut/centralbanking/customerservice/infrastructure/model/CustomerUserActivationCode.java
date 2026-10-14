@@ -1,6 +1,7 @@
 package com.panut.centralbanking.customerservice.infrastructure.model;
 
 import com.panut.centralbanking.appR2dbccore.persistence.UUIDBasedStringEntity;
+import com.panut.centralbanking.appR2dbccore.persistence.VersionedUUIDStringEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Table("customer_user_activation_codes")
 @NoArgsConstructor
 @Getter
-public class CustomerUserActivationCode extends UUIDBasedStringEntity {
+public class CustomerUserActivationCode extends VersionedUUIDStringEntity {
     @Column("customer_id")
     private String customerId;
 
@@ -28,9 +29,6 @@ public class CustomerUserActivationCode extends UUIDBasedStringEntity {
     @Column("revoked")
     private Boolean revoked;
 
-    @Version
-    @Column("version")
-    private Long version;
 
 
 

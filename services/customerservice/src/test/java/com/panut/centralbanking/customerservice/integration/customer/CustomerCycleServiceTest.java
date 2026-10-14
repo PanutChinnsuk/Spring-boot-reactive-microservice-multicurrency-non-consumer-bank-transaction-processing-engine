@@ -101,37 +101,49 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         Assertions.assertNotNull(created);
 
         String parentId = created.getCustomerId();
-        Assertions.assertNotNull(parentId);
-        Assertions.assertEquals(parentId, created.getEmailParentId());
-        Assertions.assertEquals(parentId, created.getPhoneParentId());
-        Assertions.assertEquals(parentId, created.getProfileParentId());
-        Assertions.assertEquals(parentId, created.getCustomerTypeParentId());
+        Assertions.assertNotNull(parentId, "parentId == null");
+        Assertions.assertEquals(parentId, created.getEmailParentId()
+                , "parentId != created.getEmailParentId()");
+        Assertions.assertEquals(parentId, created.getPhoneParentId(),
+                "parentId != created.getPhoneParentId()");
+        Assertions.assertEquals(parentId, created.getProfileParentId(),
+                "parentId != created.getProfileParentId()");
+        Assertions.assertEquals(parentId, created.getCustomerTypeParentId(),
+                "parentId != created.getCustomerTypeParentId()");
 
-        Assertions.assertNotNull(created.getUserId());
-        Assertions.assertNotNull(created.getCustomerStatus());
+        Assertions.assertNotNull(created.getUserId(), "created.getUserId() == null");
+        Assertions.assertNotNull(created.getCustomerStatus(), "created.getCustomerStatus() == null");
 
-        Assertions.assertNotNull(created.getEmail());
-        Assertions.assertNotNull(created.getVerifiedEmail());
+        Assertions.assertNotNull(created.getEmail(), "created.getEmail() == null");
+        Assertions.assertNotNull(created.getVerifiedEmail(), "created.getVerifiedEmail() == null");
 
-        Assertions.assertNotNull(created.getPhone());
-        Assertions.assertNotNull(created.getVerifiedPhone());
+        Assertions.assertNotNull(created.getPhone(), "created.getPhone() == null");
+        Assertions.assertNotNull(created.getVerifiedPhone(), "created.getVerifiedPhone() == null");
 
-        Assertions.assertNotNull(created.getFirstname());
-        Assertions.assertNotNull(created.getLastname());
-        Assertions.assertNotNull(created.getAge());
-        Assertions.assertNotNull(created.getAddress());
-        Assertions.assertNotNull(created.getGender());
+        Assertions.assertNotNull(created.getFirstname(), "created.getFirstname() == null");
+        Assertions.assertNotNull(created.getLastname(), "created.getLastname() == null");
+        Assertions.assertNotNull(created.getAge(), "created.getAge() == null");
+        Assertions.assertNotNull(created.getAddress(), "created.getAddress() == null");
+        Assertions.assertNotNull(created.getGender(), "created.getGender() == null");
 
-        Assertions.assertNotNull(created.getCustomerTypeId());
+        Assertions.assertNotNull(created.getCustomerTypeId(), "created.getCustomerTypeId() == null");
 
-        Assertions.assertNotNull(created.getCustomerUserActivationCodeId());
-        Assertions.assertNotNull(created.getCustomerUserActivationCode());
+        Assertions.assertNotNull(created.getCustomerUserActivationCodeId(), "created.getCustomerUserActivationCodeId() == null");
+        Assertions.assertNotNull(created.getCustomerUserActivationCode(), "created.getCustomerUserActivationCode() == null");
 
         this.parentId.set(parentId);
         this.defaultCustomerTypeId.set(created.getCustomerTypeId());
         this.userActivationCodeId.set(created.getCustomerUserActivationCodeId());
         this.userActivationCode.set(created.getCustomerUserActivationCode());
 
+        Customer customer = customerRepository
+                .findById(parentId).block();
+        Assertions.assertEquals(0L,customer.getVersion(), "Customer.getVersion() != 0");
+
+
+        Assertions.assertEquals(1L, customerRepository
+                .save(customer.changeCustomerStatus(CustomerStatus.ACTIVE_WITH_USER)
+                        .block()).block().getVersion());
 
 
     }

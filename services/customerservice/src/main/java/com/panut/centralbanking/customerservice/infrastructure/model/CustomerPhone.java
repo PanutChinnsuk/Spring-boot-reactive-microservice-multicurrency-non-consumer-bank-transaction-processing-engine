@@ -1,6 +1,7 @@
 package com.panut.centralbanking.customerservice.infrastructure.model;
 
 import com.panut.centralbanking.appR2dbccore.persistence.UUIDBasedStringEntity;
+import com.panut.centralbanking.appR2dbccore.persistence.VersionedUUIDStringEntity;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -17,16 +18,14 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("customer_phones")
 @Getter
 @NoArgsConstructor
-public class CustomerPhone extends UUIDBasedStringEntity {
+public class CustomerPhone extends VersionedUUIDStringEntity {
     @Column("phone")
     private String phone;
 
     @Column("verified")
     private Boolean verified;
 
-    @Version
-    @Column("version")
-    private Long version;
+
 
 
 
