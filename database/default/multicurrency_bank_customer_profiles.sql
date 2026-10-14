@@ -29,6 +29,7 @@ CREATE TABLE `customer_profiles` (
   `address` varchar(255) NOT NULL,
   `age` int NOT NULL,
   `gender` varchar(45) NOT NULL,
+  `citizen_id` varchar(100) NOT NULL,
   `version` bigint NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `customer_id_UNIQUE` (`id`),
@@ -54,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-13 21:54:33
+-- Dump completed on 2026-10-14 21:24:32

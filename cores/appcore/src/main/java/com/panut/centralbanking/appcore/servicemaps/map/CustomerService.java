@@ -10,4 +10,8 @@ public class CustomerService {
     public static final String ACTIVATE_USER_METHOD = "/activate-user";
     public static final String ACTIVATE_USER_FULL_PATH = FullPath.loadBalancedOf(
             ID, ACTIVATE_USER_METHOD);
+
+    public static final String GET_ACTIVATION_CODE_METHOD = "/get-activation-user-code";
+    public static final String GET_ACTIVATION_CODE_FULL_PATH = FullPath.loadBalancedOf(
+            ID, GET_ACTIVATION_CODE_METHOD);
 }

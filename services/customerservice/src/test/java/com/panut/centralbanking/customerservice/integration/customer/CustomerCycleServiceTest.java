@@ -53,7 +53,7 @@ public class CustomerCycleServiceTest implements IntegrationDev {
     private AtomicReference<CustomerProfileCreateData> customerProfileCreateData = new AtomicReference<>();
     private AtomicReference<String> userActivationCodeId = new AtomicReference<>();
     private AtomicReference<String> userActivationCode = new AtomicReference<>();
-    private String citizenId = "11111111111111";
+
 
 
     private void cleanNonCustomerParent(String parentId) {
@@ -86,10 +86,6 @@ public class CustomerCycleServiceTest implements IntegrationDev {
     @Test
     @Order(1)
     public void shouldCreateUser() {
-        String preCreatedParentId = customerProfileRepository
-                .findIdByCitizenId(citizenId).block();
-        if (preCreatedParentId != null) cleanNonCustomerParent(preCreatedParentId);
-
         CustomerEmailCreateData emailData = new CustomerEmailCreateData();
         CustomerPhoneCreateData phoneData = new CustomerPhoneCreateData();
         CustomerProfileCreateData profileData = new CustomerProfileCreateData();
@@ -102,7 +98,7 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         profileData.setFirstname("firstname");
         profileData.setLastname("lastname");
         profileData.setGender(Gender.MALE);
-        profileData.setCitizenId(citizenId);
+        profileData.setCitizenId("citIdzen");
         this.customerProfileCreateData.set(profileData);
 
         CommonResult<CustomerCreatedData> result = customerCreateService.createCustomer(
@@ -188,8 +184,8 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         Assertions.assertEquals(fromProfile.getFirstname(),
                 body.getFirstname(),
                 "fromProfile.getFirstname != body.getFirstname");
-        Assertions.assertEquals(fromProfile.getFirstname(),
-                body.getFirstname(),
+        Assertions.assertEquals(fromProfile.getLastname(),
+                body.getLastname(),
                 "fromProfile.getLastname != body.getLastname");
 
         CommonResult consumed = activationCodeService.consume(

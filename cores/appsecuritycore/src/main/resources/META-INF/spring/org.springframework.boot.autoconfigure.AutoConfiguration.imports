@@ -2,3 +2,4 @@ com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureAutoConfig
 com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureFilterAutoConfiguration
 com.panut.centralbanking.appsecuritycore.autoconfig.PrimarySignatureSecretKeyAutoConfiguration
 com.panut.centralbanking.appsecuritycore.autoconfig.UserAuthorityFilterAutoConfiguration
+com.panut.centralbanking.appsecuritycore.autoconfig.EncoderAutoConfiguration

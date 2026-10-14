@@ -42,6 +42,7 @@ CREATE TABLE `customer_user_activation_codes` (
 
 LOCK TABLES `customer_user_activation_codes` WRITE;
 /*!40000 ALTER TABLE `customer_user_activation_codes` DISABLE KEYS */;
+INSERT INTO `customer_user_activation_codes` VALUES ('e9474ca5-386b-4c47-845c-f0981b724c7f','50595975-8c2e-458c-8b0f-322ba8718789','709199','2026-10-14 13:04:57',0,0);
 /*!40000 ALTER TABLE `customer_user_activation_codes` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-13 21:54:31
+-- Dump completed on 2026-10-14 21:24:32
