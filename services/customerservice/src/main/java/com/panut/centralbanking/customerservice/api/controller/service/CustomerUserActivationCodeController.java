@@ -23,7 +23,7 @@ public class CustomerUserActivationCodeController {
 
 
     @PostMapping(CustomerService.ACTIVATE_USER_METHOD)
-    public Mono<CommonResult> activateUser(@RequestBody
+    public Mono<CommonResult<String>> activateUser(@RequestBody
                                            @Valid ActivateUserRequest r) {
         return customerUserActivationCodeService
                 .consumeValidCode(r.getCustomerId(),

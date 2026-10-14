@@ -8,7 +8,7 @@ public interface CustomerUserActivationCodeService {
     Mono<CustomerUserActivationCode> createCode(String customerId);
     Mono<CommonResult> renewCode(String customerId);
     Mono<CommonResult> revoke(String customerId);
-    Mono<CommonResult> consumeValidCode(String customerId,
+    Mono<CommonResult<String>> consumeValidCode(String customerId,
                                                String code,
                                                String userId);
 }

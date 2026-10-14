@@ -35,4 +35,7 @@ public class CustomerProfileCreateData {
     @NotNull
     private Gender gender;
 
+    @NotBlank
+    private String citizenId;
+
 }

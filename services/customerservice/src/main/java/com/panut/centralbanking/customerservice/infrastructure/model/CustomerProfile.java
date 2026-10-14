@@ -32,6 +32,9 @@ public class CustomerProfile extends VersionedUUIDStringEntity {
     @Column("gender")
     private Gender gender;
 
+    @Column("citizen_id")
+    private String citizenId;
+
 
 
     @Builder
@@ -40,12 +43,14 @@ public class CustomerProfile extends VersionedUUIDStringEntity {
                            String lastname,
                            String address,
                            Integer age,
-                           Gender gender) {
+                           Gender gender,
+                           String citizenId) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.address = address;
         this.age = age;
         this.gender = gender;
+        this.citizenId = citizenId;
         setInsert(customerId);
     }
 }

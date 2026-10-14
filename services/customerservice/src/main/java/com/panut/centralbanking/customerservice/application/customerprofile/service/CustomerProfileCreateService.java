@@ -27,6 +27,7 @@ public class CustomerProfileCreateService {
                         .age(data.getAge())
                         .address(data.getAddress())
                         .gender(data.getGender())
+                        .citizenId(data.getCitizenId())
                         .build())
                 .doOnSuccess(a -> log.info("Created customer profile."))
                 .doOnError(error -> log.error("Failed to create" +

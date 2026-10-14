@@ -37,6 +37,7 @@ public class CustomerCreatedData {
     private String address;
     private Integer age;
     private Gender gender;
+    private String citizenid;
 
     private String customerTypeId;
     private String customerTypeParentId;
@@ -92,6 +93,7 @@ public class CustomerCreatedData {
             this.address = customerProfile.getAddress();
             this.age = customerProfile.getAge();;
             this.gender = customerProfile.getGender();
+            this.citizenid = customerProfile.getCitizenId();
 
             return Mono.just(this);
         });

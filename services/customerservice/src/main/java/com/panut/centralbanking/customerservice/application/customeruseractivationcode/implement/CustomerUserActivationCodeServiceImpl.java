@@ -4,10 +4,12 @@ import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.customerservice.application.CodeGenerator;
 import com.panut.centralbanking.customerservice.application.customer.CustomerRepositoryManager;
 import com.panut.centralbanking.customerservice.application.customer.query.CustomerQuery;
+import com.panut.centralbanking.customerservice.application.customerprofile.query.CustomerProfileQuery;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.CustomerUserActivationCodeRepositoryManager;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.query.CustomerUserActivationCodeQuery;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
 import com.panut.centralbanking.customerservice.application.property.CustomerUserActivationCodeProperty;
+import com.panut.centralbanking.customerservice.infrastructure.model.CustomerProfile;
 import com.panut.centralbanking.customerservice.infrastructure.model.CustomerUserActivationCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,19 +28,22 @@ implements CustomerUserActivationCodeService {
     private final CustomerQuery customerQuery;
     private final CustomerUserActivationCodeQuery userActivationCodeQuery;
     private final CustomerRepositoryManager customerRepositoryManager;
+    private final CustomerProfileQuery customerProfileQuery;
 
     public CustomerUserActivationCodeServiceImpl(CustomerUserActivationCodeProperty property,
                                                  CodeGenerator codeGenerator,
                                                  CustomerUserActivationCodeRepositoryManager repoManager,
                                                  CustomerQuery customerQuery,
                                                  CustomerUserActivationCodeQuery userActivationCodeQuery,
-                                                 CustomerRepositoryManager customerRepositoryManager) {
+                                                 CustomerRepositoryManager customerRepositoryManager,
+                                                 CustomerProfileQuery customerProfileQuery) {
         this.property = property;
         this.codeGenerator = codeGenerator;
         this.repoManager = repoManager;
         this.customerQuery = customerQuery;
         this.userActivationCodeQuery = userActivationCodeQuery;
         this.customerRepositoryManager = customerRepositoryManager;
+        this.customerProfileQuery = customerProfileQuery;
     }
 
     @Override
@@ -80,25 +85,26 @@ implements CustomerUserActivationCodeService {
 
 
     @Override
-    public Mono<CommonResult> consumeValidCode(String customerId,
-                                               String code,
-                                               String userId) {
+    public Mono<CommonResult<String>> consumeValidCode(final String customerId,
+                                               final String code,
+                                               final String userId) {
         return userActivationCodeQuery.findValid(customerId, code)
                 .flatMap(activationCode -> activationCode
                         .revoke()
                         .then(repoManager.save(activationCode)))
                 .then(customerQuery.findGeneric(customerId))
                 .flatMap(customer -> customer.activateWithUser(userId)
-                        .then(customerRepositoryManager.save(customer)))
-                .thenReturn(CommonResult.defaultSuccess(
-                        "Successfully applied user data to" +
-                                " customer."
-                ))
+                        .then(customerRepositoryManager.save(customer))
+                        .then(customerProfileQuery.findGeneric(customerId))
+                )
+                .map(profile ->
+                    new CommonResult<>("Successfully applied user data to customer.",
+                            profile.getCitizenId()))
                 .onErrorResume(error -> {
                     String errMsg = error.getLocalizedMessage();
                     log.error("Failed to consume customer activation code: {}", errMsg);
 
-                    return Mono.just(CommonResult.defaultFailed(errMsg));
+                    return Mono.just(new CommonResult<>(false, errMsg));
                 });
     }
 }
