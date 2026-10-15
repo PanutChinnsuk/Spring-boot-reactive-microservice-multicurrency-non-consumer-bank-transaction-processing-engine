@@ -18,8 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 })
 @EnableScheduling
 public class CustomerserviceApplication {
-	@Autowired
-	private CustomerTypeListQuery customerTypeListQuery;
+
 
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerserviceApplication.class, args);
@@ -29,9 +28,7 @@ public class CustomerserviceApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
-			String a = customerTypeListQuery.findIdGeneric(CustomerTypeEnum.REGULAR)
-							.block();
-			System.out.println(a);
+
 
 			System.out.println("Customer service started//////////////");
 		};

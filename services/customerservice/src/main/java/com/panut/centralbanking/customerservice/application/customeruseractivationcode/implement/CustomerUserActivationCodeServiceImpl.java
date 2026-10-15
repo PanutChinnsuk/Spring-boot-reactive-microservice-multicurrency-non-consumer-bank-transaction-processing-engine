@@ -105,7 +105,7 @@ implements CustomerUserActivationCodeService {
                             )))
                 .onErrorResume(error -> {
                     String errMsg = error.getLocalizedMessage();
-                    log.error("Failed to consume customer activation code: {}", errMsg);
+                    log.error("Failed to get customer activation code: {}", errMsg);
 
                     return Mono.just(new CommonResult<>(false, errMsg));
                 });

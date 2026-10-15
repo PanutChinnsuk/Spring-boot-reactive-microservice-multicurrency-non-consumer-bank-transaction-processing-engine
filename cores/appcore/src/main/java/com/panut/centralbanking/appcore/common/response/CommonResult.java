@@ -5,6 +5,9 @@ public class CommonResult<T> {
     private boolean success;
     private String optionalMessage = "NOT DEFINED";
 
+    public CommonResult() {
+
+    }
 
     public CommonResult(boolean success) {
         this.success = success;
@@ -50,4 +53,19 @@ public class CommonResult<T> {
     public T getOptionalBody() {
         return optionalBody;
     }
+
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public void setOptionalBody(T optionalBody) {
+        this.optionalBody = optionalBody;
+    }
+
+    public void setOptionalMessage(String optionalMessage) {
+        this.optionalMessage = optionalMessage;
+    }
+
+
 }

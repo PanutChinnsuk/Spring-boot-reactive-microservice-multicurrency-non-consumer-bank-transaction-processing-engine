@@ -1,4 +1,4 @@
-package com.panut.centralbanking.customerservice.integration;
+package com.panut.centralbanking.userservice;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;

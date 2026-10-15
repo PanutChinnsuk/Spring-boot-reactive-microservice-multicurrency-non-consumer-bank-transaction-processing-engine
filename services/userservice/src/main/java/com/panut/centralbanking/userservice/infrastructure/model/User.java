@@ -24,7 +24,7 @@ public class User extends VersionedUUIDStringEntity {
 
 
     @Builder
-    public User(UserStatus userStatus) {
+    public User(String arg) {
         this.userStatus = userStatus;
         setInsert();
     }

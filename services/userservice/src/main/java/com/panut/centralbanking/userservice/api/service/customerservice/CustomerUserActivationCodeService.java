@@ -1,16 +1,19 @@
 package com.panut.centralbanking.userservice.api.service.customerservice;
 
+import com.panut.centralbanking.appcore.client.Retrieves;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.servicemaps.map.CustomerService;
 import com.panut.centralbanking.userservice.api.service.customerservice.request.ActivateUserRequest;
 import com.panut.centralbanking.userservice.api.service.customerservice.request.GetUserActivationCodeRequest;
 import com.panut.centralbanking.userservice.api.service.customerservice.response.UserDefaultPasswordData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
+@Slf4j
 public class CustomerUserActivationCodeService {
     private final WebClient webClient;
 
@@ -18,35 +21,26 @@ public class CustomerUserActivationCodeService {
         this.webClient = webClient;
     }
 
-    private <T> Mono<T> error(final CommonResult result) {
-        return Mono.error(
-                () -> new BusinessException(result.getOptionalMessage()));
-    }
 
-
-    private Mono<CommonResult> doRequest(final String fullPath,
-                                         final Object body) {
-        return webClient
-                .post()
-                .uri(fullPath)
-                .bodyValue(body)
-                .retrieve()
-                .bodyToMono(CommonResult.class)
-                .flatMap(result -> {
-                    if (!result.isSuccess()) error(result);
-                    return Mono.just(result);
-                });
-    }
+    private final String LOG_NAME = "CustomerUserActivationCodeService ";
 
     public Mono<UserDefaultPasswordData> getCode(final GetUserActivationCodeRequest body) {
-        return doRequest(CustomerService.GET_ACTIVATION_CODE_FULL_PATH, body)
+        return Retrieves.doRequest(webClient,
+                        CustomerService.GET_ACTIVATION_CODE_FULL_PATH,
+                        body,
+                        BusinessException.class,
+                        LOG_NAME + "getCode")
                 .flatMap(result ->
-                     Mono.just((UserDefaultPasswordData) result.getOptionalBody()));
+                     Mono.fromCallable(() -> (UserDefaultPasswordData) result.getOptionalBody()));
     }
 
 
     public Mono<CommonResult> consume(final ActivateUserRequest body) {
-        return doRequest(CustomerService.ACTIVATE_USER_FULL_PATH, body);
+        return Retrieves.doRequest(webClient,
+                CustomerService.ACTIVATE_USER_FULL_PATH,
+                body,
+                BusinessException.class,
+                LOG_NAME + " consume");
     }
 
 }

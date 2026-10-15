@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class GetUserActivationCodeRequest {
     private String customerId;
     private String code;

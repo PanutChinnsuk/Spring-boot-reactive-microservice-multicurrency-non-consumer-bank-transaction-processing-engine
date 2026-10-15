@@ -14,14 +14,12 @@ import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
 import com.panut.centralbanking.customerservice.core.enums.CustomerTypeEnum;
 import com.panut.centralbanking.customerservice.core.enums.Gender;
 import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
-import com.panut.centralbanking.customerservice.infrastructure.model.CustomerUserActivationCode;
 import com.panut.centralbanking.customerservice.infrastructure.repository.*;
-import com.panut.centralbanking.customerservice.integration.IntegrationDev;
+import com.panut.centralbanking.customerservice.IntegrationDev;
 import com.panut.centralbanking.customerservice.integration.IntegrationTestReference;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

@@ -1,7 +1,7 @@
 package com.panut.centralbanking.customerservice.integration.property;
 
 import com.panut.centralbanking.customerservice.application.property.CustomerUserActivationCodeProperty;
-import com.panut.centralbanking.customerservice.integration.IntegrationDev;
+import com.panut.centralbanking.customerservice.IntegrationDev;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
