@@ -92,6 +92,8 @@ public class CustomerCycleServiceTest implements IntegrationDev {
     @Test
     @Order(1)
     public void shouldCreateUser() {
+
+
         CustomerEmailCreateData emailData = new CustomerEmailCreateData();
         CustomerPhoneCreateData phoneData = new CustomerPhoneCreateData();
         CustomerProfileCreateData profileData = new CustomerProfileCreateData();

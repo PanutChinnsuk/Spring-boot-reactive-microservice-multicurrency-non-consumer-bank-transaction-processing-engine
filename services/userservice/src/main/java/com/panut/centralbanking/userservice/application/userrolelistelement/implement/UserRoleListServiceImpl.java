@@ -1,7 +1,7 @@
 package com.panut.centralbanking.userservice.application.userrolelistelement.implement;
 
 import com.panut.centralbanking.userservice.application.userrolelistelement.UserRoleListElementRepositoryManager;
-import com.panut.centralbanking.userservice.application.userrolelistelement.query.UserRoleListService;
+import com.panut.centralbanking.userservice.application.userrolelistelement.service.UserRoleListService;
 import com.panut.centralbanking.userservice.application.userrolelistelement.validate.UserRoleListPersistValidator;
 import com.panut.centralbanking.userservice.core.UserRoleEnum;
 import com.panut.centralbanking.userservice.infrastructure.model.UserRoleListElement;

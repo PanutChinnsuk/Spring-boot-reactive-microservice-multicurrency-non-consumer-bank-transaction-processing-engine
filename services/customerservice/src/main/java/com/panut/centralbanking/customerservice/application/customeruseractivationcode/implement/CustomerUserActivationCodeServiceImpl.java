@@ -78,7 +78,7 @@ implements CustomerUserActivationCodeService {
 
     @Override
     public Mono<CommonResult> renewCode(final String customerId) {
-        return customerQuery.findGeneric(customerId)
+        return customerQuery.findIdGeneric(customerId)
                 .then(createCode(customerId))
                 .map(code -> CommonResult
                         .defaultSuccess("User activation code: " + code.getCode()))
@@ -93,9 +93,9 @@ implements CustomerUserActivationCodeService {
     public Mono<CommonResult<UserDefaultPasswordData>> getCode(final String customerId,
                                                                final String code) {
         return userActivationCodeQuery.findValid(customerId, code)
-                .then(customerQuery.findGeneric(customerId))
-                .flatMap(customer ->
-                        customerProfileQuery.findGeneric(customerId))
+                .then(customerQuery.findIdGeneric(customerId))
+                .flatMap(queryCustomerId ->
+                        customerProfileQuery.findGeneric(queryCustomerId))
                 .map(profile ->
                     new CommonResult<>("Get default data for user.",
                             new UserDefaultPasswordData(

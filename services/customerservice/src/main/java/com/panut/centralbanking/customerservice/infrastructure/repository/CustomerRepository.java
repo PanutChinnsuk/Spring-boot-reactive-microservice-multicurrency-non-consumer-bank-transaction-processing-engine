@@ -10,6 +10,11 @@ import reactor.core.publisher.Mono;
 public interface CustomerRepository extends ReactiveCrudRepository
 <Customer, String> {
 
+    @Query("""
+            SELECT c.id FROM customers c
+            WHERE c.id = :id
+            """)
+    Mono<String> findIdById(@Param("id") String id);
 
 
 }

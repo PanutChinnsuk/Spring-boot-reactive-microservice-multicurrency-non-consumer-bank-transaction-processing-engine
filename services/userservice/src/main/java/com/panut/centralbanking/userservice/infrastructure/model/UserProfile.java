@@ -25,8 +25,8 @@ public class UserProfile extends VersionedUUIDStringEntity {
 
     @Builder
     public UserProfile(String userId,
-                       String... customerNames) {
-        this.username = String.join("_", customerNames);
+                       String username) {
+        this.username = username;
         setInsert(userId);
     }
 

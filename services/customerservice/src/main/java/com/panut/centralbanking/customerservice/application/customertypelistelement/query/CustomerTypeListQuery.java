@@ -16,9 +16,9 @@ public class CustomerTypeListQuery {
     }
 
 
-    public Mono<CustomerTypeListElement> findGeneric(CustomerTypeEnum customerTypeEnum) {
+    public Mono<String> findIdGeneric(CustomerTypeEnum customerTypeEnum) {
         return customerTypeListElementRepository
-                .findByCustomerTypeEnum(customerTypeEnum)
+                .findIdByCustomerTypeEnum(customerTypeEnum)
                 .switchIfEmpty(Mono.error(() -> new NotFound(
                         "Customer type list table does not contain "
                                 + customerTypeEnum

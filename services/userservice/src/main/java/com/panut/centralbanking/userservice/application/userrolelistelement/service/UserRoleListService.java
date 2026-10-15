@@ -1,4 +1,4 @@
-package com.panut.centralbanking.userservice.application.userrolelistelement.query;
+package com.panut.centralbanking.userservice.application.userrolelistelement.service;
 
 import com.panut.centralbanking.userservice.core.UserRoleEnum;
 import com.panut.centralbanking.userservice.infrastructure.model.UserRoleListElement;

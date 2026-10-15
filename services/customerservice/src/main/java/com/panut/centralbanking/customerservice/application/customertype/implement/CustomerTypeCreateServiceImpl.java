@@ -29,19 +29,23 @@ public class CustomerTypeCreateServiceImpl implements CustomerTypeCreateService 
         this.customerQuery = customerQuery;
     }
 
+    private Mono<CustomerType> insert(final CustomerTypeEnum customerTypeEnum,
+                                      final String customerId) {
+        return  customerTypeListQuery.findIdGeneric(customerTypeEnum)
+                .flatMap(elementId -> customerTypeRepositoryManager
+                        .save(CustomerType.builder()
+                                .customerId(customerId)
+                                .customerTypeListId(elementId)
+                                .build()));
+    }
 
     @Override
     public Mono<CustomerType> addCustomerType(final String customerId,
-                                              final CustomerTypeEnum adding) {
-        return customerQuery.findGeneric(customerId)
-                .then(customerTypePersistValidator.validateDuplicates(adding,
+                                              final CustomerTypeEnum customerTypeEnum) {
+        return customerQuery.findExistsThrow(customerId)
+                .then(customerTypePersistValidator.validateDuplicates(customerTypeEnum,
                         customerId))
-                .then(customerTypeListQuery.findGeneric(adding))
-                .flatMap(fromListTable -> customerTypeRepositoryManager
-                        .save(CustomerType.builder()
-                                .customerId(customerId)
-                                .customerTypeListId(fromListTable.getId())
-                                .build()))
+                .then(insert(customerTypeEnum, customerId))
                 .doOnSuccess(a -> log.info("Created customer type for "
                 + customerId))
                 .doOnError(error -> log.error("Failed to create customer type:" +
@@ -49,13 +53,8 @@ public class CustomerTypeCreateServiceImpl implements CustomerTypeCreateService 
     }
 
     @Override
-    public Mono<CustomerType> addDefault(String customerId) {
-        return customerTypeListQuery.findGeneric(CustomerTypeEnum.REGULAR)
-                .flatMap(fromListTable -> customerTypeRepositoryManager
-                .save(CustomerType.builder()
-                        .customerId(customerId)
-                        .customerTypeListId(fromListTable.getId())
-                        .build()))
+    public Mono<CustomerType> addDefault(final String customerId) {
+        return insert(CustomerTypeEnum.REGULAR, customerId)
                 .doOnSuccess(a -> log.info("Created default customer type."))
                 .doOnError(error -> log.error("Failed to create default customer type:" +
                         " {}", error.getLocalizedMessage()));
