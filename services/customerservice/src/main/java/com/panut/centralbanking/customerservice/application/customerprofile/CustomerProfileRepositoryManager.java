@@ -14,7 +14,7 @@ public class CustomerProfileRepositoryManager {
     }
 
 
-    public Mono<CustomerProfile> save(CustomerProfile customerProfile) {
+    public Mono<CustomerProfile> save(final CustomerProfile customerProfile) {
         return customerProfileRepository.save(customerProfile);
     }
 }

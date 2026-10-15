@@ -15,7 +15,7 @@ public class CustomerType extends UUIDBasedStringEntity {
     @Column("customer_id")
     private String customerId;
 
-    @Column("customer_type_list_id")
+    @Column("customer_type_list_element_id")
     private String customerTypeListId;
 
 

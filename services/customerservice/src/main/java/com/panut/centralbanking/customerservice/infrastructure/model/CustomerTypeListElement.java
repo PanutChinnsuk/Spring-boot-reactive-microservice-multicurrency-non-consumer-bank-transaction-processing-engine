@@ -11,13 +11,13 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("customer_type_list")
 @Getter
 @NoArgsConstructor
-public class CustomerTypeList extends UUIDBasedStringEntity {
+public class CustomerTypeListElement extends UUIDBasedStringEntity {
     @Column("type_enum")
     private CustomerTypeEnum customerTypeEnum;
 
 
     @Builder
-    public CustomerTypeList(CustomerTypeEnum customerTypeEnum) {
+    public CustomerTypeListElement(CustomerTypeEnum customerTypeEnum) {
         this.customerTypeEnum = customerTypeEnum;
         setInsert();
     }

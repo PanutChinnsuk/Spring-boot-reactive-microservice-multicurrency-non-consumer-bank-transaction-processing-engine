@@ -14,7 +14,7 @@ public class CustomerEmailRepositoryManager {
     }
 
 
-    public Mono<CustomerEmail> save(CustomerEmail customerEmail) {
+    public Mono<CustomerEmail> save(final CustomerEmail customerEmail) {
         return customerEmailRepository.save(customerEmail);
     }
 }

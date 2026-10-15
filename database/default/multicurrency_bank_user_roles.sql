@@ -25,13 +25,13 @@ DROP TABLE IF EXISTS `user_roles`;
 CREATE TABLE `user_roles` (
   `id` varchar(255) NOT NULL,
   `user_id` varchar(255) NOT NULL,
-  `user_role_list_id` varchar(255) NOT NULL,
+  `user_role_list_element_id` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_role_id_UNIQUE` (`id`),
   KEY `fk_user_roles_user_id_idx` (`user_id`),
-  KEY `fk_user_roles_user_role_enum_id_idx` (`user_role_list_id`),
+  KEY `fk_user_roles_user_role_enum_id_idx` (`user_role_list_element_id`),
   CONSTRAINT `fk_user_roles_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_user_roles_user_role_enum_id` FOREIGN KEY (`user_role_list_id`) REFERENCES `user_role_list` (`id`)
+  CONSTRAINT `fk_user_roles_user_role_enum_id` FOREIGN KEY (`user_role_list_element_id`) REFERENCES `user_role_list` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -53,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-14 21:24:36
+-- Dump completed on 2026-10-15 16:13:21

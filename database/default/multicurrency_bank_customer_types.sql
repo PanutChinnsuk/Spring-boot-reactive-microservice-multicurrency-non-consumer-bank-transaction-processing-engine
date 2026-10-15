@@ -25,13 +25,13 @@ DROP TABLE IF EXISTS `customer_types`;
 CREATE TABLE `customer_types` (
   `id` varchar(255) NOT NULL,
   `customer_id` varchar(255) NOT NULL,
-  `customer_type_list_id` varchar(255) NOT NULL,
+  `customer_type_list_element_id` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `fk_customer_types_customer_id_idx` (`customer_id`),
-  KEY `fk_customer_types_customer_type_enum_id_idx` (`customer_type_list_id`),
+  KEY `fk_customer_types_customer_type_enum_id_idx` (`customer_type_list_element_id`),
   CONSTRAINT `fk_customer_types_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
-  CONSTRAINT `fk_customer_types_customer_type_enum_id` FOREIGN KEY (`customer_type_list_id`) REFERENCES `customer_type_list` (`id`)
+  CONSTRAINT `fk_customer_types_customer_type_enum_id` FOREIGN KEY (`customer_type_list_element_id`) REFERENCES `customer_type_list` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -41,7 +41,6 @@ CREATE TABLE `customer_types` (
 
 LOCK TABLES `customer_types` WRITE;
 /*!40000 ALTER TABLE `customer_types` DISABLE KEYS */;
-INSERT INTO `customer_types` VALUES ('6fe3836c-5fcf-44d6-a0a3-d9f70e908b3e','50595975-8c2e-458c-8b0f-322ba8718789','1c95b5e5-ed25-48ec-92d3-4b3da21451d8');
 /*!40000 ALTER TABLE `customer_types` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-14 21:24:32
+-- Dump completed on 2026-10-15 16:13:24

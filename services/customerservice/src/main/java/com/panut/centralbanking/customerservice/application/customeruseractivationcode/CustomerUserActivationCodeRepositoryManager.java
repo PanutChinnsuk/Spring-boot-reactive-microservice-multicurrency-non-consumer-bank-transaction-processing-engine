@@ -22,7 +22,7 @@ public class CustomerUserActivationCodeRepositoryManager {
     }
 
 
-    public Mono<Void> revokeAllOfCustomer(String customerId) {
+    public Mono<Void> revokeAllOfCustomer(final String customerId) {
         return customerUserActivationCodeRepository
                 .revokeAll(customerId, LocalDateTime.now());
     }

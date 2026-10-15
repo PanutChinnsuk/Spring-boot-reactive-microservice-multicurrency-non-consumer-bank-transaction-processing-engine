@@ -12,13 +12,13 @@ public interface CustomerTypeRepository extends ReactiveCrudRepository
 <CustomerType, String> {
 
     @Query("""
-            SELECT 1 FROM customer_types ct
+            SELECT ct.id FROM customer_types ct
             INNER JOIN customer_type_list ctl
             ON ctl.type_enum = :addingTypeEnum AND
-            ctl.id = ct.customer_type_list_id
+            ctl.id = ct.customer_type_list_element_id
             WHERE ct.customer_id = :customerId
             """)
-    Mono<CustomerType> alreadyExists(@Param("addingTypeEnum") CustomerTypeEnum adding,
+    Mono<String> alreadyExists(@Param("addingTypeEnum") CustomerTypeEnum adding,
                                      @Param("customerId") String customerId);
 
 }

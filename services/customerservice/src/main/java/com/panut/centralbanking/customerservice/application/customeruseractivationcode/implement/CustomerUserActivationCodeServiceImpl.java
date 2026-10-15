@@ -52,7 +52,7 @@ implements CustomerUserActivationCodeService {
     }
 
     @Override
-    public Mono<CommonResult> revoke(String customerId) {
+    public Mono<CommonResult> revoke(final String customerId) {
         return repoManager.revokeAllOfCustomer(customerId)
                 .thenReturn(CommonResult.defaultSuccess())
                 .onErrorResume(error ->
@@ -60,7 +60,7 @@ implements CustomerUserActivationCodeService {
     }
 
     @Override
-    public Mono<CustomerUserActivationCode> createCode(String customerId) {
+    public Mono<CustomerUserActivationCode> createCode(final String customerId) {
         return repoManager.revokeAllOfCustomer(customerId)
                 .doOnNext(a -> log.info("Revoked all previous customer's " +
                         "user activation codes."))
@@ -77,7 +77,7 @@ implements CustomerUserActivationCodeService {
     }
 
     @Override
-    public Mono<CommonResult> renewCode(String customerId) {
+    public Mono<CommonResult> renewCode(final String customerId) {
         return customerQuery.findGeneric(customerId)
                 .then(createCode(customerId))
                 .map(code -> CommonResult

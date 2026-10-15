@@ -1,14 +1,17 @@
 package com.panut.centralbanking.customerservice.integration.customer;
 
 import com.panut.centralbanking.appcore.common.response.CommonResult;
+import com.panut.centralbanking.appcore.exceptions.Conflicted;
 import com.panut.centralbanking.customerservice.api.data.CustomerEmailCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerPhoneCreateData;
 import com.panut.centralbanking.customerservice.api.data.CustomerProfileCreateData;
 import com.panut.centralbanking.customerservice.api.response.CustomerCreatedData;
 import com.panut.centralbanking.customerservice.api.response.UserDefaultPasswordData;
 import com.panut.centralbanking.customerservice.application.customer.service.CustomerCreateService;
+import com.panut.centralbanking.customerservice.application.customertype.service.CustomerTypeCreateService;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
 import com.panut.centralbanking.customerservice.core.enums.CustomerStatus;
+import com.panut.centralbanking.customerservice.core.enums.CustomerTypeEnum;
 import com.panut.centralbanking.customerservice.core.enums.Gender;
 import com.panut.centralbanking.customerservice.infrastructure.model.Customer;
 import com.panut.centralbanking.customerservice.infrastructure.model.CustomerUserActivationCode;
@@ -47,6 +50,9 @@ public class CustomerCycleServiceTest implements IntegrationDev {
 
     @Autowired
     private CustomerUserActivationCodeService activationCodeService;
+
+    @Autowired
+    private CustomerTypeCreateService customerTypeCreateService;
 
     private AtomicReference<String> parentId = new AtomicReference<>();
     private AtomicReference<String> defaultCustomerTypeId = new AtomicReference<>();
@@ -157,6 +163,12 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         Assertions.assertEquals(1L, customerRepository
                 .save(customer.changeCustomerStatus(CustomerStatus.ACTIVE_WITH_USER)
                         .block()).block().getVersion());
+
+
+        Assertions.assertThrows(Conflicted.class,
+                () -> customerTypeCreateService.addCustomerType(
+                        parentId, CustomerTypeEnum.REGULAR)
+                        .block(), "Throw conflict, adding duplicated customer type.");
 
 
     }

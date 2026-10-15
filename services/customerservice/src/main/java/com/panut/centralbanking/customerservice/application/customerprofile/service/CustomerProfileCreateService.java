@@ -17,8 +17,8 @@ public class CustomerProfileCreateService {
     }
 
 
-    public Mono<CustomerProfile> createCustomerProfile(CustomerProfileCreateData data,
-                                                       String customerId) {
+    public Mono<CustomerProfile> createCustomerProfile(final CustomerProfileCreateData data,
+                                                       final String customerId) {
         return customerProfileRepositoryManager
                 .save(CustomerProfile.builder()
                         .customerId(customerId)

@@ -47,9 +47,10 @@ public class CustomerCreateServiceImpl implements CustomerCreateService {
 
 
     @Override
-    public Mono<CommonResult<CustomerCreatedData>> createCustomer(CustomerPhoneCreateData phoneData,
-                                             CustomerEmailCreateData emailData,
-                                             CustomerProfileCreateData profileData) {
+    public Mono<CommonResult<CustomerCreatedData>> createCustomer(
+            final CustomerPhoneCreateData phoneData,
+            final CustomerEmailCreateData emailData,
+            final CustomerProfileCreateData profileData) {
         return customerRepositoryManager.save(
                 Customer.builder()
                         .customerStatus(CustomerStatus.ACTIVE_NO_USER)

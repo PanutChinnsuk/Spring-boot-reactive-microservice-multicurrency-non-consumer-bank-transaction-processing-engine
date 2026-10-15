@@ -14,7 +14,7 @@ public class CustomerPhoneRepositoryManager {
     }
 
 
-    public Mono<CustomerPhone> save(CustomerPhone customerPhone) {
+    public Mono<CustomerPhone> save(final CustomerPhone customerPhone) {
         return customerPhoneRepository.save(customerPhone);
     }
 }

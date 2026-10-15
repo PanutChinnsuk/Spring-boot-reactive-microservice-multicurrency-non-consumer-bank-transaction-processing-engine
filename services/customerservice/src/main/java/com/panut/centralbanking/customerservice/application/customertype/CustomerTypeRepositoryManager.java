@@ -14,7 +14,7 @@ public class CustomerTypeRepositoryManager {
     }
 
 
-    public Mono<CustomerType> save(CustomerType customerType) {
+    public Mono<CustomerType> save(final CustomerType customerType) {
         return customerTypeRepository.save(customerType);
     }
 }

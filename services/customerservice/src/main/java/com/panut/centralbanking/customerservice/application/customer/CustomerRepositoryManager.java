@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public class CustomerRepositoryManager {
     private final CustomerRepository customerRepository;
 
-    public CustomerRepositoryManager(CustomerRepository customerRepository) {
+    public CustomerRepositoryManager(final CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
     }
 

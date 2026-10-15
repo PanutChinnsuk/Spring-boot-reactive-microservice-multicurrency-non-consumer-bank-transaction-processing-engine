@@ -17,8 +17,8 @@ public class CustomerEmailCreateService {
     }
 
 
-    public Mono<CustomerEmail> createDefaultCustomerEmail(CustomerEmailCreateData data,
-                                                          String customerId) {
+    public Mono<CustomerEmail> createDefaultCustomerEmail(final CustomerEmailCreateData data,
+                                                          final String customerId) {
         return customerEmailRepositoryManager.save(
                 CustomerEmail.builder()
                         .customerId(customerId)
