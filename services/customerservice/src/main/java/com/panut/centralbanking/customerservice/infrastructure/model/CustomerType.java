@@ -16,14 +16,14 @@ public class CustomerType extends UUIDBasedStringEntity {
     private String customerId;
 
     @Column("customer_type_list_element_id")
-    private String customerTypeListId;
+    private String customerTypeListElementId;
 
 
     @Builder
     public CustomerType(String customerId,
-                        String customerTypeListId) {
+                        String customerTypeListElementId) {
         this.customerId = customerId;
-        this.customerTypeListId = customerTypeListId;
+        this.customerTypeListElementId = customerTypeListElementId;
         setInsert();
     }
 }

@@ -3,12 +3,14 @@ package com.panut.centralbanking.appsecuritycore.config;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.context.annotation.Configuration;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
 
 public class ServiceSignatureConfig {
     private List<String> serviceAuthorities;

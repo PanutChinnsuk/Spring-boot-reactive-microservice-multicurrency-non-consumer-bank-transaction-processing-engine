@@ -15,17 +15,17 @@ import reactor.core.publisher.Mono;
 @Service
 @Slf4j
 public class CustomerUserActivationCodeService {
-    private final WebClient webClient;
+    private final WebClient customerServiceWebClient;
 
-    public CustomerUserActivationCodeService(WebClient webClient) {
-        this.webClient = webClient;
+    public CustomerUserActivationCodeService(WebClient customerServiceWebClient) {
+        this.customerServiceWebClient = customerServiceWebClient;
     }
 
 
     private final String LOG_NAME = "CustomerUserActivationCodeService ";
 
     public Mono<UserDefaultPasswordData> getCode(final GetUserActivationCodeRequest body) {
-        return Retrieves.doRequest(webClient,
+        return Retrieves.doRequest(customerServiceWebClient,
                         CustomerService.GET_ACTIVATION_CODE_FULL_PATH,
                         body,
                         BusinessException.class,
@@ -36,7 +36,7 @@ public class CustomerUserActivationCodeService {
 
 
     public Mono<CommonResult> consume(final ActivateUserRequest body) {
-        return Retrieves.doRequest(webClient,
+        return Retrieves.doRequest(customerServiceWebClient,
                 CustomerService.ACTIVATE_USER_FULL_PATH,
                 body,
                 BusinessException.class,

@@ -35,7 +35,7 @@ public class CustomerTypeCreateServiceImpl implements CustomerTypeCreateService 
                 .flatMap(elementId -> customerTypeRepositoryManager
                         .save(CustomerType.builder()
                                 .customerId(customerId)
-                                .customerTypeListId(elementId)
+                                .customerTypeListElementId(elementId)
                                 .build()));
     }
 

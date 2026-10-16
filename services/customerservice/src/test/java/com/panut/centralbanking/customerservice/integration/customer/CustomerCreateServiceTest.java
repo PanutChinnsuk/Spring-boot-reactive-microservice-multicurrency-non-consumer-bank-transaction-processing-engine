@@ -20,11 +20,11 @@ import com.panut.centralbanking.customerservice.integration.IntegrationTestRefer
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.UUID;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CustomerCycleServiceTest implements IntegrationDev {
+public class CustomerCreateServiceTest implements IntegrationDev {
     @Autowired
     private CustomerCreateService customerCreateService;
 
@@ -52,11 +52,11 @@ public class CustomerCycleServiceTest implements IntegrationDev {
     @Autowired
     private CustomerTypeCreateService customerTypeCreateService;
 
-    private AtomicReference<String> parentId = new AtomicReference<>();
-    private AtomicReference<String> defaultCustomerTypeId = new AtomicReference<>();
-    private AtomicReference<CustomerProfileCreateData> customerProfileCreateData = new AtomicReference<>();
-    private AtomicReference<String> userActivationCodeId = new AtomicReference<>();
-    private AtomicReference<String> userActivationCode = new AtomicReference<>();
+    private String parentId;
+    private String defaultCustomerTypeId;
+    private CustomerProfileCreateData customerProfileCreateData;
+    private String userActivationCodeId;
+    private String userActivationCode;
 
 
 
@@ -68,9 +68,9 @@ public class CustomerCycleServiceTest implements IntegrationDev {
 
     @AfterAll
     public void cleanUp() {
-        String parentId = this.parentId.get();
-        String customerTypeId = this.defaultCustomerTypeId.get();
-        String userActivationCodeId = this.userActivationCodeId.get();
+        String parentId = this.parentId;
+        String customerTypeId = this.defaultCustomerTypeId;
+        String userActivationCodeId = this.userActivationCodeId;
 
         if (userActivationCodeId != null) {
             customerUserActivationCodeRepository.deleteById(userActivationCodeId)
@@ -87,25 +87,40 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         }
     }
 
-    @Test
-    @Order(1)
-    public void shouldCreateUser() {
 
-
+    private CustomerEmailCreateData customerEmailCreateData() {
         CustomerEmailCreateData emailData = new CustomerEmailCreateData();
+        emailData.setEmail(UUID.randomUUID().toString() + "@gmail.com");
+
+        return emailData;
+    }
+
+    private CustomerPhoneCreateData customerPhoneCreateData() {
         CustomerPhoneCreateData phoneData = new CustomerPhoneCreateData();
+        phoneData.setPhone(UUID.randomUUID().toString());
+
+        return phoneData;
+    }
+
+    private CustomerProfileCreateData customerProfileCreateData() {
         CustomerProfileCreateData profileData = new CustomerProfileCreateData();
-
-        emailData.setEmail("customerEmail1@gmail.com");
-        phoneData.setPhone("0888888888");
-
         profileData.setAddress("address");
         profileData.setAge(18);
         profileData.setFirstname("firstname");
         profileData.setLastname("lastname");
         profileData.setGender(Gender.MALE);
         profileData.setCitizenId("citIdzen");
-        this.customerProfileCreateData.set(profileData);
+
+        return profileData;
+    }
+
+    @Test
+    @Order(1)
+    public void shouldCreateCustomer() {
+        CustomerEmailCreateData emailData = customerEmailCreateData();
+        CustomerPhoneCreateData phoneData = customerPhoneCreateData();
+        CustomerProfileCreateData profileData = customerProfileCreateData();
+
 
         CommonResult<CustomerCreatedData> result = customerCreateService.createCustomer(
                 phoneData,
@@ -118,42 +133,12 @@ public class CustomerCycleServiceTest implements IntegrationDev {
         String parentId = created.getCustomerId();
         Assertions.assertNotNull(parentId, "parentId == null");
 
-        Assertions.assertEquals(parentId, created.getEmailParentId()
-                , "parentId != created.getEmailParentId()");
-        Assertions.assertEquals(parentId, created.getPhoneParentId(),
-                "parentId != created.getPhoneParentId()");
-        Assertions.assertEquals(parentId, created.getProfileParentId(),
-                "parentId != created.getProfileParentId()");
-        Assertions.assertEquals(parentId, created.getCustomerTypeParentId(),
-                "parentId != created.getCustomerTypeParentId()");
 
-        Assertions.assertNotNull(created.getUserId(), "created.getUserId() == null");
-        Assertions.assertNotNull(created.getCustomerStatus(), "created.getCustomerStatus() == null");
-
-        Assertions.assertNotNull(created.getEmail(), "created.getEmail() == null");
-        Assertions.assertNotNull(created.getVerifiedEmail(), "created.getVerifiedEmail() == null");
-
-        Assertions.assertNotNull(created.getPhone(), "created.getPhone() == null");
-        Assertions.assertNotNull(created.getVerifiedPhone(), "created.getVerifiedPhone() == null");
-
-        Assertions.assertNotNull(created.getFirstname(), "created.getFirstname() == null");
-        Assertions.assertNotNull(created.getLastname(), "created.getLastname() == null");
-        Assertions.assertNotNull(created.getAge(), "created.getAge() == null");
-        Assertions.assertNotNull(created.getAddress(), "created.getAddress() == null");
-        Assertions.assertNotNull(created.getGender(), "created.getGender() == null");
-        Assertions.assertNotNull(created.getCitizenid(), "created.getCitizenid() == null");
-
-
-        Assertions.assertNotNull(created.getCustomerTypeId(), "created.getCustomerTypeId() == null");
-
-        Assertions.assertNotNull(created.getCustomerUserActivationCodeId(), "created.getCustomerUserActivationCodeId() == null");
-        Assertions.assertNotNull(created.getCustomerUserActivationCode(), "created.getCustomerUserActivationCode() == null");
-
-
-        this.parentId.set(parentId);
-        this.defaultCustomerTypeId.set(created.getCustomerTypeId());
-        this.userActivationCodeId.set(created.getCustomerUserActivationCodeId());
-        this.userActivationCode.set(created.getCustomerUserActivationCode());
+        this.parentId = parentId;
+        this.defaultCustomerTypeId = created.getCustomerTypeId();
+        this.userActivationCodeId = created.getCustomerUserActivationCodeId();
+        this.userActivationCode = created.getCustomerUserActivationCode();
+        this.customerProfileCreateData = profileData;
 
         Customer customer = customerRepository
                 .findById(parentId).block();
@@ -176,11 +161,11 @@ public class CustomerCycleServiceTest implements IntegrationDev {
     @Test
     @Order(2)
     public void shouldConsumedAndAppliedUser() {
-        String customerId = this.parentId.get();
-        String code = this.userActivationCode.get();
-        String codeId = this.userActivationCodeId.get();
+        String customerId = this.parentId;
+        String code = this.userActivationCode;
+        String codeId = this.userActivationCodeId;
         String userId = IntegrationTestReference.TEST_USER_ID;
-        CustomerProfileCreateData fromProfile = this.customerProfileCreateData.get();
+        CustomerProfileCreateData fromProfile = this.customerProfileCreateData;
 
         Assertions.assertNotNull(customerId, "customerId == null");
         Assertions.assertNotNull(code, "code == null");

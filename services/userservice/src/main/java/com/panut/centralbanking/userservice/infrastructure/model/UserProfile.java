@@ -15,7 +15,7 @@ import java.util.Arrays;
 @Getter
 @NoArgsConstructor
 public class UserProfile extends VersionedUUIDStringEntity {
-    @Column("status")
+    @Column("username")
     private String username;
 
 

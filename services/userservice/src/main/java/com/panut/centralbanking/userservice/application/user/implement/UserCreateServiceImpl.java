@@ -11,12 +11,14 @@ import com.panut.centralbanking.userservice.application.usercredentialprofile.se
 import com.panut.centralbanking.userservice.application.userprofile.service.UserProfileCreateService;
 import com.panut.centralbanking.userservice.application.userrole.query.UserRoleService;
 import com.panut.centralbanking.userservice.infrastructure.model.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
+@Slf4j
 @Transactional(propagation = Propagation.REQUIRED)
 public class UserCreateServiceImpl implements UserCreateService {
     private final UserRepositoryManager userRepositoryManager;
@@ -44,11 +46,13 @@ public class UserCreateServiceImpl implements UserCreateService {
                                             final String code) {
         return customerUserActivationCodeService
                 .getCode(new GetUserActivationCodeRequest(customerId, code))
+                .doOnNext(a -> log.info("Get valid user activation code."))
                 .flatMap(defaultData ->
                         userRepositoryManager.save(User.builder().build())
                                 .flatMap(user -> new UserCreatedData().user(user))
                                 .flatMap(dataChain -> dataChain
                                         .defaultData(defaultData)))
+                .doOnNext(a -> log.info("Created user mono chain."))
                 .flatMap(data -> userProfileCreateService
                         .createUserProfile(data.getUserId(),
                                 data.getDefaultData().getFirstname(),
@@ -59,9 +63,13 @@ public class UserCreateServiceImpl implements UserCreateService {
                         .createCredentialProfile(data.getUserId(), data.getDefaultData().getDefaultPassword())
                         .thenReturn(data))
                 .flatMap(data -> userRoleService.addDefaultRole(data.getUserId())
+                        .flatMap(userRole -> data.userRole(userRole))
                         .thenReturn(data))
                 .flatMap(data -> customerUserActivationCodeService
                         .consume(new ActivateUserRequest(customerId, data.getUserId(), code))
-                        .thenReturn(data));
+                        .thenReturn(data))
+                .doOnSuccess(a -> log.info("Successfully created user datas."))
+                .doOnError(error -> log.error("Failed to create user datas, {}",
+                        error.getLocalizedMessage()));
     }
 }

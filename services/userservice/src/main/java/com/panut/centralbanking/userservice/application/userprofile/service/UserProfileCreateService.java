@@ -25,7 +25,8 @@ public class UserProfileCreateService {
     public Mono<String> usernameFormat(final String customerFirstname,
                                        final String customerLastname) {
         return Mono.defer(() -> Mono.just(
-                String.join("_", customerFirstname, customerLastname)
+                String.join("_", customerFirstname.replace(" ", "_"),
+                        customerLastname.replace(" ", "_"))
         ));
     }
 
@@ -42,6 +43,7 @@ public class UserProfileCreateService {
                                 .userId(userId)
                                 .username(formatted)
                                 .build()))
+                .doOnNext(a -> log.info("After saving customer profile."))
                 .doOnSuccess(a -> log.info("Created user profile."))
                 .doOnError(error -> log.error("Failed to create user profile, {}",
                         error.getLocalizedMessage()));

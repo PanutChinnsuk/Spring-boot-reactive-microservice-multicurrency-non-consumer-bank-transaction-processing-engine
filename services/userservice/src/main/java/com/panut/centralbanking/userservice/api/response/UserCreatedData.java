@@ -5,6 +5,7 @@ import com.panut.centralbanking.userservice.api.service.customerservice.response
 import com.panut.centralbanking.userservice.core.UserStatus;
 import com.panut.centralbanking.userservice.infrastructure.model.User;
 import com.panut.centralbanking.userservice.infrastructure.model.UserProfile;
+import com.panut.centralbanking.userservice.infrastructure.model.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class UserCreatedData {
     private UserStatus userStatus;
     private LocalDateTime createdAt;
     private String username;
+    private String userRoleId;
 
     @JsonIgnore
     private UserDefaultPasswordData defaultData;
@@ -48,6 +50,14 @@ public class UserCreatedData {
             this.username = userProfile.getUsername();
 
             return Mono.just(userProfile);
+        });
+    }
+
+    public Mono<UserRole> userRole(final UserRole userRole) {
+        return Mono.defer(() -> {
+            this.userRoleId = userRole.getId();
+
+            return Mono.just(userRole);
         });
     }
 }

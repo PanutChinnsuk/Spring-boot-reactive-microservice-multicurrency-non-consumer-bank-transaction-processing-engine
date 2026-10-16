@@ -16,13 +16,13 @@ public class UserRole extends UUIDBasedStringEntity {
     private String userId;
 
     @Column("user_role_list_element_id")
-    private String userRoleListId;
+    private String userRoleListElementId;
 
     @Builder
     public UserRole(String userId,
-                    String userRoleListId) {
+                    String userRoleListElementId) {
         this.userId = userId;
-        this.userRoleListId = userRoleListId;
+        this.userRoleListElementId = userRoleListElementId;
         setInsert();
     }
 }

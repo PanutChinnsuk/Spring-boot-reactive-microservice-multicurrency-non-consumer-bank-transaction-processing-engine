@@ -19,8 +19,8 @@ app:
 
   security:
     core:
-      mySecretkey: a
-      apiKey: b
+      mySecretkey: CustomerServiceApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
+      apiKey: MainAppCoreCoreCoreApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
 
 eureka:
   client:

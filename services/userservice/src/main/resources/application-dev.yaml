@@ -15,8 +15,9 @@ spring:
 app:
   security:
     core:
-      mySecretKey: a
-      apiKey: b
+      customerServiceKey: CustomerServiceApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
+      mySecretKey: UserServiceApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
+      apiKey: MainAppCoreCoreCoreApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
 
 eureka:
   client:

@@ -3,6 +3,7 @@ package com.panut.centralbanking.customerservice.api.controller.service;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.CustomerService;
+import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
 import com.panut.centralbanking.customerservice.api.request.ActivateUserRequest;
 import com.panut.centralbanking.customerservice.api.request.GetUserActivationCodeRequest;
 import com.panut.centralbanking.customerservice.api.response.UserDefaultPasswordData;
@@ -24,6 +25,7 @@ public class CustomerUserActivationCodeController {
     }
 
 
+    @ServiceHasAuthorityExpectsMono(CustomerService.GET_ACTIVATION_CODE_METHOD)
     @PostMapping(CustomerService.GET_ACTIVATION_CODE_METHOD)
     public Mono<CommonResult<UserDefaultPasswordData>> getActivationCode(
             @RequestBody @Valid GetUserActivationCodeRequest r) {
@@ -32,6 +34,8 @@ public class CustomerUserActivationCodeController {
                         r.getCode());
     }
 
+
+    @ServiceHasAuthorityExpectsMono(CustomerService.ACTIVATE_USER_METHOD)
     @PostMapping(CustomerService.ACTIVATE_USER_METHOD)
     public Mono<CommonResult> activateUser(
             @RequestBody @Valid ActivateUserRequest r) {

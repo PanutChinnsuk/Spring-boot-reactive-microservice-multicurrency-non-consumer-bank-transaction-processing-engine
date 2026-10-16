@@ -36,7 +36,7 @@ public class UserRoleServiceImpl implements UserRoleService {
                 .flatMap(elementId -> userRoleRepositoryManager
                         .save(UserRole.builder()
                                 .userId(userId)
-                                .userRoleListId(elementId)
+                                .userRoleListElementId(elementId)
                                 .build()));
     }
 
