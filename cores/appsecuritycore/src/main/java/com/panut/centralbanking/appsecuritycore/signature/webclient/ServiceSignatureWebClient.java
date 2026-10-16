@@ -3,6 +3,7 @@ package com.panut.centralbanking.appsecuritycore.signature.webclient;
 import com.panut.centralbanking.appsecuritycore.config.ServiceSignatureConfig;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
 import com.panut.centralbanking.appsecuritycore.signature.CoreHeaders;
+import com.panut.centralbanking.appsecuritycore.signature.CorePrefixes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,8 +28,11 @@ public class ServiceSignatureWebClient {
                 .filter((clientRequest, exchangeFunction) -> {
                     ClientRequest newRequest = ClientRequest.from(clientRequest)
                             .header(CoreHeaders.SERVICE_AUTHORIZATION_HEADER,
-                                    serviceSignature.getCurrentSignature())
+                                     CorePrefixes
+                                             .AUTHORIZATION_TOKEN_PREFIXED +
+                                             serviceSignature.getCurrentSignature())
                             .build();
+                    log.debug("key {}", serviceSignature.getCurrentSignature());
                     log.debug("ServiceSignatureWebClient added " +
                             "SERVICE_AUTHORIZATION_HEADER filter to outgoing WebClient" +
                             " Request.");

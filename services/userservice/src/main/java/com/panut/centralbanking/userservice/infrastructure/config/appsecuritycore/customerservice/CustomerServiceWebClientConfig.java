@@ -17,5 +17,12 @@ public class CustomerServiceWebClientConfig {
         return new ServiceSignatureWebClient(customerServiceSignature, builder).create();
     }
 
+    @Bean
+    public WebClient customerServiceWebClient2(WebClient.Builder builder,
+                                              ServiceSignature customerServiceSignature) {
+        return new ServiceSignatureWebClient(customerServiceSignature, builder).create();
+    }
+
+
 
 }

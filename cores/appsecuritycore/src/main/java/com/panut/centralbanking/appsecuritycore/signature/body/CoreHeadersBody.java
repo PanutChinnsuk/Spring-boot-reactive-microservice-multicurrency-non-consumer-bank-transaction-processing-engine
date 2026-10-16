@@ -26,6 +26,6 @@ public class CoreHeadersBody {
     }
 
     public boolean isUserCallRequest() {
-        return isUserCallRequest();
+        return userCallRequest;
     }
 }

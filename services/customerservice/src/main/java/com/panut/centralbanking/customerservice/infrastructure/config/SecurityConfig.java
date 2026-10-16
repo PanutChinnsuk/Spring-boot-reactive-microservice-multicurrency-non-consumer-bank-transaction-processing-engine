@@ -15,7 +15,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(auth -> auth
-                        .anyExchange().permitAll())
+                        .anyExchange().authenticated())
                 .formLogin(login -> login.disable())
                 .logout(logout -> logout.disable())
                 .build();

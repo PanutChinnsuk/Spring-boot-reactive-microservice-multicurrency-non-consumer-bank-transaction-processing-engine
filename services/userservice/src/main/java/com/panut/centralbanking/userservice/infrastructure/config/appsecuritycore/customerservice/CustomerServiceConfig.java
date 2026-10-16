@@ -11,7 +11,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 public class CustomerServiceConfig {
-    @Value("app.security.core.customerServiceKey")
+    @Value("${app.security.core.customerServiceKey}")
     private String customerServiceKey;
 
 

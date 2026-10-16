@@ -35,6 +35,7 @@ public class MyServiceSignatureFilter implements WebFilter, Ordered {
                 .hasHeader(exchange, CoreHeaders.SERVICE_AUTHORIZATION_HEADER,
                         CoreHeaders.USER_AUTHORIZATION_HEADER)
                 .flatMap(body -> {
+                    boolean isUserCallRequest = body.isUserCallRequest();
                     if (!body.headerExists()) {
                         log.debug("MyServiceSignatureFilter request has no expected header.");
                         return chain.filter(exchange);
@@ -42,18 +43,21 @@ public class MyServiceSignatureFilter implements WebFilter, Ordered {
                     log.debug("MyServiceSignatureFilter request has expected header.");
                     return CoreHeaders.getExistTokenFromHeader(body)
                             .doOnNext(a -> log.debug("after CoreHeaders.getExistTokenFromHeader"))
+                            .doOnNext(a -> log.debug("key {}", myServiceSignatureAutoConfiguration.getMySecretKey()))
                             .flatMap(token -> CoreClaims.toClaims(
                                     token, myServiceSignatureAutoConfiguration.getMySecretKeyHMAC()))
                             .doOnNext(a -> log.debug("after CoreClaims.toClaims"))
                             .flatMap(validated -> CoreClaims
                                     .getCollectionMono(validated, CoreClaims.SERVICE_AUTHORITIES_CLAIM))
                             .doOnNext(a -> log.debug("after CoreClaims.getCollectionMono"))
+                            .doOnNext(a -> a.forEach(string ->
+                                    log.debug("Service authority provided list: {}", string)))
                             .map(authorities -> new ServiceSecurityContext(
                                     authorities))
                             .doOnNext(a -> log.debug("after constructed" +
                                     " new ServiceSecurityContext"))
                             .flatMap(serviceCtx -> {
-                                if (body.isUserCallRequest()) {
+                                if (!body.isUserCallRequest()) {
                                     log.debug("MyServiceSignatureFilter set Reactive" +
                                             "SecurityContextHolder with " +
                                             "authenticated security context.");

@@ -9,10 +9,7 @@ import com.panut.centralbanking.customerservice.api.request.GetUserActivationCod
 import com.panut.centralbanking.customerservice.api.response.UserDefaultPasswordData;
 import com.panut.centralbanking.customerservice.application.customeruseractivationcode.service.CustomerUserActivationCodeService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -24,6 +21,11 @@ public class CustomerUserActivationCodeController {
         this.customerUserActivationCodeService = customerUserActivationCodeService;
     }
 
+    @ServiceHasAuthorityExpectsMono(CustomerService.GET_ACTIVATION_CODE_METHOD)
+    @GetMapping("/do")
+    public Mono<String> test() {
+        return Mono.just("done");
+    }
 
     @ServiceHasAuthorityExpectsMono(CustomerService.GET_ACTIVATION_CODE_METHOD)
     @PostMapping(CustomerService.GET_ACTIVATION_CODE_METHOD)

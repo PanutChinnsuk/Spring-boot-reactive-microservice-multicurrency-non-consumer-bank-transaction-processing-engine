@@ -47,7 +47,10 @@ public class CoreHeaders {
                             !afterPrefix.isBlank())
                     .switchIfEmpty(Mono.error(() -> new IllegalStateException(
                             "Expecting token is empty."
-                    )));
+                    )))
+                    .map(fromHeader -> fromHeader.substring(
+                            CorePrefixes.AUTHORIZATION_TOKEN_PREFIXED.length()
+                    ));
 
         });
 

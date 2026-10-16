@@ -1,5 +1,6 @@
 package com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.handler;
 
+import com.panut.centralbanking.appcore.exceptions.Unauthorized;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsFlux;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.context.ServiceSecurityContext;
@@ -25,7 +26,7 @@ public class ServiceHasAuthorityExpectsFluxAspect {
 
             if (!securityContext.contain(requiredAuthority)) {
                 return Flux.error(() ->
-                        new IllegalStateException("Unauthorized internal service call."));
+                        new Unauthorized("Unauthorized internal service call."));
             }
 
 

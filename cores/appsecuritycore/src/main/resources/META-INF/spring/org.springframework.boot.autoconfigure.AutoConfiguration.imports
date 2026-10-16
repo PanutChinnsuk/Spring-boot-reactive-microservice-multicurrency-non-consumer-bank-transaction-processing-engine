@@ -4,3 +4,4 @@ com.panut.centralbanking.appsecuritycore.autoconfig.PrimarySignatureSecretKeyAut
 com.panut.centralbanking.appsecuritycore.autoconfig.UserAuthorityFilterAutoConfiguration
 com.panut.centralbanking.appsecuritycore.autoconfig.EncoderAutoConfiguration
 com.panut.centralbanking.appsecuritycore.autoconfig.TaskSchedulerAutoConfiguration
+com.panut.centralbanking.appsecuritycore.autoconfig.ServiceAuthorityAspectClassAutoConfiguration
