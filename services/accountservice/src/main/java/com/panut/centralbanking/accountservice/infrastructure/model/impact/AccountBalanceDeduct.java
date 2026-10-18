@@ -50,4 +50,9 @@ public class AccountBalanceDeduct extends UUIDBasedStringEntity
     public LocalDateTime getChangedTimestamp() {
         return this.deductedAt;
     }
+
+    @Override
+    public Boolean isDeduct() {
+        return true;
+    }
 }

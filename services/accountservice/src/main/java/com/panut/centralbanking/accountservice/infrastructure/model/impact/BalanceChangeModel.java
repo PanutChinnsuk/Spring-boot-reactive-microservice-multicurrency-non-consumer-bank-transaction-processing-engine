@@ -11,6 +11,7 @@ public interface BalanceChangeModel {
     BalanceChangeType getBalanceChangeType();
     LocalDateTime getChangedTimestamp();
     String getTransactionId();
+    Boolean isDeduct();
 
 
 }
