@@ -54,9 +54,6 @@ public class UserCreateServiceTest implements IntegrationDev {
 
     @AfterAll
     public void cleanUp() {
-        String userRoleId = this.userRoleId;
-        String userId = this.userId;
-
         if (userRoleId != null) {
             userRoleRepository.deleteById(userRoleId).block();
         }

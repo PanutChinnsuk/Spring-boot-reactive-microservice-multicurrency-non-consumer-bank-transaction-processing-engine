@@ -68,17 +68,13 @@ public class CustomerCreateServiceTest implements IntegrationDev {
 
     @AfterAll
     public void cleanUp() {
-        String parentId = this.parentId;
-        String customerTypeId = this.defaultCustomerTypeId;
-        String userActivationCodeId = this.userActivationCodeId;
-
         if (userActivationCodeId != null) {
             customerUserActivationCodeRepository.deleteById(userActivationCodeId)
                     .block();
         }
 
-        if (customerTypeId != null) {
-            customerTypeRepository.deleteById(customerTypeId).block();
+        if (defaultCustomerTypeId != null) {
+            customerTypeRepository.deleteById(defaultCustomerTypeId).block();
         }
 
         if (parentId != null) {
@@ -164,7 +160,7 @@ public class CustomerCreateServiceTest implements IntegrationDev {
         String customerId = this.parentId;
         String code = this.userActivationCode;
         String codeId = this.userActivationCodeId;
-        String userId = IntegrationTestReference.TEST_USER_ID;
+        String userId = "TEST";
         CustomerProfileCreateData fromProfile = this.customerProfileCreateData;
 
         Assertions.assertNotNull(customerId, "customerId == null");

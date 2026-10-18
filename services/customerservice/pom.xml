@@ -48,6 +48,7 @@
 		</dependency>
 
 
+
 		<dependency>
 			<groupId>com.panut.centralbanking</groupId>
 			<artifactId>appcore</artifactId>
