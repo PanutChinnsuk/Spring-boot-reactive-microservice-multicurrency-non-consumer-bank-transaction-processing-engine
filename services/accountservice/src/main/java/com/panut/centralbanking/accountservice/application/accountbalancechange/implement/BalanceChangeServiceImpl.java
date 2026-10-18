@@ -112,7 +112,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                     .collect(Collectors.toSet());
 
             return accountQuery.findTransactionAccounts(transactionAccountIds);
-        }) ;
+        });
     }
 
 
@@ -126,11 +126,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                 map(transaction, addRecord, requiredResult)))
                 .doOnSuccess(a -> log.info("Successfully " +
                         "applied balance change."))
-                .onErrorResume(error -> {
-                    String errMsg = error.getLocalizedMessage();
-                    log.error("Failed to apply change to account balance, {}", errMsg);
-                    return Mono.just(CommonResult.defaultFailed(errMsg));
-                });
+                .doOnError(error -> log.error("Failed to apply change to account balance, {}"
+                        , error.getLocalizedMessage()));
     }
 
 

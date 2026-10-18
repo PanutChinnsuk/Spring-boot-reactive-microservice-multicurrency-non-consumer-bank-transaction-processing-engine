@@ -55,8 +55,8 @@ implements CustomerUserActivationCodeService {
     public Mono<CommonResult> revoke(final String customerId) {
         return repoManager.revokeAllOfCustomer(customerId)
                 .thenReturn(CommonResult.defaultSuccess())
-                .onErrorResume(error ->
-                        Mono.just(CommonResult.defaultFailed(error.getLocalizedMessage())));
+                .doOnError(error -> log.error("Failed to revoke user activation code {}",
+                        error.getLocalizedMessage()));
     }
 
     @Override
@@ -84,8 +84,8 @@ implements CustomerUserActivationCodeService {
                         .defaultSuccess("User activation code: " + code.getCode()))
                 .doOnSuccess(a -> log.info(
                         "Renewed customer user activation code."))
-                .onErrorResume(error ->
-                        Mono.just(CommonResult.defaultFailed(error.getLocalizedMessage())));
+                .doOnError(error -> log.error("Failed to renew user activation code {}",
+                        error.getLocalizedMessage()));
     }
 
 
@@ -103,12 +103,8 @@ implements CustomerUserActivationCodeService {
                                     profile.getLastname(),
                                     defaultPassword.simple(profile.getCitizenId())
                             )))
-                .onErrorResume(error -> {
-                    String errMsg = error.getLocalizedMessage();
-                    log.error("Failed to get customer activation code: {}", errMsg);
-
-                    return Mono.just(new CommonResult<>(false, errMsg));
-                });
+                .doOnError(error -> log.error("Failed to get user activation code {}",
+                        error.getLocalizedMessage()));
     }
 
     @Override
@@ -124,11 +120,7 @@ implements CustomerUserActivationCodeService {
                         .then(customerRepositoryManager.save(customer)))
                 .thenReturn(CommonResult.defaultSuccess("Successfully consumed" +
                         " user activation code."))
-                .onErrorResume(error -> {
-                    String errMsg = error.getLocalizedMessage();
-                    log.error("Failed to consume customer activation code: {}", errMsg);
-
-                    return Mono.just(CommonResult.defaultFailed(errMsg));
-                });
+                .doOnError(error -> log.error("Failed to consume customer activation code: {}",
+                        error.getLocalizedMessage()));
     }
 }

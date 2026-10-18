@@ -77,13 +77,8 @@ public class CustomerCreateServiceImpl implements CustomerCreateService {
                 .map(data -> new CommonResult<CustomerCreatedData>(
                         "Successfully created customer.", data))
                 .doOnSuccess(a -> log.info("Created customer."))
-                .onErrorResume(error -> {
-                    String errMsg = error.getLocalizedMessage();
-                    log.error("Failed to create customer:" +
-                            " {}", errMsg);
-
-                    return Mono.just(new CommonResult<>(false, errMsg));
-                });
+                .doOnError(error -> log.error("Failed to create customer: {}"
+                        , error.getLocalizedMessage()));
 
 
     }
