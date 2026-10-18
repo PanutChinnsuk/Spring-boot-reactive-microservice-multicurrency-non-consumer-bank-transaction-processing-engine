@@ -6,6 +6,11 @@ import com.panut.centralbanking.appcore.exceptions.NotFound;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Component
 public class AccountBalanceQuery {
     private final AccountBalanceRepository accountBalanceRepository;
@@ -21,5 +26,17 @@ public class AccountBalanceQuery {
                 .switchIfEmpty(Mono.error(() -> new NotFound(
                         "Account does not have account balance."
                 )));
+    }
+
+
+    public Mono<Map<String, AccountBalance>> findTransactionAccountBalances(final Set<String> accountIds) {
+      return accountBalanceRepository.findTransactionAccountBalances(accountIds)
+              .collectList()
+              .map(list -> {
+
+                  return list.stream().
+                          collect(Collectors.toMap(AccountBalance::getId,
+                                  Function.identity()));
+              });
     }
 }

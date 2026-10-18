@@ -1,6 +1,7 @@
-package com.panut.centralbanking.accountservice.infrastructure.model.impact;
+package com.panut.centralbanking.accountservice.infrastructure.model;
 
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
+import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.appR2dbccore.persistence.UUIDBasedStringEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,48 +12,44 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Table("account_balance_adds")
+@Table("account_balance_changes")
 @NoArgsConstructor
 @Getter
-public class AccountBalanceAdd extends UUIDBasedStringEntity
-        implements BalanceChangeModel {
+public class AccountBalanceChange extends UUIDBasedStringEntity {
     @Column("account_id")
     private String accountId;
 
     @Column("amount")
     private BigDecimal amount;
 
-    @Column("add_type")
+    @Column("change_type")
     private BalanceChangeType balanceChangeType;
 
-    @Column("added_at")
-    private LocalDateTime addedAt;
+    @Column("changed_at")
+    private LocalDateTime changedAt;
+
+    @Column("balance_impact")
+    private BalanceImpact balanceImpact;
 
     @Column("transaction_id")
     private String transactionId;
 
 
     @Builder
-    public AccountBalanceAdd(String accountId,
-                             BigDecimal amount,
-                             BalanceChangeType balanceChangeType,
-                             LocalDateTime addedAt,
-                             String transactionId) {
+    public AccountBalanceChange(String accountId,
+                                BigDecimal amount,
+                                BalanceChangeType balanceChangeType,
+                                LocalDateTime changedAt,
+                                BalanceImpact balanceImpact,
+                                String transactionId) {
         this.accountId = accountId;
         this.amount = amount;
         this.balanceChangeType = balanceChangeType;
-        this.addedAt = addedAt;
+        this.changedAt = changedAt;
+        this.balanceImpact = balanceImpact;
         this.transactionId = transactionId;
         setInsert();
     }
 
-    @Override
-    public LocalDateTime getChangedTimestamp() {
-        return this.addedAt;
-    }
 
-    @Override
-    public Boolean isDeduct() {
-        return false;
-    }
 }

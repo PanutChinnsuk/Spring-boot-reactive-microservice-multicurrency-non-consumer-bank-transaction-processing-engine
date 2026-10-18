@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountBalanceChangedData {
+    private String accountId;
+
     private BigDecimal beforeBalance;
     private BigDecimal beforeReserve;
     private BigDecimal beforeLedger;
@@ -23,22 +25,20 @@ public class AccountBalanceChangedData {
 
 
     @JsonIgnore
-    public Mono<AccountBalanceChangedData> before(final AccountBalance accountBalance) {
-        return Mono.defer(() -> {
-            this.beforeBalance = accountBalance.getBalance();
-            this.beforeReserve = accountBalance.getReserve();
-            this.beforeLedger = accountBalance.getLedger();
-            return Mono.just(this);
-        });
+    public AccountBalanceChangedData before(final AccountBalance accountBalance) {
+        this.accountId = accountBalance.getId();
+        this.beforeBalance = accountBalance.getBalance();
+        this.beforeReserve = accountBalance.getReserve();
+        this.beforeLedger = accountBalance.getLedger();
+        return this;
     }
 
+
     @JsonIgnore
-    public Mono<AccountBalanceChangedData> after(final AccountBalance accountBalance) {
-        return Mono.defer(() -> {
-            this.afterBalance = accountBalance.getBalance();
-            this.afterReserve = accountBalance.getReserve();
-            this.afterLedger = accountBalance.getLedger();
-            return Mono.just(this);
-        });
+    public AccountBalanceChangedData after(final AccountBalance accountBalance) {
+        this.afterBalance = accountBalance.getBalance();
+        this.afterReserve = accountBalance.getReserve();
+        this.afterLedger = accountBalance.getLedger();
+        return this;
     }
 }

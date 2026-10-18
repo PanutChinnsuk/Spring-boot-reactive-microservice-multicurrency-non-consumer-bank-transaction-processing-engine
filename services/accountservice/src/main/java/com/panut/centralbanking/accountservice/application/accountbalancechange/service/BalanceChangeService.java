@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.balancechangemodel.service;
+package com.panut.centralbanking.accountservice.application.accountbalancechange.service;
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface BalanceChangeService {
-    Mono<CommonResult<AccountBalanceChangedData>> add(List<BalanceChangeData> datas);
-    Mono<CommonResult<AccountBalanceChangedData>> deduct(List<BalanceChangeData> data);
+    Mono<CommonResult> perTransaction(List<BalanceChangeData> datas,
+                             boolean requiredResult);
+
 }

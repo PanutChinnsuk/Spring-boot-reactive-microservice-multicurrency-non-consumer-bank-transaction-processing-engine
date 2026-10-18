@@ -4,23 +4,22 @@ import com.panut.centralbanking.accountservice.IntegrationDev;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
-import com.panut.centralbanking.accountservice.application.accountbalance.AccountBalanceRepositoryManager;
-import com.panut.centralbanking.accountservice.application.balancechangemodel.service.BalanceChangeService;
+import com.panut.centralbanking.accountservice.application.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
+import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
-import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
-import com.panut.centralbanking.appcore.exceptions.Forbidden;
+import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AccountBalanceChangeServiceTest implements IntegrationDev {
     @Autowired
     private AccountBalanceRepository accountBalanceRepository;
@@ -32,22 +31,25 @@ public class AccountBalanceChangeServiceTest implements IntegrationDev {
     private AccountQuery accountQuery;
 
 
-    private String accountId;
+    private List<String> accountIds = new ArrayList<>();
 
     private BalanceChangeData balanceChangeData(String accountId,
-                                               BigDecimal amount) {
+                                                BigDecimal amount,
+                                                BalanceImpact balanceImpact) {
         BalanceChangeData data = new BalanceChangeData();
         data.setAccountId(accountId);
         data.setBalanceChangeType(BalanceChangeType.BALANCE);
         data.setAmount(amount);
+        data.setBalanceImpact(balanceImpact);
 
         return data;
     }
 
     private BalanceChangeData balanceChangeData(String accountId,
                                                BigDecimal amount,
-                                               BalanceChangeType balanceChangeType) {
-        BalanceChangeData data = balanceChangeData(accountId, amount);
+                                               BalanceChangeType balanceChangeType,
+                                                BalanceImpact balanceImpact) {
+        BalanceChangeData data = balanceChangeData(accountId, amount, balanceImpact);
         data.setBalanceChangeType(balanceChangeType);
 
         return data;
@@ -55,25 +57,28 @@ public class AccountBalanceChangeServiceTest implements IntegrationDev {
 
 
     private List<BalanceChangeData> invalidList() {
-        return List.of(balanceChangeData("a", BigDecimal.ONE),
-                balanceChangeData("b", BigDecimal.ONE));
+        return List.of(balanceChangeData("a", BigDecimal.ONE,
+                        BalanceImpact.ADD),
+                balanceChangeData("b", BigDecimal.ONE,
+                        BalanceImpact.DEDUCT));
     }
 
-    private Account account() {
-        Account account = accountQuery.findGeneric("TEST").block();
-        if (this.accountId == null) this.accountId = account.getId();
+
+
+    private Account account(String accountId) {
+        Account account = accountQuery.findGeneric(accountId).block();
+        if (!accountIds.contains(accountId)) accountIds.add(accountId);
 
         return account;
     }
 
-    private AccountBalance accountBalance() {
-        Account account = account();
+    private AccountBalance accountBalance(String accountId) {
+        Account account = account(accountId);
 
         return accountBalanceRepository.findById(account.getId()).block();
     }
 
-    @AfterAll
-    public void setBack() {
+    private void resetAccountBalance(String accountId) {
         if (accountId == null) return;
 
         AccountBalance accountBalance = accountBalanceRepository
@@ -92,38 +97,112 @@ public class AccountBalanceChangeServiceTest implements IntegrationDev {
         accountBalanceRepository.save(accountBalance).block();
     }
 
-
-    @Test
-    @Order(1)
-    public void shouldEnforcedSameAccountId() {
-        Assertions.assertThrows(SystemMisused.class,
-                () -> balanceChangeService.add(invalidList()).block());
+    @AfterAll
+    public void setBack() {
+        accountIds.add(accountQuery.findGeneric("TEST").block().getId());
+        accountIds.add(accountQuery.findGeneric("TEST2").block().getId());
+        accountIds.forEach(a -> resetAccountBalance(a));
     }
 
     @Test
-    @Order(2)
     public void shouldAddBalance() {
-        BigDecimal before = accountBalance().getBalance();
-        List<BalanceChangeData> single = List.of(balanceChangeData(accountId,
-                BigDecimal.ONE));
-        AccountBalanceChangedData result = balanceChangeService
-                .add(single).block().getOptionalBody();
+        List<BalanceChangeData> single = List.of(balanceChangeData("TEST",
+                BigDecimal.ONE, BalanceImpact.ADD));
 
-        Assertions.assertEquals(before,result.getBeforeBalance());
-        Assertions.assertEquals(single.getFirst()
-                .getAmount().add(before), result.getAfterBalance());
+        CommonResult result = balanceChangeService
+                .perTransaction(single, true).block();
+        List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
+                result.getOptionalBody();
+        AccountBalanceChangedData data = resultList.getFirst();
+
+        BigDecimal balanceAdded = single.getFirst()
+                .getAmount().add(data.getBeforeBalance());
+        BigDecimal ledgerAdded = data.getAfterBalance().add(data.getAfterReserve());
+
+        Assertions.assertTrue(result.isSuccess());
+        Assertions.assertEquals(balanceAdded, data.getAfterBalance());
+        Assertions.assertEquals(data.getAfterLedger(), ledgerAdded);
 
     }
 
     @Test
-    @Order(3)
-    public void shouldBoth() {
-        BigDecimal before = accountBalance().getBalance();
-        List<BalanceChangeData> add = List.of(balanceChangeData(accountId,
-                BigDecimal.ONE));
-        List<BalanceChangeData> deduct = List.of(balanceChangeData(accountId,
-                BigDecimal.ONE));
+    public void shouldBalanceToReserve() {
+        List<BalanceChangeData> single = List.of( balanceChangeData("TEST",
+                        BigDecimal.ONE,
+                        BalanceChangeType.BALANCE,
+                        BalanceImpact.DEDUCT),
+                balanceChangeData("TEST",
+                        BigDecimal.ONE,
+                        BalanceChangeType.RESERVE,
+                        BalanceImpact.ADD));
+
+        CommonResult result = balanceChangeService
+                .perTransaction(single, true).block();
+        List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
+                result.getOptionalBody();
+        Assertions.assertEquals(1, resultList.size());
+        AccountBalanceChangedData data = resultList.getFirst();
+
+        BalanceChangeData deduct = single.get(0);
+        BalanceChangeData add = single.get(1);
+
+        Assertions.assertTrue(result.isSuccess());
+
+        BigDecimal balanceSubtracted = data.getBeforeBalance().subtract(deduct.getAmount());
+        BigDecimal reserveAdded = data.getBeforeReserve().add(add.getAmount());
+
+        Assertions.assertEquals(balanceSubtracted, data.getAfterBalance());
+        Assertions.assertEquals(reserveAdded, data.getAfterReserve());
+        Assertions.assertEquals(data.getBeforeLedger(), data.getAfterLedger());
+
+    }
+
+    @Test
+    public void shouldTransfer() {
+        List<BalanceChangeData> single = List.of( balanceChangeData("TEST",
+                        BigDecimal.TEN,
+                        BalanceChangeType.BALANCE,
+                        BalanceImpact.DEDUCT),
+                balanceChangeData("TEST2",
+                        BigDecimal.TEN,
+                        BalanceChangeType.BALANCE,
+                        BalanceImpact.ADD));
+
+        CommonResult result = balanceChangeService
+                .perTransaction(single, true).block();
+        List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
+                result.getOptionalBody();
+        Assertions.assertEquals(2, resultList.size());
+        AccountBalanceChangedData data = resultList.getFirst();
+
+        BalanceChangeData deduct = single.get(0);
+        BalanceChangeData add = single.get(1);
+        AccountBalanceChangedData deductFrom = resultList
+                .stream().filter(a -> a.getAccountId()
+                        .equals("TEST")).toList().getFirst();
+        AccountBalanceChangedData transferTo = resultList
+                .stream().filter(a -> a.getAccountId()
+                        .equals("TEST2")).toList().getFirst();
+
+        Assertions.assertTrue(result.isSuccess());
+
+        BigDecimal deductFromBalanceSubtracted = deductFrom
+                .getBeforeBalance().subtract(deduct.getAmount());
+        BigDecimal transferToBalanceAdded = transferTo
+                .getBeforeBalance().add(add.getAmount());
+
+
+        Assertions.assertEquals(deductFromBalanceSubtracted,
+                deductFrom.getAfterBalance());
+        Assertions.assertEquals(transferToBalanceAdded,
+                transferTo.getAfterBalance());
+
 
 
     }
+
+
+
+
+
 }

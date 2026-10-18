@@ -1,11 +1,12 @@
 package com.panut.centralbanking.accountservice.infrastructure.model;
 
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
-import com.panut.centralbanking.accountservice.infrastructure.model.impact.BalanceChangeModel;
+import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.appR2dbccore.persistence.VersionedUUIDStringEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import reactor.core.publisher.Mono;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @Table("account_balances")
 @NoArgsConstructor
 @Getter
@@ -36,19 +38,24 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         setInsert(accountId);
     }
 
-    public Mono<AccountBalance> orchest(final List<? extends BalanceChangeModel> models) {
-        return Mono.defer(() -> {
-           models.forEach(model -> {
-               if (model.isDeduct()) {
-                   deductSimple(model.getAmount(),
-                           model.getBalanceChangeType());
-               }else {
-                   addSimple(model.getAmount(),
-                           model.getBalanceChangeType());
-               }
-           });
+    public void orchest(final List<AccountBalanceChange> changes) {
 
-           return Mono.just(this);
+        changes.forEach(change -> {
+            if (change.getBalanceImpact().equals(BalanceImpact.DEDUCT))
+                deductSimple(change.getAmount(),
+                        change.getBalanceChangeType());
+            if (change.getBalanceImpact().equals(BalanceImpact.ADD))
+                addSimple(change.getAmount(),
+                        change.getBalanceChangeType());
+        });
+    }
+
+    public Mono<AccountBalance> orchestMono(final List<AccountBalanceChange> changes) {
+
+        return Mono.defer(() -> {
+            orchest(changes);
+
+            return Mono.just(this);
         });
     }
 

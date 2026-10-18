@@ -23,3 +23,15 @@ app:
     core:
       mySecretKey: a
       apiKey: b
+
+
+logging:
+  level:
+    com:
+      panut:
+        centralbanking:
+          accountservice:
+            application:
+              accountbalancechange:
+                implement:
+                  BalanceChangeServiceImpl: INFO
