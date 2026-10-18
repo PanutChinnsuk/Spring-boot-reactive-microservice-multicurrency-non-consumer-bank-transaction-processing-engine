@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `account_profiles`;
 CREATE TABLE `account_profiles` (
   `id` varchar(255) NOT NULL,
   `currency` varchar(45) NOT NULL,
-  `type` varchar(45) NOT NULL,
+  `account_type` varchar(45) NOT NULL,
   `status` varchar(45) NOT NULL,
   `version` bigint NOT NULL,
   PRIMARY KEY (`id`),
@@ -40,6 +40,7 @@ CREATE TABLE `account_profiles` (
 
 LOCK TABLES `account_profiles` WRITE;
 /*!40000 ALTER TABLE `account_profiles` DISABLE KEYS */;
+INSERT INTO `account_profiles` VALUES ('TEST','USD','BANK','ACTIVE',0),('TEST2','USD','BANK','ACTIVE',0);
 /*!40000 ALTER TABLE `account_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-15 16:13:21
+-- Dump completed on 2026-10-18 22:03:41

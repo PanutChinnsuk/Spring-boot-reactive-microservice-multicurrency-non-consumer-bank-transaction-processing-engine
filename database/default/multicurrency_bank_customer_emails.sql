@@ -40,6 +40,7 @@ CREATE TABLE `customer_emails` (
 
 LOCK TABLES `customer_emails` WRITE;
 /*!40000 ALTER TABLE `customer_emails` DISABLE KEYS */;
+INSERT INTO `customer_emails` VALUES ('TEST','TEST@gmail.com',0,0);
 /*!40000 ALTER TABLE `customer_emails` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-15 16:13:19
+-- Dump completed on 2026-10-18 22:03:41

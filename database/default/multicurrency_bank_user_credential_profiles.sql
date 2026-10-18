@@ -25,8 +25,8 @@ DROP TABLE IF EXISTS `user_credential_profiles`;
 CREATE TABLE `user_credential_profiles` (
   `id` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `pin_hash` varchar(255) NOT NULL,
-  `recovery_password_hash` varchar(255) NOT NULL,
+  `pin_hash` varchar(255) DEFAULT NULL,
+  `recovery_password_hash` varchar(255) DEFAULT NULL,
   `version` bigint NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id_UNIQUE` (`id`),
@@ -52,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-15 16:13:20
+-- Dump completed on 2026-10-18 22:03:39
