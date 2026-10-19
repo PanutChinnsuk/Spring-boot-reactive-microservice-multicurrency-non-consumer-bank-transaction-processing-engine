@@ -24,16 +24,23 @@ public class AccountOverdraft extends VersionedUUIDStringEntity {
     @Column("status")
     private AccountOverdraftStatus accountOverdraftStatus;
 
+    @Column("transaction_id")
+    private String transactionId;
+
     @Column("overdrafted_at")
     private LocalDateTime overdraftedAt;
+
+
 
 
     @Builder
     public AccountOverdraft(String accountId,
                             BigDecimal amount,
+                            String transactionId,
                             LocalDateTime overdraftedAt) {
         this.accountId = accountId;
         this.amount = amount;
+        this.transactionId = transactionId;
         this.accountOverdraftStatus = AccountOverdraftStatus.UNPAID;
         this.overdraftedAt = overdraftedAt;
         setInsert();

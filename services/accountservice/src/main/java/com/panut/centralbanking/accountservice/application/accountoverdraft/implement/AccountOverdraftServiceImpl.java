@@ -21,6 +21,7 @@ public class AccountOverdraftServiceImpl {
     public Mono<CommonResult> overdraft(final AccountOverdraftCreateData data) {
         return manager.save(AccountOverdraft
                 .builder()
+                .transactionId(data.getTransactionId())
                 .accountId(data.getAccountId())
                 .amount(data.getAmount())
                 .overdraftedAt(data.getOverdraftedAt()).build())

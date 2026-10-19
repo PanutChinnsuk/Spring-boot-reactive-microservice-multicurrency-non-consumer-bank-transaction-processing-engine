@@ -1,9 +1,11 @@
 package com.panut.centralbanking.userservice;
 
 import com.panut.centralbanking.appcore.servicemaps.map.CustomerService;
+import com.panut.centralbanking.userservice.api.service.customerservice.CustomerUserActivationCodeService;
 import com.panut.centralbanking.userservice.api.service.customerservice.request.GetUserActivationCodeRequest;
 import com.panut.centralbanking.userservice.application.userrolelistelement.service.UserRoleListService;
 import com.panut.centralbanking.userservice.core.UserRoleEnum;
+import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 })
 @EnableScheduling
 public class UserserviceApplication {
+
 	public static void main(String[] args) {
 		SpringApplication.run(UserserviceApplication.class, args);
 	}
@@ -30,6 +33,8 @@ public class UserserviceApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
+
+
 
 			System.out.println("Userservice started///////////");
 		};

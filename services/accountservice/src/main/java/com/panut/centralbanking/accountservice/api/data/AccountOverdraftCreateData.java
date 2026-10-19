@@ -23,4 +23,6 @@ public class AccountOverdraftCreateData {
     private BigDecimal amount;
 
     private LocalDateTime overdraftedAt = LocalDateTime.now();
+
+    private String transactionId;
 }

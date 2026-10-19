@@ -1,0 +1,29 @@
+server:
+  port: 8007
+
+spring:
+  application:
+    name: fxrateservice
+
+
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/multicurrency_bank
+    username: root
+    password: a11211121A_
+
+model:
+  fxrate:
+    addingSafeGuardRangeSeconds: 5
+
+
+app:
+  security:
+    core:
+      mySecretKey: a
+      apiKey: b
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8500/eureka/

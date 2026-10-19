@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -63,6 +64,9 @@ public class ServiceSignatureConfig {
         }
 
         public ServiceSignatureConfig build() {
+            if (serviceAuthorities == null) serviceAuthorities = Collections
+                    .emptyList();
+
             return new ServiceSignatureConfig(serviceAuthorities, renewMinutes,
                     betweenServicesSecretKey, optionalName);
         }

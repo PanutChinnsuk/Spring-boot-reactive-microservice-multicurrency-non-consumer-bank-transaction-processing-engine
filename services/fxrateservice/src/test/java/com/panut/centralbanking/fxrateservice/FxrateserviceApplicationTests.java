@@ -3,8 +3,8 @@ package com.panut.centralbanking.fxrateservice;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class FxrateserviceApplicationTests {
+
+class FxrateserviceApplicationTests implements IntegrationDev{
 
 	@Test
 	void contextLoads() {

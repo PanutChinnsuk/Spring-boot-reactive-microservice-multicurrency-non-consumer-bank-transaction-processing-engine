@@ -21,8 +21,6 @@ public class CustomerServiceConfig {
                 .optionalName("CUSTOMERSERVICE_SIGNATURE")
                 .betweenServicesSecretKey(customerServiceKey)
                 .renewMinutes(1)
-                .serviceAuthorities(CustomerService.ACTIVATE_USER_METHOD,
-                        CustomerService.GET_ACTIVATION_CODE_METHOD)
                 .build();
     }
 

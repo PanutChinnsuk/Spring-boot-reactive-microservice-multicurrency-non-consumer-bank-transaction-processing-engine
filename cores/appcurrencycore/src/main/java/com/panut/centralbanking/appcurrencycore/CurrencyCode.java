@@ -31,8 +31,8 @@ public enum CurrencyCode {
     ZAR, ZMW, ZWL;
 
 
-    public int getCurrencyDigits(CurrencyCode currencyCode) {
-        return Currency.getInstance(currencyCode.name()).getDefaultFractionDigits();
+    public int getCurrencyDigits() {
+        return Currency.getInstance(this.name()).getDefaultFractionDigits();
     }
 
     public static CurrencyCode getBaseCurrency() {

@@ -5,6 +5,7 @@ import com.panut.centralbanking.accountservice.application.accountbalancechange.
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.AccountService;
+import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +24,7 @@ public class AccountBalanceChangeServiceController {
 
     private final boolean REQUIRED_RESULT = false;
 
+    @ServiceHasAuthorityExpectsMono(AccountService.BALANCE_CHANGE_PER_TRANSACTION_METHOD)
     @PostMapping(AccountService.BALANCE_CHANGE_PER_TRANSACTION_METHOD)
     public Mono<CommonResult> perTransaction(@RequestBody @Valid
                                              PerTransactionBalanceChangeRequest r) {
