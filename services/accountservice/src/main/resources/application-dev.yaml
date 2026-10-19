@@ -21,8 +21,8 @@ eureka:
 app:
   security:
     core:
-      mySecretKey: a
-      apiKey: b
+      mySecretKey: accountServiceKeySaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
+      apiKey: MainAppCoreCoreCoreApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
 
 
 logging:
