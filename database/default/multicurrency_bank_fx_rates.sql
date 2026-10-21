@@ -32,7 +32,8 @@ CREATE TABLE `fx_rates` (
   `treasury_rate` decimal(19,8) NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `timestamp_UNIQUE` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -42,6 +43,7 @@ CREATE TABLE `fx_rates` (
 
 LOCK TABLES `fx_rates` WRITE;
 /*!40000 ALTER TABLE `fx_rates` DISABLE KEYS */;
+INSERT INTO `fx_rates` VALUES ('defaultId','USD','THB',25.00000000,50.00000000,37.50000000,40.00000000,'2026-03-04 13:30:09');
 /*!40000 ALTER TABLE `fx_rates` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-18 22:03:41
+-- Dump completed on 2026-10-21 15:44:57

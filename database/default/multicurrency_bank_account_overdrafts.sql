@@ -28,11 +28,14 @@ CREATE TABLE `account_overdrafts` (
   `amount` decimal(19,4) NOT NULL,
   `status` varchar(45) NOT NULL,
   `overdrafted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `transaction_id` varchar(255) DEFAULT NULL,
   `version` bigint NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `fk_account_overdrafts_account_id_idx` (`account_id`),
-  CONSTRAINT `fk_account_overdrafts_account_id` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`)
+  KEY `fk_account_overdrafts_transaction_id_idx` (`transaction_id`),
+  CONSTRAINT `fk_account_overdrafts_account_id` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`),
+  CONSTRAINT `fk_account_overdrafts_transaction_id` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -54,4 +57,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-18 22:03:40
+-- Dump completed on 2026-10-21 15:44:57

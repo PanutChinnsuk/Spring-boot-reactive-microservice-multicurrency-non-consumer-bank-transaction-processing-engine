@@ -27,14 +27,14 @@ CREATE TABLE `transaction_profiles` (
   `fx_direction` varchar(45) NOT NULL,
   `fx_rate_id` varchar(255) NOT NULL,
   `posted_at` timestamp NULL DEFAULT NULL,
-  `reversed_of` varchar(255) DEFAULT NULL,
+  `reversed_of_transaction_id` varchar(255) DEFAULT NULL,
   `version` bigint NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `transaction_id_UNIQUE` (`id`),
   KEY `fk_transaction_profiles_fx_rate_id_idx` (`fx_rate_id`),
-  KEY `fk_transaction_profiles_reversed_of_transaction_id_optional_idx` (`reversed_of`),
+  KEY `fk_transaction_profiles_reversed_of_transaction_id_optional_idx` (`reversed_of_transaction_id`),
   CONSTRAINT `fk_transaction_profiles_fx_rate_id` FOREIGN KEY (`fx_rate_id`) REFERENCES `fx_rates` (`id`),
-  CONSTRAINT `fk_transaction_profiles_reversed_of_transaction_id_optional` FOREIGN KEY (`reversed_of`) REFERENCES `transactions` (`id`),
+  CONSTRAINT `fk_transaction_profiles_reversed_of_transaction_id_optional` FOREIGN KEY (`reversed_of_transaction_id`) REFERENCES `transactions` (`id`),
   CONSTRAINT `fk_transaction_profiles_transaction_id` FOREIGN KEY (`id`) REFERENCES `transactions` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -57,4 +57,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-18 22:03:40
+-- Dump completed on 2026-10-21 15:44:57
