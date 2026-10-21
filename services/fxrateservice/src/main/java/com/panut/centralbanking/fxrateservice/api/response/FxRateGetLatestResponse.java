@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Data
 public class FxRateGetLatestResponse {
+    private String fxRateId;
     private BigDecimal bidRate;
     private BigDecimal askRate;
     private BigDecimal midRate;
@@ -23,6 +24,7 @@ public class FxRateGetLatestResponse {
     @JsonIgnore
     public static FxRateGetLatestResponse toResponse(final FxRate fxRate) {
         return new FxRateGetLatestResponse(
+                fxRate.getId(),
                 fxRate.getBidRate(),
                 fxRate.getAskRate(),
                 fxRate.getMidRate(),

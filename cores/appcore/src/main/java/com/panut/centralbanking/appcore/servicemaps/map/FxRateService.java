@@ -8,7 +8,7 @@ public class FxRateService {
 
 
     public static final String GET_LATEST_METHOD = "/get-latest";
-    public static final String GET_LATESTFULL_PATH = FullPath.loadBalancedOf(
+    public static final String GET_LATEST_FULL_PATH = FullPath.loadBalancedOf(
             ID, GET_LATEST_METHOD);
 
 

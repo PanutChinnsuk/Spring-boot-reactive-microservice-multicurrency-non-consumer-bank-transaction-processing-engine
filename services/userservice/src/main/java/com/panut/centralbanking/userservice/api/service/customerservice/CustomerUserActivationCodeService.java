@@ -30,8 +30,7 @@ public class CustomerUserActivationCodeService {
                         body,
                         BusinessException.class,
                         LOG_NAME + "getCode")
-                .flatMap(result ->
-                     Mono.fromCallable(() -> (UserDefaultPasswordData) result.getOptionalBody()));
+                .map(result -> (UserDefaultPasswordData) result.getOptionalBody());
     }
 
 

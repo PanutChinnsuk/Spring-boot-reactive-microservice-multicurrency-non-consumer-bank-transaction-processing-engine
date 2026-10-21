@@ -26,7 +26,8 @@ public class TransactionRegisterPipeline {
     public Mono<Void> register(final PreTransactionRegisterData registerData) {
         return ledgerAccountQuery.getLedgerAccountMapByCodes(registerData.getUsingLedgerCodes())
                 .flatMap(ledgerAccounts -> {
-                    return null;
+
+                    return new RegisterPipelineChain().ledgerAccounts(ledgerAccounts);
                 })
                 .then();
 
