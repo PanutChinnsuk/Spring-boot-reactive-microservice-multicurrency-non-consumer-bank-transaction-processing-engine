@@ -24,7 +24,7 @@ public class TransactionLine extends UUIDBasedStringEntity {
     private TransactionLineDirection direction;
 
     @Column("based_amount")
-    private BigDecimal bigDecimal;
+    private BigDecimal basedAmount;
 
     @Column("converted_amount")
     private BigDecimal convertedAmount;
@@ -36,13 +36,13 @@ public class TransactionLine extends UUIDBasedStringEntity {
     public TransactionLine(String transactionId,
                            String accountId,
                            TransactionLineDirection direction,
-                           BigDecimal bigDecimal,
+                           BigDecimal basedAmount,
                            BigDecimal convertedAmount,
                            String ledgerAccountId) {
         this.transactionId = transactionId;
         this.accountId = accountId;
         this.direction = direction;
-        this.bigDecimal = bigDecimal;
+        this.basedAmount = basedAmount;
         this.convertedAmount = convertedAmount;
         this.ledgerAccountId = ledgerAccountId;
         setInsert();
