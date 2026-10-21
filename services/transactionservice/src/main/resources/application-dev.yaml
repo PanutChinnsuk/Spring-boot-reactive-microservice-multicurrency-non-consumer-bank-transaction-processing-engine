@@ -6,11 +6,22 @@ spring:
     name: transactionservice
 
 
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/multicurrency_bank
+    username: root
+    password: a11211121A_
+
+
 app:
   security:
     core:
-      mySecretKey: a
-      apiKey: b
+      securityMode: TEST
+
+      fxRateServiceKey: fxRateService
+      accountServiceKey: accountService
+      mySecretKey: transactionService
+      apiKey: apiKey
+
 
 
 

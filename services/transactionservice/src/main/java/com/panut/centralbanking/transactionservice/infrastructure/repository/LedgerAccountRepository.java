@@ -1,10 +1,14 @@
 package com.panut.centralbanking.transactionservice.infrastructure.repository;
 
 import com.panut.centralbanking.transactionservice.infrastructure.model.LedgerAccount;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerAccountMapQueryResult;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Set;
 
 public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAccount, String> {
 
@@ -24,5 +28,10 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
     Mono<String> getIdByCode(@Param("code") String code);
 
 
+    @Query("""
+            SELECT l.id, l.code FROM ledger_accounts l
+            WHERE l.code IN (:codes)
+            """)
+    Flux<LedgerAccountMapQueryResult> getLedgerAccountMapByCodes(@Param("codes")Set<String> codes);
 
 }

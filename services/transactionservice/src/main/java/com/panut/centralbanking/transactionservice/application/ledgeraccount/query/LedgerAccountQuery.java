@@ -2,8 +2,13 @@ package com.panut.centralbanking.transactionservice.application.ledgeraccount.qu
 
 import com.panut.centralbanking.appcore.exceptions.NotFound;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.LedgerAccountRepository;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerAccountMapQueryResult;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class LedgerAccountQuery {
@@ -20,6 +25,20 @@ public class LedgerAccountQuery {
                         () -> new NotFound("Ledger account table does not contain ledger account " +
                                 "with code " + code)
                 ));
+    }
+
+    public Mono<Map<String,String>> getLedgerAccountMapByCodes(final Set<String> codes) {
+        return ledgerAccountRepository.getLedgerAccountMapByCodes(codes)
+                .collectList()
+                .flatMap(list -> {
+                    if (list.size() != codes.size())
+                        return Mono.<Map<String, String>>error(() -> new NotFound("One or more ledger accounts is missing."));
+
+
+                    return Mono.just(list.stream().collect(Collectors.toMap(
+                            LedgerAccountMapQueryResult::getCode,
+                            LedgerAccountMapQueryResult::getId)));
+                });
     }
 
     public Mono<String> findExistNotThrow() {

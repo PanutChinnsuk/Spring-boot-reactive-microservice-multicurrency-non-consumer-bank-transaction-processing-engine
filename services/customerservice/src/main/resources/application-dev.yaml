@@ -19,8 +19,9 @@ app:
 
   security:
     core:
-      mySecretkey: CustomerServiceApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
-      apiKey: MainAppCoreCoreCoreApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
+      securityMode: TEST
+      mySecretkey: customerService
+      apiKey: apiKey
 
 eureka:
   client:

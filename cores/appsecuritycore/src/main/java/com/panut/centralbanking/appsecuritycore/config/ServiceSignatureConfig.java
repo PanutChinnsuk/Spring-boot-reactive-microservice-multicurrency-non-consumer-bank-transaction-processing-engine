@@ -1,33 +1,38 @@
 package com.panut.centralbanking.appsecuritycore.config;
 
-import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
+import com.panut.centralbanking.appsecuritycore.autoconfig.SecurityModeAutoConfiguration;
+import com.panut.centralbanking.appsecuritycore.core.SecurityMode;
+import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.context.annotation.Configuration;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 
+@Slf4j
 public class ServiceSignatureConfig {
-    private List<String> serviceAuthorities;
-    private int renewMinutes;
-    private String betweenServicesSecretKey;
+    private final List<String> serviceAuthorities;
+    private int renewMinutes = 15;
+    private final String betweenServicesSecretKey;
     private String optionalName = "UNDEFINED ServiceSignatureConfig.optionalName";
+    private final ServiceSignatureConfigSecurityContext context;
 
 
     public ServiceSignatureConfig(List<String> serviceAuthorities,
                                   int renewMinutes,
                                   String betweenServicesSecretKey,
-                                  String optionalName) {
+                                  String optionalName,
+                                  ServiceSignatureConfigSecurityContext context) {
         this.serviceAuthorities = serviceAuthorities;
         this.renewMinutes = renewMinutes;
         this.betweenServicesSecretKey = betweenServicesSecretKey;
         this.optionalName = optionalName;
+        this.context = context;
+
+        log.info(optionalName + " security mode: " + context.getSecurityMode());
     }
 
 
@@ -42,6 +47,7 @@ public class ServiceSignatureConfig {
         private int renewMinutes = 1;
         private String betweenServicesSecretKey;
         private String optionalName;
+        private ServiceSignatureConfigSecurityContext context;
 
         public Builder serviceAuthorities(String... authorities) {
             this.serviceAuthorities = Arrays.stream(authorities).toList();
@@ -63,12 +69,20 @@ public class ServiceSignatureConfig {
             return this;
         }
 
+        public Builder ServiceSignatureConfigSecurityContext
+                (ServiceSignatureConfigSecurityContext context) {
+            this.context = context;
+            return this;
+        }
+
         public ServiceSignatureConfig build() {
             if (serviceAuthorities == null) serviceAuthorities = Collections
                     .emptyList();
 
+
+
             return new ServiceSignatureConfig(serviceAuthorities, renewMinutes,
-                    betweenServicesSecretKey, optionalName);
+                    betweenServicesSecretKey, optionalName, context);
         }
     }
 
@@ -85,10 +99,14 @@ public class ServiceSignatureConfig {
     }
 
     public String getBetweenServicesSecretKey() {
+        if (context.getSecurityMode().equals(SecurityMode.TEST))
+            return betweenServicesSecretKey +
+                    "saltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSalt";
+
         return betweenServicesSecretKey;
     }
 
     public SecretKey getBetweenServicesSecretKeyHMAC() {
-        return HMACs.stringToSecretKey(betweenServicesSecretKey);
+        return HMACs.stringToSecretKey(getBetweenServicesSecretKey());
     }
 }

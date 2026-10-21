@@ -19,8 +19,8 @@ model:
 app:
   security:
     core:
-      mySecretKey: a
-      apiKey: b
+      mySecretKey: fxRateService
+      apiKey: apiKey
 
 
 eureka:

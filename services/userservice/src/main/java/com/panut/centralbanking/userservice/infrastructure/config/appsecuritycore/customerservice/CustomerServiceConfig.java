@@ -2,6 +2,7 @@ package com.panut.centralbanking.userservice.infrastructure.config.appsecurityco
 
 import com.panut.centralbanking.appcore.servicemaps.map.CustomerService;
 import com.panut.centralbanking.appsecuritycore.config.ServiceSignatureConfig;
+import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,11 +17,12 @@ public class CustomerServiceConfig {
 
 
     @Bean
-    public ServiceSignatureConfig customerServiceSignatureConfig() {
+    public ServiceSignatureConfig customerServiceSignatureConfig(ServiceSignatureConfigSecurityContext context) {
         return ServiceSignatureConfig.builder()
                 .optionalName("CUSTOMERSERVICE_SIGNATURE")
                 .betweenServicesSecretKey(customerServiceKey)
                 .renewMinutes(1)
+                .ServiceSignatureConfigSecurityContext(context)
                 .build();
     }
 

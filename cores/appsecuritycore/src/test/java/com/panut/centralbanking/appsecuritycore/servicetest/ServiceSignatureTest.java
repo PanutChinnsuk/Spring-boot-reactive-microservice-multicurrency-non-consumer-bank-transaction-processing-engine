@@ -1,7 +1,9 @@
 package com.panut.centralbanking.appsecuritycore.servicetest;
 
 import com.panut.centralbanking.appsecuritycore.autoconfig.MyServiceSignatureAutoConfiguration;
+import com.panut.centralbanking.appsecuritycore.autoconfig.SecurityModeAutoConfiguration;
 import com.panut.centralbanking.appsecuritycore.config.ServiceSignatureConfig;
+import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
 import com.panut.centralbanking.appsecuritycore.signature.jwt.CoreClaims;
 import io.jsonwebtoken.Claims;
@@ -23,11 +25,15 @@ public class ServiceSignatureTest {
                     .serviceAuthorities(authority)
                     .optionalName("configName")
                     .betweenServicesSecretKey(matchedSecretKey)
+                    .ServiceSignatureConfigSecurityContext(
+                            ServiceSignatureConfigSecurityContext.DEFAULT()
+                    )
                     .renewMinutes(5)
                     .build());
 
     private MyServiceSignatureAutoConfiguration myServiceSignatureAutoConfiguration =
-            MyServiceSignatureAutoConfiguration.create(matchedSecretKey);
+            MyServiceSignatureAutoConfiguration.create(matchedSecretKey,
+                    ServiceSignatureConfigSecurityContext.DEFAULT());
 
 
 

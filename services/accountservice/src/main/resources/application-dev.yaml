@@ -21,8 +21,10 @@ eureka:
 app:
   security:
     core:
-      mySecretKey: accountServiceKeySaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
-      apiKey: MainAppCoreCoreCoreApiKey_saltSalTsaltSalTsaltSalTsaltSalTsaltSalTsaltSalT
+      securityMode: TEST
+
+      mySecretKey: accountService
+      apiKey: apiKey
 
 
 logging:

@@ -70,6 +70,11 @@
 			<version>0.0.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.panut.centralbanking</groupId>
+			<artifactId>appcurrencycore</artifactId>
+			<version>0.0.1</version>
+		</dependency>
 
 
 		<dependency>

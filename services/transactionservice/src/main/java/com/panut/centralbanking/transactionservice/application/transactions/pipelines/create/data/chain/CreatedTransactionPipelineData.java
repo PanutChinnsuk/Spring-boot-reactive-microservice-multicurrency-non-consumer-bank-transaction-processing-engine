@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipeline.data.chain;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.create.data.chain;
 
 import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionProfile;
