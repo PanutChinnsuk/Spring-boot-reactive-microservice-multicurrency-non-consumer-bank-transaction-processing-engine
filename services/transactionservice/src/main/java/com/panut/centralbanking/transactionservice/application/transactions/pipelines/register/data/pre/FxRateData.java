@@ -25,8 +25,8 @@ public class FxRateData {
 
     public FxRateData empty() {
         return new FxRateData(FxDirection.NONE,
-                getMainCurrency(),
-                getMainCurrency());
+                null,
+                null);
     }
 
 
@@ -51,5 +51,9 @@ public class FxRateData {
 
     public FxRateData quoteTreasury(final CurrencyCode quoteCurrency) {
         return quote(quoteCurrency, FxDirection.TREASURY);
+    }
+
+    public boolean isEmpty() {
+        return this.fxDirection.equals(FxDirection.NONE);
     }
 }

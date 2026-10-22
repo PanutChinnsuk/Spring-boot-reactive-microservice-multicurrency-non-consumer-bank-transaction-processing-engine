@@ -22,6 +22,7 @@ public class PreTransactionRegisterData {
 
 
 
+
     public PreTransactionRegisterData(List<AccountData> accountDatas,
                                       FxRateData fxRateData) {
         this.accountDatas = accountDatas;
