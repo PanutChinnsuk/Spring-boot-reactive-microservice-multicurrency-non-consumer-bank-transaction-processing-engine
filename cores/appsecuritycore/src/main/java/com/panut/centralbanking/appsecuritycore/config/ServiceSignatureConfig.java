@@ -3,6 +3,7 @@ package com.panut.centralbanking.appsecuritycore.config;
 import com.panut.centralbanking.appsecuritycore.autoconfig.SecurityModeAutoConfiguration;
 import com.panut.centralbanking.appsecuritycore.core.SecurityMode;
 import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
+import com.panut.centralbanking.appsecuritycore.core.TestMode;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
 import lombok.extern.slf4j.Slf4j;
 
@@ -100,8 +101,7 @@ public class ServiceSignatureConfig {
 
     public String getBetweenServicesSecretKey() {
         if (context.getSecurityMode().equals(SecurityMode.TEST))
-            return betweenServicesSecretKey +
-                    "saltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSalt";
+            return TestMode.toSalt(betweenServicesSecretKey);
 
         return betweenServicesSecretKey;
     }

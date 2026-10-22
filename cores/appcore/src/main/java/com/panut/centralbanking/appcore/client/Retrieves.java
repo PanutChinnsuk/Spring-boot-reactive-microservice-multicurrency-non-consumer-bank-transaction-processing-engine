@@ -3,6 +3,7 @@ package com.panut.centralbanking.appcore.client;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -51,11 +52,33 @@ public class Retrieves {
     }
 
 
+
+
+
+    public static final <T>Mono<CommonResult<T>> doRequest(final WebClient webClient,
+                                                           final String fullPath,
+                                                           final Object body,
+                                                           final Class<? extends RuntimeException> onError,
+                                                           final String name,
+                                                           final ParameterizedTypeReference<CommonResult<T>> reference) {
+        return webClient
+                .post()
+                .uri(fullPath)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(reference)
+                .flatMap(result -> {
+                    if (!result.isSuccess()) error(result,
+                            onError, name);
+                    return Mono.just(result);
+                });
+    }
+
     public static final Mono<CommonResult> doRequest(final WebClient webClient,
-                                                     final String fullPath,
-                                                     final Object body,
-                                                     final Class<? extends RuntimeException> onError,
-                                                     final String name) {
+                                                           final String fullPath,
+                                                           final Object body,
+                                                           final Class<? extends RuntimeException> onError,
+                                                           final String name) {
         return webClient
                 .post()
                 .uri(fullPath)
@@ -67,5 +90,19 @@ public class Retrieves {
                             onError, name);
                     return Mono.just(result);
                 });
+    }
+
+    public static final <T>Mono<T> doRequest(final WebClient webClient,
+                                                           final String fullPath,
+                                                           final Object body,
+                                                           final Class<? extends RuntimeException> onError,
+                                                           final String name,
+                                                           final Class<T> expectedClass) {
+        return webClient
+                .post()
+                .uri(fullPath)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(expectedClass);
     }
 }

@@ -29,3 +29,14 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8500/eureka/
+
+
+logging:
+  level:
+    com:
+      panut:
+        centralbanking:
+          appsecuritycore:
+            servicesecurity:
+              signaturegenerator:
+                ServiceSignature: DEBUG

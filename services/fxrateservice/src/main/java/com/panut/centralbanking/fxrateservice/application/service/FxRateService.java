@@ -9,5 +9,5 @@ import reactor.core.publisher.Mono;
 
 public interface FxRateService {
     Mono<CommonResult<FxRateCreatedResponse>> createFxRate(FxRateCreateRequest r);
-    Mono<FxRateGetLatestResponse> getLatest(FxRateGetLatestRequest r);
+    Mono<CommonResult<FxRateGetLatestResponse>> getLatest(FxRateGetLatestRequest r);
 }

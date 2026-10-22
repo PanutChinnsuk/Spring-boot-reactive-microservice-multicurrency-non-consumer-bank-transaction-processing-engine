@@ -3,6 +3,7 @@ package com.panut.centralbanking.appsecuritycore.autoconfig;
 
 import com.panut.centralbanking.appsecuritycore.core.SecurityMode;
 import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
+import com.panut.centralbanking.appsecuritycore.core.TestMode;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -35,7 +36,7 @@ public class MyServiceSignatureAutoConfiguration {
         if (serviceSignatureConfigSecurityContext.getSecurityMode().equals(
                 SecurityMode.TEST
         )) {
-            this.mySecretKey = mySecretKey + "saltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSaltsaltSalt";
+            this.mySecretKey = TestMode.toSalt(mySecretKey);
             log.info("MyServiceSignatureAutoConfiguration mySecretKey auto configuration" +
                     " as test mode.");
             return;
@@ -52,6 +53,7 @@ public class MyServiceSignatureAutoConfiguration {
     }
 
     public SecretKey getMySecretKeyHMAC() {
+        log.debug("MyServiceSignature getMySecretKeyHMAC key {}", mySecretKey);
         return HMACs.stringToSecretKey(mySecretKey);
     }
 }

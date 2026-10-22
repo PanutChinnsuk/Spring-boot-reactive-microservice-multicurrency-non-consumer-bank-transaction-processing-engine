@@ -103,8 +103,12 @@ implements CustomerUserActivationCodeService {
                                     profile.getLastname(),
                                     defaultPassword.simple(profile.getCitizenId())
                             )))
-                .doOnError(error -> log.error("Failed to get user activation code {}",
-                        error.getLocalizedMessage()));
+                .onErrorResume(error -> {
+                    String errMsg = error.getLocalizedMessage();
+                    log.error("Failed to get user activation code {}", errMsg);
+
+                    return Mono.just(new CommonResult<>(false, errMsg));
+                });
     }
 
     @Override

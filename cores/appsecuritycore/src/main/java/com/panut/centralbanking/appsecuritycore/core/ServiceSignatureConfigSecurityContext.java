@@ -5,6 +5,7 @@ public class ServiceSignatureConfigSecurityContext {
     private SecurityMode securityMode;
 
 
+
     public SecurityMode getSecurityMode() {
         return securityMode;
     }

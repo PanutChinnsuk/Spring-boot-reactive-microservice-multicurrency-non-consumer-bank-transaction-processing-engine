@@ -56,6 +56,10 @@ public class ServiceSignature {
                 currentSignature.get() != null));
         log.info("Renewed currentSignature: {}", configName);
         log.info("Incremented version: {}", incremented);
+
+        log.debug("ServiceSignature signing with {}",
+                serviceSignatureConfig.getBetweenServicesSecretKey());
+
     }
 
 

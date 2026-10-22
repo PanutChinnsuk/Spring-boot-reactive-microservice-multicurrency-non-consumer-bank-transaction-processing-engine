@@ -8,6 +8,7 @@ import com.panut.centralbanking.userservice.api.service.customerservice.request.
 import com.panut.centralbanking.userservice.api.service.customerservice.request.GetUserActivationCodeRequest;
 import com.panut.centralbanking.userservice.api.service.customerservice.response.UserDefaultPasswordData;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -21,6 +22,9 @@ public class CustomerUserActivationCodeService {
         this.customerServiceWebClient = customerServiceWebClient;
     }
 
+    ParameterizedTypeReference<CommonResult<UserDefaultPasswordData>> getCodeResponseType =
+            new ParameterizedTypeReference<CommonResult<UserDefaultPasswordData>>() {};
+
 
     private final String LOG_NAME = "CustomerUserActivationCodeService ";
 
@@ -29,8 +33,9 @@ public class CustomerUserActivationCodeService {
                         CustomerService.GET_ACTIVATION_CODE_FULL_PATH,
                         body,
                         BusinessException.class,
-                        LOG_NAME + "getCode")
-                .map(result -> (UserDefaultPasswordData) result.getOptionalBody());
+                        LOG_NAME + "getCode",
+                        getCodeResponseType)
+                .map(result -> result.getOptionalBody());
     }
 
 

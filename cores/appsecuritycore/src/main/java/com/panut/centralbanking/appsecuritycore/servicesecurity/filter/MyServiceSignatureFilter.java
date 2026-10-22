@@ -43,7 +43,7 @@ public class MyServiceSignatureFilter implements WebFilter, Ordered {
                     log.debug("MyServiceSignatureFilter request has expected header.");
                     return CoreHeaders.getExistTokenFromHeader(body)
                             .doOnNext(a -> log.debug("after CoreHeaders.getExistTokenFromHeader"))
-                            .doOnNext(a -> log.debug("key {}", myServiceSignatureAutoConfiguration.getMySecretKey()))
+                            .doOnNext(a -> log.debug("myService key {}", myServiceSignatureAutoConfiguration.getMySecretKey()))
                             .flatMap(token -> CoreClaims.toClaims(
                                     token, myServiceSignatureAutoConfiguration.getMySecretKeyHMAC()))
                             .doOnNext(a -> log.debug("after CoreClaims.toClaims"))

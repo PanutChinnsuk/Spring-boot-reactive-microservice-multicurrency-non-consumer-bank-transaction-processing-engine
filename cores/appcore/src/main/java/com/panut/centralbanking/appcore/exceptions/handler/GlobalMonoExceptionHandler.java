@@ -1,6 +1,7 @@
 package com.panut.centralbanking.appcore.exceptions.handler;
 
 import com.panut.centralbanking.appcore.exceptions.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DeadlockLoserDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -16,6 +17,7 @@ import reactor.core.scheduler.Schedulers;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalMonoExceptionHandler {
 
@@ -25,11 +27,10 @@ public class GlobalMonoExceptionHandler {
         return Mono.fromCallable(() -> {
             Map<String,String> errMap = new HashMap<>();
 
-            errMap.put("Exception", t.getClass().getSimpleName());
+
             errMap.put("Localized Message", t.getLocalizedMessage());
 
-            if (ex != null)errMap.put("Path", ex.getRequest().getPath().value());
-            t.printStackTrace();
+            log.error("Error stack trace, ", t);
 
             return new ResponseEntity<Map<String,String>>(errMap, httpStatus);
         });

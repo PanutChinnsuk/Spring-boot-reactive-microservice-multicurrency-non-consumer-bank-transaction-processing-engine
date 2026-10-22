@@ -1,5 +1,6 @@
 package com.panut.centralbanking.fxrateservice.api.controller.service;
 
+import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetLatestRequest;
@@ -24,7 +25,7 @@ public class FxRateServiceController {
 
     @ServiceHasAuthorityExpectsMono(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_LATEST_METHOD)
     @PostMapping(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_LATEST_METHOD)
-    public Mono<FxRateGetLatestResponse> getLatest(@RequestBody @Valid
+    public Mono<CommonResult<FxRateGetLatestResponse>> getLatest(@RequestBody @Valid
                                                    FxRateGetLatestRequest r) {
         return fxRateService.getLatest(r);
     }

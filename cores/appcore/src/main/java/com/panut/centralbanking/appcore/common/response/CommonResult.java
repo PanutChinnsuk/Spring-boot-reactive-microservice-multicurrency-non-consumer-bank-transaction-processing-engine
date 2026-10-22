@@ -18,11 +18,23 @@ public class CommonResult<T> {
         this.optionalMessage = optionalMessage;
     }
 
+    public CommonResult(boolean success, String optionalMessage, T optionalBody) {
+        this.success = success;
+        this.optionalMessage = optionalMessage;
+        this.optionalBody = optionalBody;
+    }
+
     public CommonResult(String optionalMessage, T optionalBody) {
         this.success = true;
         this.optionalMessage = optionalMessage;
         this.optionalBody = optionalBody;
     }
+
+    public CommonResult(T optionalBody) {
+        this.success = true;
+        this.optionalBody = optionalBody;
+    }
+
 
     public static CommonResult defaultSuccess() {
         return new CommonResult(true);

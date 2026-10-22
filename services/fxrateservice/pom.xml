@@ -82,6 +82,8 @@
 		</dependency>
 
 
+
+
 		<dependency>
 			<groupId>com.panut.centralbanking</groupId>
 			<artifactId>appcurrencycore</artifactId>

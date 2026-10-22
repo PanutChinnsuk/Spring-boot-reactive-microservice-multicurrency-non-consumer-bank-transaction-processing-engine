@@ -69,7 +69,7 @@ public class FxRateServiceTest implements IntegrationDev {
 
         FxRateGetLatestResponse response = fxRateService
                 .getLatest(new FxRateGetLatestRequest(r.getBaseCurrency(),
-                        r.getQuoteCurrency())).block();
+                        r.getQuoteCurrency())).block().getOptionalBody();
         Assertions.assertNotNull(response.getBidRate(), "bidrate");
         Assertions.assertNotNull(response.getAskRate(), "askrate");
         Assertions.assertNotNull(response.getMidRate(), "midrate");

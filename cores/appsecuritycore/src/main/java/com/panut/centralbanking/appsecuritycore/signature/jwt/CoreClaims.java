@@ -3,12 +3,14 @@ package com.panut.centralbanking.appsecuritycore.signature.jwt;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import javax.crypto.SecretKey;
 import java.util.List;
 
+@Slf4j
 public class CoreClaims {
     public static final String USER_ID_CLAIM = "userId";
     public static final String USER_AUTHORITIES_CLAIM = "userAuthorities";
@@ -22,6 +24,8 @@ public class CoreClaims {
     public static Mono<Claims> toClaims(String token,
                                         SecretKey secretKey) {
        return Mono.defer(() -> {
+           log.debug("CoreClaims toClaims using {}", token);
+
            return Mono.just(Jwts.parser()
                    .verifyWith(secretKey)
                    .build()

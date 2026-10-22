@@ -63,15 +63,17 @@ public class FxRateServiceImpl implements FxRateService {
     }
 
     @Override
-    public Mono<FxRateGetLatestResponse> getLatest(final FxRateGetLatestRequest r) {
+    public Mono<CommonResult<FxRateGetLatestResponse>> getLatest(final FxRateGetLatestRequest r) {
         return fxRateQuery
                 .findLatest(r.getBaseCurrency(),
                         r.getQuoteCurrency())
                 .map(FxRateGetLatestResponse::toResponse)
+                .map(response -> new CommonResult<FxRateGetLatestResponse>(response))
                 .doOnSuccess(a ->
                         log.info("Successfully get latest fx rate."))
-                .doOnError(error -> log.error(
-                        "Failed to get latest fx rate, {}", error.getLocalizedMessage()));
+                .doOnError(error ->
+                        log.error("Failed to get latest fx rate, {}",
+                                error.getLocalizedMessage()));
     }
 
 
