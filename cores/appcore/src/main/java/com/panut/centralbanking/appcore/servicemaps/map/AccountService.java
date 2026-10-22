@@ -12,4 +12,9 @@ public class AccountService {
             ID, BALANCE_CHANGE_PER_TRANSACTION_METHOD);
 
 
+    public static final String ACCOUNTS_STATE_VERIFY_METHOD = "/state/accounts";
+    public static final String ACCOUNTS_STATE_VERIFY_FULL_PATH = FullPath.loadBalancedOf(
+            ID, ACCOUNTS_STATE_VERIFY_METHOD);
+
+
 }

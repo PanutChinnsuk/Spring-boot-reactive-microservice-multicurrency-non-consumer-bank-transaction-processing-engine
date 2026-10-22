@@ -2,8 +2,10 @@ package com.panut.centralbanking.accountservice.application.account.query;
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.application.account.query.result.TransactionAccounts;
+import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
+import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.NotFound;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -30,6 +32,21 @@ public class AccountQuery {
     public Mono<Account> findGeneric(final String accountId) {
         return this.accountRepository.findById(accountId)
                 .switchIfEmpty(error(accountId));
+    }
+
+    public Mono<List<String>> findStateAccounts(final Set<String> accountIds,
+                                                final AccountStatus expectedStatus) {
+        return accountRepository.findStateAccounts(accountIds, expectedStatus)
+                .collectList()
+                .flatMap(list -> {
+                    if (list.size() != accountIds.size())
+                        return Mono.<List<String>>error(
+                                () -> new BusinessException("One or more accounts that" +
+                                        " has expected account status of " + expectedStatus
+                                + " is missing for current operation."));
+
+                    return Mono.just(list);
+                });
     }
 
     public Mono<TransactionAccounts> findTransactionAccounts(final Set<String> transactionAccountIds) {

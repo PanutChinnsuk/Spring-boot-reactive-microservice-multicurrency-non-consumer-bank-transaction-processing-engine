@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.register.data.pre;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre;
 
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.core.FxDirection;

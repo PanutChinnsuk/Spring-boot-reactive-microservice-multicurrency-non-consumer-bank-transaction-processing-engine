@@ -1,5 +1,6 @@
 package com.panut.centralbanking.accountservice.infrastructure.repository;
 
+import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +18,15 @@ public interface AccountRepository
             WHERE a.id IN (:ids) FOR UPDATE
             """)
     Flux<String> findTransactionAccounts(@Param("ids")Set<String> accountIds);
+
+
+
+    @Query("""
+            SELECT a.id FROM accounts a
+            WHERE a.account_id IN (:accountIds) AND
+            a.status = :expectedStatus
+            """)
+    Flux<String> findStateAccounts(@Param("accountIds") Set<String> accountIds,
+                                   @Param("expectedStatus")AccountStatus expectedStatus);
 
 }

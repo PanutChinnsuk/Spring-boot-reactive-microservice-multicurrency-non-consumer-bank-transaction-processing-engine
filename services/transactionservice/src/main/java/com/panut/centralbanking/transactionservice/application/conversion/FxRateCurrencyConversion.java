@@ -1,7 +1,6 @@
 package com.panut.centralbanking.transactionservice.application.conversion;
 
-import com.panut.centralbanking.appcurrencycore.CurrencyCode;
-import com.panut.centralbanking.transactionservice.api.service.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 
 import java.math.BigDecimal;

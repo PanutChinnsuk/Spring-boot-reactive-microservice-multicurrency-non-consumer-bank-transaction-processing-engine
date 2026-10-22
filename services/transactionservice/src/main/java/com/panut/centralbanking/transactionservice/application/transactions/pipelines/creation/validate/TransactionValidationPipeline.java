@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.validate;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.validate;
 
 import org.springframework.stereotype.Component;
 

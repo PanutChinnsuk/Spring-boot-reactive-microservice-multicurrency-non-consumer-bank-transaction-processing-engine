@@ -1,34 +1,38 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.register;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register;
 
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
-import com.panut.centralbanking.transactionservice.api.service.FxRateServiceController;
-import com.panut.centralbanking.transactionservice.api.service.request.FxRateGetLatestRequest;
+import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
+import com.panut.centralbanking.transactionservice.api.service.account.request.VerifyAccountsStateRequest;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
 import com.panut.centralbanking.transactionservice.application.conversion.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.create.data.create.TransactionLineCreateData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.register.data.post.PostTransactionRegisterData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.register.data.pre.AccountData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.register.data.pre.PreTransactionRegisterData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.validate.TransactionValidationPipeline;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create.data.create.TransactionLineCreateData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.post.PostTransactionRegisterData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.PreTransactionRegisterData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.validate.TransactionValidationPipeline;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class TransactionRegisterPipeline {
     private final TransactionValidationPipeline transactionValidationPipeline;
     private final LedgerAccountQuery ledgerAccountQuery;
     private final FxRateServiceController fxRateServiceController;
+    private final AccountServiceController accountServiceController;
 
     public TransactionRegisterPipeline(TransactionValidationPipeline transactionValidationPipeline,
                                        LedgerAccountQuery ledgerAccountQuery,
-                                       FxRateServiceController fxRateServiceController) {
+                                       FxRateServiceController fxRateServiceController,
+                                       AccountServiceController accountServiceController) {
         this.transactionValidationPipeline = transactionValidationPipeline;
         this.ledgerAccountQuery = ledgerAccountQuery;
         this.fxRateServiceController = fxRateServiceController;
+        this.accountServiceController = accountServiceController;
     }
 
 
@@ -50,7 +54,9 @@ public class TransactionRegisterPipeline {
     }
 
     public Mono<Void> register(final PreTransactionRegisterData registerData) {
-        return ledgerAccountQuery.getLedgerAccountMapByCodes(registerData.getUsingLedgerCodes())
+        return accountServiceController
+                .verifyAccountStates(new VerifyAccountsStateRequest(registerData.getUsingAccountIds()))
+                .then(ledgerAccountQuery.getLedgerAccountMapByCodes(registerData.getUsingLedgerCodes()))
                 .flatMap(ledgerAccounts -> {
                     return new RegisterPipelineChain().ledgerAccounts(ledgerAccounts);
                 })

@@ -1,7 +1,7 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.register;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register;
 
-import com.panut.centralbanking.transactionservice.api.service.response.FxRateGetLatestResponse;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.create.data.create.TransactionLineCreateData;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create.data.create.TransactionLineCreateData;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
