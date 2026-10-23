@@ -16,5 +16,5 @@ public class AccountData {
     private final BigDecimal convertedAmount;
     private final String ledgerAccountId;
     private final TransactionLineDirection direction;
-    private final CurrencyCode accountCurrency;
+
 }

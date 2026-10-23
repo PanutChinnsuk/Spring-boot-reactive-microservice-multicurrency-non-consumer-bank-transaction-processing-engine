@@ -17,4 +17,9 @@ public class AccountService {
             ID, ACCOUNTS_STATE_VERIFY_METHOD);
 
 
+    public static final String ACCOUNTS_INFO_FOR_TRANSACTION_METHOD = "/info/for-transaction";
+    public static final String ACCOUNTS_INFO_FOR_TRANSACTION_FULL_PATH = FullPath.loadBalancedOf(
+            ID, ACCOUNTS_INFO_FOR_TRANSACTION_METHOD);
+
+
 }

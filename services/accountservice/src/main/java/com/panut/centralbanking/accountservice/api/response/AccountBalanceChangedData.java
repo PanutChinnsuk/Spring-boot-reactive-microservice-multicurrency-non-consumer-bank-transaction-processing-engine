@@ -5,7 +5,6 @@ import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalan
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 

@@ -11,7 +11,6 @@ import com.panut.centralbanking.accountservice.application.accountbalancechange.
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
-import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

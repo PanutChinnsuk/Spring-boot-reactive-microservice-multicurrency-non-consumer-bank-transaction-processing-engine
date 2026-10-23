@@ -21,7 +21,8 @@ public class AccountServiceConfig {
     ) {
         return ServiceSignatureConfig.builder()
                 .ServiceSignatureConfigSecurityContext(context)
-                .serviceAuthorities(AccountService.ACCOUNTS_STATE_VERIFY_METHOD)
+                .serviceAuthorities(AccountService.ACCOUNTS_STATE_VERIFY_METHOD,
+                        AccountService.ACCOUNTS_INFO_FOR_TRANSACTION_METHOD)
                 .optionalName("ACCOUNT SERVICE SIGNATURE")
                 .renewMinutes(1)
                 .betweenServicesSecretKey(accountServiceKey)

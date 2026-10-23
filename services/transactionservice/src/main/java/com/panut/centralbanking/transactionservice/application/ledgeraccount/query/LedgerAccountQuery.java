@@ -19,6 +19,8 @@ public class LedgerAccountQuery {
     }
 
 
+
+
     public Mono<String> findIdGeneric(final String code) {
         return ledgerAccountRepository.getIdByCode(code)
                 .switchIfEmpty(Mono.error(

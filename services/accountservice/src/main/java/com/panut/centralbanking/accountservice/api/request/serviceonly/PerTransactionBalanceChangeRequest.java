@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.api.request;
+package com.panut.centralbanking.accountservice.api.request.serviceonly;
 
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;

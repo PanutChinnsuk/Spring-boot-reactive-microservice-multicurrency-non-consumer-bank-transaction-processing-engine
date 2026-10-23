@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.api.request;
+package com.panut.centralbanking.transactionservice.api.service.account.request;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +11,6 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class VerifyAccountsStateRequest {
-    @NotNull
-    @NotEmpty
+public class GetAccountsInfoForTransactionRequest {
     private Set<String> accountIds;
 }

@@ -1,6 +1,6 @@
 package com.panut.centralbanking.accountservice.application.account.implement;
 
-import com.panut.centralbanking.accountservice.api.request.VerifyAccountsStateRequest;
+import com.panut.centralbanking.accountservice.api.request.serviceonly.VerifyAccountsStateRequest;
 import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
 import com.panut.centralbanking.accountservice.application.account.service.AccountStateVerificationService;
 import com.panut.centralbanking.accountservice.core.AccountStatus;

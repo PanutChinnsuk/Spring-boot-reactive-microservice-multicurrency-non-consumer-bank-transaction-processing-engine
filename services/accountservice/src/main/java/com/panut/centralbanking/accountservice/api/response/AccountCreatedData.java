@@ -10,7 +10,6 @@ import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.relational.core.mapping.Column;
 import reactor.core.publisher.Mono;
 
 

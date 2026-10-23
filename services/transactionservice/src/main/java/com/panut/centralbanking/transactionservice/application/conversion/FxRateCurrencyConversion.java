@@ -12,8 +12,9 @@ import java.math.RoundingMode;
 public class FxRateCurrencyConversion {
 
 
-    public static BigDecimal convert(BigDecimal uncoverted, FxRateGetLatestResponse fxRate,
-                                     FxDirection fxDirection) {
+    public static BigDecimal convert(final BigDecimal uncoverted,
+                                     final FxRateGetLatestResponse fxRate,
+                                     final FxDirection fxDirection) {
         return uncoverted.multiply(fxRate.getRate(fxDirection))
                 .setScale(fxRate.getBaseCurrency().getCurrencyDigits(),
                         RoundingMode.HALF_EVEN);
@@ -22,8 +23,8 @@ public class FxRateCurrencyConversion {
 
 
     public BigDecimal getConvertedAmount(final PreTransactionRegisterData registerData,
-                                          FxRateGetLatestResponse fxRate,
-                                          final AccountData accountData) {
+                                         final FxRateGetLatestResponse fxRate,
+                                         final AccountData accountData) {
         boolean isUsingFxRate = !registerData.getFxRateData().isEmpty();
         if (isUsingFxRate) {
             throw new SystemMisused("Transaction is required fx rate but register chain does not" +

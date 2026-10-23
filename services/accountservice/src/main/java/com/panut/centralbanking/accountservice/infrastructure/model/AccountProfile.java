@@ -15,7 +15,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Getter
 @NoArgsConstructor
 public class AccountProfile extends VersionedUUIDStringEntity {
-    @Column("currency")
+    @Column("account_currency")
     private CurrencyCode accountCurrency;
 
     @Column("account_type")

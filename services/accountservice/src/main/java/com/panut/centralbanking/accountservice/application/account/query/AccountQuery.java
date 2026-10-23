@@ -5,6 +5,7 @@ import com.panut.centralbanking.accountservice.application.account.query.result.
 import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
+import com.panut.centralbanking.accountservice.infrastructure.repository.queryresult.AccountsInfoForTransactionQueryResult;
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.NotFound;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+//self reminder ->> SEPERATE FINDS/GETS TO DIFFERENT CLASSES ACCORDING TO ITS PLACE
+//IF X SERVICES SCALED
 public class AccountQuery {
     private final AccountRepository accountRepository;
 
@@ -72,5 +75,12 @@ public class AccountQuery {
                 });
 
 
+    }
+
+    public Mono<List<AccountsInfoForTransactionQueryResult>> getAccountsInfoForTransaction(
+            final Set<String> accountIds) {
+        return accountRepository
+                .getAccountsInfoForTransaction(accountIds)
+                .collectList();
     }
 }
