@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `transaction_profiles`;
 CREATE TABLE `transaction_profiles` (
   `id` varchar(255) NOT NULL,
   `fx_direction` varchar(45) NOT NULL,
-  `fx_rate_id` varchar(255) NOT NULL,
+  `fx_rate_id` varchar(255) DEFAULT NULL,
   `posted_at` timestamp NULL DEFAULT NULL,
   `reversed_of_transaction_id` varchar(255) DEFAULT NULL,
   `version` bigint NOT NULL,
@@ -45,6 +45,7 @@ CREATE TABLE `transaction_profiles` (
 
 LOCK TABLES `transaction_profiles` WRITE;
 /*!40000 ALTER TABLE `transaction_profiles` DISABLE KEYS */;
+INSERT INTO `transaction_profiles` VALUES ('069b80bf-9703-4129-bd30-8c5a44e3cc30','NONE',NULL,NULL,NULL,0),('21e7ca0e-bdd4-4ff0-8883-7d8cf1d2a8b9','NONE',NULL,NULL,NULL,0),('c0639ddf-75cd-4f75-91c1-02124ad84752','NONE',NULL,NULL,NULL,0),('fdfe1e0b-b901-4f0b-9537-1b1e2872bff6','NONE',NULL,NULL,NULL,0);
 /*!40000 ALTER TABLE `transaction_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -57,4 +58,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-21 15:44:57
+-- Dump completed on 2026-10-23 17:24:29

@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
-@Table("transaction_profile")
+@Table("transaction_profiles")
 @NoArgsConstructor
 @Getter
 public class TransactionProfile extends VersionedUUIDStringEntity {
@@ -38,11 +38,11 @@ public class TransactionProfile extends VersionedUUIDStringEntity {
 
     }
 
-    private boolean isPostedState() {
+    public boolean isPostedState() {
         return this.postedAt != null;
     }
 
-    private boolean isReversedState() {
+    public boolean isReversedState() {
         return this.reversedOfTransactionId != null;
     }
 

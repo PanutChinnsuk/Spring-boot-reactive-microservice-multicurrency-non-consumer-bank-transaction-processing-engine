@@ -5,6 +5,7 @@ import com.panut.centralbanking.appcore.servicemaps.map.AccountService;
 import com.panut.centralbanking.appsecuritycore.config.ServiceSignatureConfig;
 import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

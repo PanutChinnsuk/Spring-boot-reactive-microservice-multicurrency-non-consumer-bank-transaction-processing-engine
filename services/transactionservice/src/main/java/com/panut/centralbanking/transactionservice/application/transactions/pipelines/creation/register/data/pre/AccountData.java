@@ -13,7 +13,8 @@ import java.math.BigDecimal;
 public class AccountData {
     private final String accountId;
     private final BigDecimal amount;
-    private final String ledgerCode;
+    private final BigDecimal convertedAmount;
+    private final String ledgerAccountId;
     private final TransactionLineDirection direction;
     private final CurrencyCode accountCurrency;
 }

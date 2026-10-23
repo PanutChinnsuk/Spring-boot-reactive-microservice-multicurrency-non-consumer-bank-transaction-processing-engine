@@ -27,6 +27,7 @@ CREATE TABLE `ledger_accounts` (
   `ledger_type` varchar(255) NOT NULL,
   `code` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `code_UNIQUE` (`code`)
@@ -39,6 +40,7 @@ CREATE TABLE `ledger_accounts` (
 
 LOCK TABLES `ledger_accounts` WRITE;
 /*!40000 ALTER TABLE `ledger_accounts` DISABLE KEYS */;
+INSERT INTO `ledger_accounts` VALUES ('TEST','LIABILITY','TEST','TEST','2026-10-18 07:25:29');
 /*!40000 ALTER TABLE `ledger_accounts` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-21 15:44:56
+-- Dump completed on 2026-10-23 17:24:29

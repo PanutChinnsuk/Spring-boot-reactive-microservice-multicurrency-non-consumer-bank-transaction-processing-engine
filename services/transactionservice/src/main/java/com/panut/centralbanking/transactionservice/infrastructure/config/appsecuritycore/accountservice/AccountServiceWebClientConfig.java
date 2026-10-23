@@ -2,6 +2,7 @@ package com.panut.centralbanking.transactionservice.infrastructure.config.appsec
 
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
 import com.panut.centralbanking.appsecuritycore.signature.webclient.ServiceSignatureWebClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,8 +12,8 @@ public class AccountServiceWebClientConfig {
 
 
     @Bean
-    public WebClient accountServiceWebClient(ServiceSignature accountServiceSignatureConfig,
+    public WebClient accountServiceWebClient(ServiceSignature accountServiceSignature,
                                              WebClient.Builder builder) {
-        return new ServiceSignatureWebClient(accountServiceSignatureConfig, builder).create();
+        return new ServiceSignatureWebClient(accountServiceSignature, builder).create();
     }
 }

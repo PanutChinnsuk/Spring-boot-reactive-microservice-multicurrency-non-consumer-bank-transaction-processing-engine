@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create.data.create;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create.data;
 
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import lombok.Data;
