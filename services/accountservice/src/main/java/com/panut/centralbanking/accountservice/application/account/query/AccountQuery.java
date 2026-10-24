@@ -1,11 +1,10 @@
 package com.panut.centralbanking.accountservice.application.account.query;
 
-import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.application.account.query.result.TransactionAccounts;
 import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
-import com.panut.centralbanking.accountservice.infrastructure.repository.queryresult.AccountsInfoForTransactionQueryResult;
+import com.panut.centralbanking.accountservice.infrastructure.repository.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.NotFound;
 import org.springframework.stereotype.Component;
@@ -77,7 +76,7 @@ public class AccountQuery {
 
     }
 
-    public Mono<List<AccountsInfoForTransactionQueryResult>> getAccountsInfoForTransaction(
+    public Mono<List<AccountInfoForTransactionQueryResult>> getAccountsInfoForTransaction(
             final Set<String> accountIds) {
         return accountRepository
                 .getAccountsInfoForTransaction(accountIds)

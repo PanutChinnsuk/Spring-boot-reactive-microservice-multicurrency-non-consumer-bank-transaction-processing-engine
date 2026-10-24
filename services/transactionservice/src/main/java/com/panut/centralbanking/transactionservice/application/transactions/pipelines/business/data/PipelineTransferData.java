@@ -13,7 +13,7 @@ import java.util.Set;
 
 
 @Getter
-public class PipelineTransferData {
+public class PipelineTransferData implements AbstractPipelineTransferData{
     private final String fromAccountId;
     private final String toAccountId;
     private final BigDecimal amount;
@@ -47,6 +47,7 @@ public class PipelineTransferData {
         return this;
     }
 
+    @Override
     public Mono<Void> validate() {
         return Mono.defer(() -> {
             Objects.requireNonNull(fromAccountLedgerCode);
@@ -66,6 +67,7 @@ public class PipelineTransferData {
                 : Set.of(fromAccountLedgerCode.getValue(), toAccountLedgerCode.getValue());
     }
 
+    @Override
     public Set<String> asAccountIds() {
         return Set.of(fromAccountId, toAccountId);
     }

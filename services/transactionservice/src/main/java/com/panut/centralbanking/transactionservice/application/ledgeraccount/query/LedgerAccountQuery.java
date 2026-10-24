@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.ledgeraccount.query;
 
 import com.panut.centralbanking.appcore.exceptions.NotFound;
+import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.LedgerAccountRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerAccountMapQueryResult;
 import org.springframework.stereotype.Component;
@@ -29,8 +30,10 @@ public class LedgerAccountQuery {
                 ));
     }
 
-    public Mono<Map<String,String>> getLedgerAccountMapByCodes(final Set<String> codes) {
-        return ledgerAccountRepository.getLedgerAccountMapByCodes(codes)
+    public Mono<Map<String,String>> getLedgerAccountMapByCodes(final Set<String> codes,
+                                                               final Set<LedgerType> expectedLedgerType) {
+        return ledgerAccountRepository.getLedgerAccountMapByCodes(codes,
+                        expectedLedgerType)
                 .collectList()
                 .flatMap(list -> {
                     if (list.size() != codes.size())

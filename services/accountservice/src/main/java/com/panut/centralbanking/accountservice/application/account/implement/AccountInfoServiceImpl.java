@@ -4,13 +4,10 @@ import com.panut.centralbanking.accountservice.api.request.serviceonly.GetAccoun
 import com.panut.centralbanking.accountservice.api.response.serviceonly.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
 import com.panut.centralbanking.accountservice.application.account.service.AccountInfoService;
-import com.panut.centralbanking.accountservice.infrastructure.repository.queryresult.AccountsInfoForTransactionQueryResult;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Service
 @Slf4j

@@ -56,12 +56,12 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
 
     public AccountData accountData1() {
         return new AccountData("TEST", BigDecimal.ONE, BigDecimal.ONE,
-                "TEST", TransactionLineDirection.CREDIT, CurrencyCode.CAD);
+                "TEST", TransactionLineDirection.CREDIT);
     }
 
     public AccountData accountData2() {
         return  new AccountData("TEST2", BigDecimal.ONE, BigDecimal.ONE,
-                "TEST", TransactionLineDirection.DEBIT, CurrencyCode.CAD);
+                "TEST", TransactionLineDirection.DEBIT);
     }
 
     public List<AccountData> validAccountDatas() {

@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.infrastructure.repository;
 
+import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.infrastructure.model.LedgerAccount;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerAccountMapQueryResult;
 import org.springframework.data.r2dbc.repository.Query;
@@ -30,8 +31,11 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
 
     @Query("""
             SELECT l.id, l.code FROM ledger_accounts l
-            WHERE l.code IN (:codes)
+            WHERE l.code IN (:codes) AND
+            l.ledger_type IN (:ledgerTypes)
             """)
-    Flux<LedgerAccountMapQueryResult> getLedgerAccountMapByCodes(@Param("codes")Set<String> codes);
+    Flux<LedgerAccountMapQueryResult> getLedgerAccountMapByCodes(@Param("codes")Set<String> codes,
+                                                                 @Param("ledgerTypes")
+                                                                 Set<LedgerType> ledgerTypes);
 
 }

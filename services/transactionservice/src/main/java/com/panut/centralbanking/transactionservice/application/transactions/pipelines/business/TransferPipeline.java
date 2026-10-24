@@ -1,8 +1,10 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business;
 
+import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
-import com.panut.centralbanking.transactionservice.api.service.account.request.GetAccountsInfoForTransactionRequest;
-import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountsInfoForTransactionQueryResult;
+import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
+import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
+import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.ExpectedLedgerTypes;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.PipelineTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
@@ -11,7 +13,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.PreTransactionRegisterData;
-import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
+import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,7 +22,14 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+
+
+record PreListAccountDatasInfo(AccountInfoForTransactionQueryResult fromAccountInfo,
+                               AccountInfoForTransactionQueryResult toAccountInfo,
+                               BigDecimal basedAmount,
+                               String fromAccountLedgerId,
+                               String toAccountLedgerId) {}
 
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
@@ -40,50 +49,64 @@ public class TransferPipeline {
         this.ledgerAccountQuery = ledgerAccountQuery;
     }
 
+    private Set<LedgerType> getMatchedLedgerTypes(final TransactionType transactionType) {
+        return switch (transactionType) {
+            case TRANSFER -> ExpectedLedgerTypes.NORMAL_TRANSFER();
+            case ASSET_EXPENSE -> ExpectedLedgerTypes.ASSET_AND_EXPENSE();
+            default -> throw new SystemMisused("TransferPipeline only allowed transaction type " +
+                    "of TRANSFER, ASSET_EXPENSE");
+        };
+    }
+
+    private List<AccountData> normalTransfer(PreListAccountDatasInfo info) {
+        return List.of(
+                AccountData.linearDebit(info.fromAccountInfo(), info.basedAmount(),
+                        info.fromAccountLedgerId()),
+                AccountData.linearCredit(info.toAccountInfo(), info.basedAmount(),
+                        info.toAccountLedgerId()));
+    }
+
+    private List<AccountData> assetExpenseTransfer(PreListAccountDatasInfo info) {
+        return List.of(
+                AccountData.linearCredit(info.fromAccountInfo(), info.basedAmount(),
+                        info.fromAccountLedgerId()),
+                AccountData.linearDebit(info.toAccountInfo(), info.basedAmount(),
+                        info.toAccountLedgerId()));
+    }
+
+
+
+    public Mono<PreTransactionRegisterData> defaultTransferChain(final GetAccountsInfoForTransactionResponse response,
+                                                                 final PipelineTransferData data,
+                                                                 final TransactionType transactionType) {
+        return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
+                        getMatchedLedgerTypes(transactionType))
+                .map(ledgerAccounts -> {
+                    var fromAccountInfo = response.getMapValue(data.getFromAccountId());
+                    var toAccountInfo = response.getMapValue(data.getToAccountId());
+
+                    PreListAccountDatasInfo info = new PreListAccountDatasInfo(
+                            response.getMapValue(data.getFromAccountId()),
+                            response.getMapValue(data.getToAccountId()),
+                            data.getAmount(),
+                            ledgerAccounts.get(data.getFromAccountLedgerCode().getValue()),
+                            ledgerAccounts.get(data.getToAccountLedgerCode().getValue())
+                    );
+
+                    return new PreTransactionRegisterData(
+                            transactionType,
+                            transactionType.isAssetExpense() ? assetExpenseTransfer(info)
+                                                             : normalTransfer(info),
+                            FxRateData.empty());
+                });
+    }
+
 
     public Mono<TransactionCreationPipelineResult> transfer(final PipelineTransferData data,
                                                             final TransactionType transactionType) {
-        return data.validate()
-                .thenReturn(data.asAccountIds())
-                .flatMap(accountIds -> accountServiceController
-                        .getAccountsInfoForTransaction(new GetAccountsInfoForTransactionRequest(
-                                accountIds))
-                )
-                .map(response ->
-                        response.compact()
-                                .expectedSize(data.getFixedSize())
-                                .expectedAllAccountStatusActive()
-                                .expectedSameCurrency())
-                .flatMap(response -> {
-                    return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet())
-                            .map(ledgerAccounts -> {
-                                var fromAccountInfo = response.getMapValue(data.getFromAccountId());
-                                var toAccountInfo = response.getMapValue(data.getToAccountId());
-
-                                BigDecimal basedAmount = data.getAmount();
-                                BigDecimal convertedAmount = basedAmount;
-                                String fromAccountLedgerId =
-                                        ledgerAccounts.get(data.getFromAccountLedgerCode().getValue());
-                                String toAccountLedgerId =
-                                        ledgerAccounts.get(data.getToAccountLedgerCode().getValue());
-
-                                return new PreTransactionRegisterData(
-                                        transactionType,
-                                        List.of(
-                                                new AccountData(fromAccountInfo.getId(),
-                                                        basedAmount,
-                                                        convertedAmount,
-                                                        fromAccountLedgerId,
-                                                        TransactionLineDirection.DEBIT),
-                                                new AccountData(toAccountInfo.getId(),
-                                                        basedAmount,
-                                                        convertedAmount,
-                                                        toAccountLedgerId,
-                                                        TransactionLineDirection.CREDIT)
-                                        ),
-                                        FxRateData.empty());
-                            });
-                })
+        return repository.getAccountsInfoForTransaction(data)
+                .flatMap(response ->
+                        defaultTransferChain(response, data, transactionType))
                 .flatMap(transactionRegisterPipeline::register);
     }
 }

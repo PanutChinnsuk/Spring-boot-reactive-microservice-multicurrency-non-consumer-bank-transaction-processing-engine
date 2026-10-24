@@ -1,10 +1,8 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre;
 
-import com.panut.centralbanking.appcurrencycore.CurrencyCode;
+import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -16,5 +14,65 @@ public class AccountData {
     private final BigDecimal convertedAmount;
     private final String ledgerAccountId;
     private final TransactionLineDirection direction;
+
+
+
+    private static AccountData V1(final AccountInfoForTransactionQueryResult accountInfo,
+                                    final BigDecimal transferingAmount,
+                                    final BigDecimal convertedTransferingAmount,
+                                    final String usedLedgerAccountId,
+                                    final TransactionLineDirection direction) {
+        return new AccountData(accountInfo.getId(),
+                transferingAmount,
+                convertedTransferingAmount,
+                usedLedgerAccountId,
+                direction);
+    }
+
+    public static AccountData linearCredit(final AccountInfoForTransactionQueryResult accountInfo,
+                                           final BigDecimal amount,
+                                           final String usedLedgerAccountId) {
+        return V1(accountInfo, amount, amount,
+                usedLedgerAccountId, TransactionLineDirection.CREDIT);
+    }
+
+    public static AccountData linearDebit(final AccountInfoForTransactionQueryResult accountInfo,
+                                           final BigDecimal amount,
+                                           final String usedLedgerAccountId) {
+        return V1(accountInfo, amount, amount,
+                usedLedgerAccountId, TransactionLineDirection.DEBIT);
+    }
+
+    public static AccountData linearNone(final AccountInfoForTransactionQueryResult accountInfo,
+                                          final BigDecimal amount,
+                                          final String usedLedgerAccountId) {
+        return V1(accountInfo, amount, amount,
+                usedLedgerAccountId, TransactionLineDirection.NONE);
+    }
+
+
+    public static AccountData fxCredit(final AccountInfoForTransactionQueryResult accountInfo,
+                                           final BigDecimal amount,
+                                           final BigDecimal convertedAmount,
+                                           final String usedLedgerAccountId) {
+        return V1(accountInfo, amount, convertedAmount,
+                usedLedgerAccountId, TransactionLineDirection.CREDIT);
+    }
+
+    public static AccountData fxDebit(final AccountInfoForTransactionQueryResult accountInfo,
+                                       final BigDecimal amount,
+                                       final BigDecimal convertedAmount,
+                                       final String usedLedgerAccountId) {
+        return V1(accountInfo, amount, convertedAmount,
+                usedLedgerAccountId, TransactionLineDirection.DEBIT);
+    }
+
+    public static AccountData fxNone(final AccountInfoForTransactionQueryResult accountInfo,
+                                      final BigDecimal amount,
+                                      final BigDecimal convertedAmount,
+                                      final String usedLedgerAccountId) {
+        return V1(accountInfo, amount, convertedAmount,
+                usedLedgerAccountId, TransactionLineDirection.NONE);
+    }
 
 }

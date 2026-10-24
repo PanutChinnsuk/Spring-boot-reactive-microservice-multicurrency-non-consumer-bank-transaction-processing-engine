@@ -4,7 +4,7 @@ package com.panut.centralbanking.transactionservice.api.service.account.response
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
-import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountsInfoForTransactionQueryResult;
+import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.core.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,9 +18,9 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 @Data
 public class GetAccountsInfoForTransactionResponse {
-    private List<AccountsInfoForTransactionQueryResult> queryResult;
-    private Stream<AccountsInfoForTransactionQueryResult> streamed;
-    private Map<String, AccountsInfoForTransactionQueryResult> queryResultMap;
+    private List<AccountInfoForTransactionQueryResult> queryResult;
+    private Stream<AccountInfoForTransactionQueryResult> streamed;
+    private Map<String, AccountInfoForTransactionQueryResult> queryResultMap;
 
 
     private void toStream() {
@@ -28,18 +28,18 @@ public class GetAccountsInfoForTransactionResponse {
     }
 
 
-    private Stream<AccountsInfoForTransactionQueryResult> getStream() {
+    private Stream<AccountInfoForTransactionQueryResult> getStream() {
         toStream();
 
         return streamed;
     }
 
-    public AccountsInfoForTransactionQueryResult getMapValue(final String key) {
+    public AccountInfoForTransactionQueryResult getMapValue(final String key) {
         if (queryResultMap == null)
             throw new SystemMisused("queryResultMap is null, due to calling getMapValue before " +
                     "compact.");
 
-        AccountsInfoForTransactionQueryResult value = queryResultMap.get(key);
+        AccountInfoForTransactionQueryResult value = queryResultMap.get(key);
         if (value == null)
             throw new BusinessException("Account info required for transaction not found from " +
                     "queryResultMap.");
