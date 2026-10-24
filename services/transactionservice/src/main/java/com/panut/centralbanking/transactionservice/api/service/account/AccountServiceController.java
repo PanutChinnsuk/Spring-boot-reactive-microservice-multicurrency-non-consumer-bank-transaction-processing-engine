@@ -46,4 +46,6 @@ public class AccountServiceController {
                         getAccountsInfoForTransactionResponseType)
                 .map(result -> result.getOptionalBody());
     }
+
+
 }

@@ -1,7 +1,7 @@
 package com.panut.centralbanking.transactionservice.api.service.account.response.queryresult;
 
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
-import com.panut.centralbanking.transactionservice.core.AccountStatus;
+import com.panut.centralbanking.transactionservice.api.service.account.data.related.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
