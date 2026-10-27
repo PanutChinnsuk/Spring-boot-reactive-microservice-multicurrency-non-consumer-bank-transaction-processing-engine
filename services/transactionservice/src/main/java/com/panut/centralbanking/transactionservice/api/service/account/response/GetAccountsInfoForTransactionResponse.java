@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -22,16 +23,16 @@ public class GetAccountsInfoForTransactionResponse {
     private Stream<AccountInfoForTransactionQueryResult> streamed;
     private Map<String, AccountInfoForTransactionQueryResult> queryResultMap;
 
-
-    private void toStream() {
-        if (streamed == null) streamed = queryResult.stream();
+    public GetAccountsInfoForTransactionResponse(List<AccountInfoForTransactionQueryResult> queryResult) {
+        this.queryResult = queryResult;
     }
 
 
-    private Stream<AccountInfoForTransactionQueryResult> getStream() {
-        toStream();
 
-        return streamed;
+
+
+    private Stream<AccountInfoForTransactionQueryResult> getStream() {
+        return queryResult.stream();
     }
 
     public AccountInfoForTransactionQueryResult getMapValue(final String key) {
@@ -49,7 +50,6 @@ public class GetAccountsInfoForTransactionResponse {
 
     public GetAccountsInfoForTransactionResponse compact() {
         expectedNotEmpty();
-        toStream();
         queryResultMap = getStream().collect(Collectors.toMap(
                 queryResult -> queryResult.getId(),
                 queryResult -> queryResult
@@ -82,7 +82,8 @@ public class GetAccountsInfoForTransactionResponse {
     }
 
     public GetAccountsInfoForTransactionResponse expectedAllAccountStatusActive() {
-        return expectedNoAccountStatus(AccountStatus.ACTIVE);
+        return expectedNoAccountStatus(AccountStatus.TERMINATED,
+                AccountStatus.BLOCKED);
     }
 
     public GetAccountsInfoForTransactionResponse expectedSameCurrency() {
@@ -98,12 +99,27 @@ public class GetAccountsInfoForTransactionResponse {
 
     }
 
+    private boolean containAccountStatus(final AccountStatus... accountStatuses) {
+        Set<AccountStatus> notExpectedSet = Set.of(accountStatuses);
+
+        return getStream().anyMatch(query ->
+                notExpectedSet.contains(query.getStatus()));
+    }
+
     public GetAccountsInfoForTransactionResponse expectedNoAccountStatus(final AccountStatus... notExpected) {
-        Set<AccountStatus> notExpectedSet = Set.of(notExpected);
-        if (getStream().anyMatch(query ->
-                notExpectedSet.contains(query)))
+
+        if (containAccountStatus(notExpected))
             throw new BusinessException("Accounts info for transaction contained account status that " +
                     "is unwanted.");
+
+        return this;
+    }
+
+    public GetAccountsInfoForTransactionResponse expectedAccountStatus(final AccountStatus... expected) {
+
+        if (!containAccountStatus(expected))
+            throw new BusinessException("One or more accounts info does not contained account status that " +
+                    "is wanted.");
 
         return this;
     }

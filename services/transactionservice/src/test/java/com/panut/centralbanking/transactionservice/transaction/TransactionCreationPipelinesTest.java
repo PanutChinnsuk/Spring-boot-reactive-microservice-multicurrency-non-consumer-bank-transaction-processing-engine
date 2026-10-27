@@ -1,7 +1,6 @@
 package com.panut.centralbanking.transactionservice.transaction;
 
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
-import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
@@ -11,19 +10,13 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionLineRepository;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionProfileRepository;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.TestConstructor;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,25 +26,13 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
     private TransactionRegisterPipeline transactionRegisterPipeline;
 
     @Autowired
-    private TransactionRepository transactionRepository;
+    private TransactionTestRepositoryCleanUp cleanRepo;
 
-    @Autowired
-    private TransactionProfileRepository transactionProfileRepository;
 
-    @Autowired
-    private TransactionLineRepository transactionLineRepository;
-
-    private String transactionId;
-    private List<String> transactionLineIds = new ArrayList<>();
 
     @AfterAll
     public void cleanUp() {
-        transactionLineIds.forEach(id -> transactionLineRepository
-                .deleteById(id));
-
-        if (transactionId == null) return;
-        transactionProfileRepository.deleteById(transactionId);
-        transactionRepository.deleteById(transactionId);
+        cleanRepo.cleanUp();
     }
 
     public AccountData accountData1() {
@@ -60,7 +41,7 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
     }
 
     public AccountData accountData2() {
-        return  new AccountData("TEST2", BigDecimal.ONE, BigDecimal.ONE,
+        return new AccountData("TEST2", BigDecimal.ONE, BigDecimal.ONE,
                 "TEST", TransactionLineDirection.DEBIT);
     }
 
@@ -100,8 +81,8 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
 
         Assertions.assertEquals(TransactionStatus.PENDING,
                 result.getTransactionStatus());
-        this.transactionId = result.getTransactionId();
-        this.transactionLineIds = result.getTransactionLineIds();
+        cleanRepo.transactionId = result.getTransactionId();
+        cleanRepo.transactionLineIds = result.getTransactionLineIds();
 
     }
 

@@ -76,7 +76,7 @@ public class TransferPipeline {
 
 
 
-    public Mono<PreTransactionRegisterData> defaultTransferChain(final GetAccountsInfoForTransactionResponse response,
+    protected Mono<PreTransactionRegisterData> defaultTransferChain(final GetAccountsInfoForTransactionResponse response,
                                                                  final PipelineTransferData data,
                                                                  final TransactionType transactionType) {
         return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
