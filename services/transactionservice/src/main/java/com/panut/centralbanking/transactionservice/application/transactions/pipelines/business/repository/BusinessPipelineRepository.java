@@ -28,12 +28,7 @@ public class BusinessPipelineRepository {
                 .flatMap(accountIds -> accountServiceController
                         .getAccountsInfoForTransaction(new GetAccountsInfoForTransactionRequest(
                                 accountIds))
-                )
-                .map(response ->
-                        response.compact()
-                                .expectedSize(data.getFixedSize())
-                                .expectedAllAccountStatusActive()
-                                .expectedSameCurrency());
+                );
     }
 
 

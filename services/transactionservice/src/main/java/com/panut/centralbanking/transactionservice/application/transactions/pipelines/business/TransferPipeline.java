@@ -82,12 +82,11 @@ public class TransferPipeline {
         return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
                         getMatchedLedgerTypes(transactionType))
                 .map(ledgerAccounts -> {
-                    var fromAccountInfo = response.getMapValue(data.getFromAccountId());
-                    var toAccountInfo = response.getMapValue(data.getToAccountId());
+
 
                     PreListAccountDatasInfo info = new PreListAccountDatasInfo(
-                            response.getMapValue(data.getFromAccountId()),
-                            response.getMapValue(data.getToAccountId()),
+                            response.getAccount(data.getFromAccountId()),
+                            response.getAccount(data.getToAccountId()),
                             data.getAmount(),
                             ledgerAccounts.get(data.getFromAccountLedgerCode().getValue()),
                             ledgerAccounts.get(data.getToAccountLedgerCode().getValue())
@@ -105,6 +104,11 @@ public class TransferPipeline {
     public Mono<TransactionCreationPipelineResult> transfer(final PipelineTransferData data,
                                                             final TransactionType transactionType) {
         return repository.getAccountsInfoForTransaction(data)
+                .map(response -> response
+                        .compact()
+                        .expectedSize(data.getFixedSize())
+                        .expectedAllAccountStatusActive()
+                        .expectedSameCurrency())
                 .flatMap(response ->
                         defaultTransferChain(response, data, transactionType))
                 .flatMap(transactionRegisterPipeline::register);

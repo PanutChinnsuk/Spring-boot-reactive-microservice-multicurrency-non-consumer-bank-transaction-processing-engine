@@ -13,4 +13,6 @@ public class AccountInfoForTransactionQueryResult {
     private String id;
     private CurrencyCode accountCurrency;
     private AccountStatus status;
+    private String internalId;
+
 }

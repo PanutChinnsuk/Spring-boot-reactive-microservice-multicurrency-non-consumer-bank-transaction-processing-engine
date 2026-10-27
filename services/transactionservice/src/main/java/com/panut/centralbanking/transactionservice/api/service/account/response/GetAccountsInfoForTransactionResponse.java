@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,8 +21,13 @@ import java.util.stream.Stream;
 @Data
 public class GetAccountsInfoForTransactionResponse {
     private List<AccountInfoForTransactionQueryResult> queryResult;
+    private List<AccountInfoForTransactionQueryResult> nonInternalQueryResult;
+    private List<AccountInfoForTransactionQueryResult> internalQueryResult;
+
     private Stream<AccountInfoForTransactionQueryResult> streamed;
+
     private Map<String, AccountInfoForTransactionQueryResult> queryResultMap;
+
 
     public GetAccountsInfoForTransactionResponse(List<AccountInfoForTransactionQueryResult> queryResult) {
         this.queryResult = queryResult;
@@ -31,31 +37,34 @@ public class GetAccountsInfoForTransactionResponse {
 
 
 
-    private Stream<AccountInfoForTransactionQueryResult> getStream() {
-        return queryResult.stream();
-    }
-
-    public AccountInfoForTransactionQueryResult getMapValue(final String key) {
+    public AccountInfoForTransactionQueryResult getAccount(final String key) {
         if (queryResultMap == null)
             throw new SystemMisused("queryResultMap is null, due to calling getMapValue before " +
                     "compact.");
 
-        AccountInfoForTransactionQueryResult value = queryResultMap.get(key);
-        if (value == null)
-            throw new BusinessException("Account info required for transaction not found from " +
-                    "queryResultMap.");
-
-        return value;
+        return getMapValue(key, queryResultMap);
     }
+
+
 
     public GetAccountsInfoForTransactionResponse compact() {
         expectedNotEmpty();
         queryResultMap = getStream().collect(Collectors.toMap(
-                queryResult -> queryResult.getId(),
-                queryResult -> queryResult
+                AccountInfoForTransactionQueryResult::getId,
+                Function.identity()
         ));
 
+
         return this;
+    }
+
+    public void sort() {
+        internalQueryResult = getStream()
+                        .filter(AccountInfoForTransactionQueryResult::isInternalAccount)
+                        .toList();
+        nonInternalQueryResult = getStream()
+                .filter(AccountInfoForTransactionQueryResult::isNotInternalAccount)
+                .toList();
     }
 
     public GetAccountsInfoForTransactionResponse expectedNotEmpty() {
@@ -99,12 +108,28 @@ public class GetAccountsInfoForTransactionResponse {
 
     }
 
-    private boolean containAccountStatus(final AccountStatus... accountStatuses) {
-        Set<AccountStatus> notExpectedSet = Set.of(accountStatuses);
+    public GetAccountsInfoForTransactionResponse expectedAllNonInternalNotCurrency(
+            final CurrencyCode notExpected) {
+        if (getNonInternalStream().anyMatch(query ->
+        query.getAccountCurrency().equals(notExpected)))
+            throw new BusinessException("One or more non internal accounts have " +
+                    "unexpected currency of " + notExpected);
 
-        return getStream().anyMatch(query ->
-                notExpectedSet.contains(query.getStatus()));
+        return this;
     }
+
+    public GetAccountsInfoForTransactionResponse expectedBaseCurrencyInternalAccounts() {
+        CurrencyCode base = CurrencyCode.getBaseCurrency();
+
+        if (getInternalStream().anyMatch(query ->
+                        !query.getAccountCurrency().equals(base)))
+            throw new BusinessException("One or more internal accounts does not have base " +
+                    "currency.");
+
+        return this;
+    }
+
+
 
     public GetAccountsInfoForTransactionResponse expectedNoAccountStatus(final AccountStatus... notExpected) {
 
@@ -122,6 +147,45 @@ public class GetAccountsInfoForTransactionResponse {
                     "is wanted.");
 
         return this;
+    }
+
+
+    private boolean containAccountStatus(final AccountStatus... accountStatuses) {
+        Set<AccountStatus> notExpectedSet = Set.of(accountStatuses);
+
+        return getStream().anyMatch(query ->
+                notExpectedSet.contains(query.getStatus()));
+    }
+
+    private Stream<AccountInfoForTransactionQueryResult> getStream() {
+        return queryResult.stream();
+    }
+
+    private Stream<AccountInfoForTransactionQueryResult> getInternalStream() {
+        if (internalQueryResult == null)
+            throw new SystemMisused("internalQueryResult are null, due to calling " +
+                    "before sort.");
+
+        return internalQueryResult.stream();
+    }
+
+    private Stream<AccountInfoForTransactionQueryResult> getNonInternalStream() {
+        if (nonInternalQueryResult == null)
+            throw new SystemMisused("nonInternalQueryResult are null, due to calling " +
+                    "before sort.");
+
+        return nonInternalQueryResult.stream();
+    }
+
+    private AccountInfoForTransactionQueryResult getMapValue(final String key,
+                                                             final Map<String, AccountInfoForTransactionQueryResult>
+                                                                     accountsInfoQueryResultList) {
+        AccountInfoForTransactionQueryResult value = accountsInfoQueryResultList.get(key);
+        if (value == null)
+            throw new BusinessException("Account info required for transaction not found from " +
+                    "accountsInfoQueryResultList.");
+
+        return value;
     }
 
 }

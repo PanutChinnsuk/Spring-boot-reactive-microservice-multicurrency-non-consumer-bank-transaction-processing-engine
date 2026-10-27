@@ -21,9 +21,11 @@ public interface AccountRepository
     Flux<String> findTransactionAccounts(@Param("ids")Set<String> accountIds);
 
     @Query("""
-            SELECT a.id, ap.account_currency, ap.status FROM accounts a
+            SELECT a.id, ap.account_currency, ap.status, ia.id AS internalId FROM accounts a
             INNER JOIN account_profiles ap
             ON ap.id = a.id
+            LEFT JOIN internal_accounts ia
+            ON ia.id = a.id
             WHERE a.id IN (:accountIds)
             FOR UPDATE
             """)
