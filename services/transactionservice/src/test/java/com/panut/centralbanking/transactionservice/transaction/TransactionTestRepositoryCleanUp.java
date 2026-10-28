@@ -12,7 +12,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class TransactionTestRepositoryCleanUp {
+class TransactionTestRepositoryCleanUp {
     @Autowired
     private TransactionRepository transactionRepository;
 

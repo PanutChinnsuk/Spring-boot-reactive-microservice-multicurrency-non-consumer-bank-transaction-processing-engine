@@ -7,6 +7,8 @@ import lombok.Getter;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -19,8 +21,11 @@ public class PipelineTransferData implements AbstractPipelineTransferData{
     private final BigDecimal amount;
     private final int fixedSize = 2;
 
+
     private LedgerCode fromAccountLedgerCode;
     private LedgerCode toAccountLedgerCode;
+
+    private Set<String> accountIdSet = new HashSet<>();
 
     public PipelineTransferData(String fromAccountId,
                                 String toAccountId,
@@ -69,6 +74,14 @@ public class PipelineTransferData implements AbstractPipelineTransferData{
 
     @Override
     public Set<String> asAccountIds() {
-        return Set.of(fromAccountId, toAccountId);
+        this.accountIdSet.add(this.fromAccountId);
+        this.accountIdSet.add(this.toAccountId);
+
+
+        return this.accountIdSet;
+    }
+
+    public boolean includeAccountId(final String accountId) {
+        return accountIdSet.add(accountId);
     }
 }

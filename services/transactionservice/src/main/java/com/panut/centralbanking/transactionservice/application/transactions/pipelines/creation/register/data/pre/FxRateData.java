@@ -68,4 +68,8 @@ public class FxRateData {
         this.fxRateId = fxRateId;
         return this;
     }
+
+    public CurrencyCode getQuoteCurrency() {
+        return quoteCurrency;
+    }
 }

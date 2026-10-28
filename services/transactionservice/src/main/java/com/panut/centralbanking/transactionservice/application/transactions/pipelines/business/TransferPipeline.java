@@ -49,7 +49,7 @@ public class TransferPipeline {
         this.ledgerAccountQuery = ledgerAccountQuery;
     }
 
-    private Set<LedgerType> getMatchedLedgerTypes(final TransactionType transactionType) {
+    private Set<LedgerType> getExpectedLedgerTypes(final TransactionType transactionType) {
         return switch (transactionType) {
             case TRANSFER -> ExpectedLedgerTypes.NORMAL_TRANSFER();
             case ASSET_EXPENSE -> ExpectedLedgerTypes.ASSET_AND_EXPENSE();
@@ -80,7 +80,7 @@ public class TransferPipeline {
                                                                  final PipelineTransferData data,
                                                                  final TransactionType transactionType) {
         return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
-                        getMatchedLedgerTypes(transactionType))
+                        getExpectedLedgerTypes(transactionType))
                 .map(ledgerAccounts -> {
 
 

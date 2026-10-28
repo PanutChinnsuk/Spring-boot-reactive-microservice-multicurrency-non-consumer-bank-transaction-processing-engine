@@ -58,13 +58,15 @@ public class GetAccountsInfoForTransactionResponse {
         return this;
     }
 
-    public void sort() {
+    public GetAccountsInfoForTransactionResponse sort() {
         internalQueryResult = getStream()
                         .filter(AccountInfoForTransactionQueryResult::isInternalAccount)
                         .toList();
         nonInternalQueryResult = getStream()
                 .filter(AccountInfoForTransactionQueryResult::isNotInternalAccount)
                 .toList();
+
+        return this;
     }
 
     public GetAccountsInfoForTransactionResponse expectedNotEmpty() {
@@ -79,6 +81,21 @@ public class GetAccountsInfoForTransactionResponse {
                     "expected size of " + size);
         return this;
     }
+
+    public GetAccountsInfoForTransactionResponse expectedNonInternalSize(final int size) {
+        if (nonInternalQueryResult.size() != size)
+            throw new BusinessException("Non internal accounts info for transaction size not matched " +
+                    "expected size of " + size);
+        return this;
+    }
+
+    public GetAccountsInfoForTransactionResponse expectedInternalSize(final int size) {
+        if (internalQueryResult.size() != size)
+            throw new BusinessException("Internal accounts info for transaction size not matched " +
+                    "expected size of " + size);
+        return this;
+    }
+
 
     public GetAccountsInfoForTransactionResponse expectedAllAccountStatus(
             final AccountStatus expected) {
@@ -108,12 +125,13 @@ public class GetAccountsInfoForTransactionResponse {
 
     }
 
-    public GetAccountsInfoForTransactionResponse expectedAllNonInternalNotCurrency(
-            final CurrencyCode notExpected) {
+    public GetAccountsInfoForTransactionResponse expectedAllNonInternalNotBaseCurrency() {
+        CurrencyCode base = CurrencyCode.getBaseCurrency();
+
         if (getNonInternalStream().anyMatch(query ->
-        query.getAccountCurrency().equals(notExpected)))
+        query.getAccountCurrency().equals(base)))
             throw new BusinessException("One or more non internal accounts have " +
-                    "unexpected currency of " + notExpected);
+                    "unexpected currency of " + base);
 
         return this;
     }
