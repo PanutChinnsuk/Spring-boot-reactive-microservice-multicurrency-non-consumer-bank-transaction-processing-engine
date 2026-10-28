@@ -44,6 +44,7 @@ public class ForeignBuyBaseTransferData implements AbstractPipelineTransferData{
         return this;
     }
 
+    @Override
     public Set<String> getLedgerCodeSet() {
         return Set.of(fxLedgerCode.getValue());
     }

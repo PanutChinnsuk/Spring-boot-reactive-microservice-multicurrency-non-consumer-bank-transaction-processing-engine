@@ -9,10 +9,12 @@ import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServ
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.AbstractPipelineTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.ForeignBuyBaseTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
@@ -28,12 +30,13 @@ enum FxPipeline {
     BASE_BUY_FOREIGN
 }
 
-class Chain {
+class FxTransferPipelineChain {
     private FxRateGetLatestResponse fxRateGetLatestResponse;
     private Map<String,String> ledgerCodeMap;
+    private FxRateData fxRateData;
 
 
-    public Mono<Chain> fxRateGetLatestResponse(final FxRateGetLatestResponse fxRateGetLatestResponse) {
+    public Mono<FxTransferPipelineChain> fxRateGetLatestResponse(final FxRateGetLatestResponse fxRateGetLatestResponse) {
         return Mono.defer(() -> {
             this.fxRateGetLatestResponse = fxRateGetLatestResponse;
 
@@ -41,9 +44,17 @@ class Chain {
         });
     }
 
-    public Mono<Chain> ledgerCodeMap(final Map<String,String> ledgerCodeMap) {
+    public Mono<FxTransferPipelineChain> ledgerCodeMap(final Map<String,String> ledgerCodeMap) {
         return Mono.defer(() -> {
             this.ledgerCodeMap = ledgerCodeMap;
+
+            return Mono.just(this);
+        });
+    }
+
+    public Mono<FxTransferPipelineChain> fxRateData(final FxRateData fxRateData) {
+        return Mono.defer(() -> {
+            this.fxRateData = fxRateData;
 
             return Mono.just(this);
         });
@@ -76,7 +87,7 @@ public class FxTransferPipeline {
     private Set<LedgerType> FIXED_EXPECTED_LEDGER_TYPES =
             Set.of(LedgerType.LIABILITY);
 
-    protected Mono<FxRateGetLatestResponse> getFxRate(final FxRateData fxRateData) {
+    protected Mono<FxRateGetLatestResponse> getFxRateConversion(final FxRateData fxRateData) {
         return fxRateServiceController
                 .getLatestFxRate(FxRateGetLatestRequest.withFxRateData(fxRateData));
     }
@@ -93,23 +104,29 @@ public class FxTransferPipeline {
         });
     }
 
-    protected Mono<GetAccountsInfoForTransactionResponse>
-    defaultFxTransferChain(final ForeignBuyBaseTransferData data,
-                           final GetAccountsInfoForTransactionResponse response,
-                           final FxPipeline fxPipeline) {
-        return Mono.fromCallable(() -> response.getAccount(data.getToAccountId()))
+    private Mono<FxTransferPipelineChain>
+    preTransfer(final String toAccountId,
+                final AbstractPipelineTransferData data,
+                final GetAccountsInfoForTransactionResponse response,
+                final FxPipeline fxPipeline) {
+        return Mono.fromCallable(() -> response.getAccount(toAccountId))
                 .map(AccountInfoForTransactionQueryResult::getAccountCurrency)
                 .flatMap(quoteCurrency -> toFxRateData(quoteCurrency, fxPipeline))
-                .flatMap(this::getFxRate)
-                .flatMap(fxRate -> new Chain().fxRateGetLatestResponse(fxRate))
+                .flatMap(fxRateData -> getFxRateConversion(fxRateData)
+                        .flatMap(latestConversion ->
+                                new FxTransferPipelineChain().fxRateGetLatestResponse(latestConversion))
+                        .flatMap(chain -> chain.fxRateData(fxRateData)))
                 .flatMap(chain -> ledgerAccountQuery
                         .getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
                                 FIXED_EXPECTED_LEDGER_TYPES)
-                        .flatMap(chain::ledgerCodeMap))
-                .flatMap(chain -> {
-
-                })
+                        .flatMap(chain::ledgerCodeMap));
     }
+
+    protected Mono<GetAccountsInfoForTransactionResponse> defaultForeignBuyBase(final FxTransferPipelineChain chain) {
+
+    }
+
+
 
     public Mono<GetAccountsInfoForTransactionResponse> foreignBuyBase(final ForeignBuyBaseTransferData data) {
         return repository.getAccountsInfoForTransaction(data)
@@ -121,8 +138,12 @@ public class FxTransferPipeline {
                         .expectedAllAccountStatusActive()
                         .expectedAllNonInternalNotBaseCurrency()
                         .expectedBaseCurrencyInternalAccounts())
-                .flatMap(response -> defaultFxTransferChain(data,
-                        response, FxPipeline.FOREIGN_BUY_BASE));
+                .flatMap(response -> preTransfer(
+                        data.getToAccountId(),
+                        data,
+                        response,
+                        FxPipeline.FOREIGN_BUY_BASE))
+                .flatMap(this::defaultForeignBuyBase);
 
 
     }

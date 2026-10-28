@@ -30,9 +30,7 @@ public class PreTransactionRegisterData {
     }
 
 
-
-
-
-
-
+    public FxRateData getFxRateData() {
+        return fxRateData;
+    }
 }

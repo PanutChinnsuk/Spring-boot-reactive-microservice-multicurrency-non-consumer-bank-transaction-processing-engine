@@ -8,4 +8,5 @@ public abstract interface AbstractPipelineTransferData {
     public Mono<Void> validate();
     public int getFixedSize();
     Set<String> asAccountIds();
+    Set<String> getLedgerCodeSet();
 }
