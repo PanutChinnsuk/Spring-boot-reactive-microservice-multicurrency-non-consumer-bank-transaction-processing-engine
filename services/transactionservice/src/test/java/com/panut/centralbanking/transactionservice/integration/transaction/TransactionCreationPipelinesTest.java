@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.transaction;
+package com.panut.centralbanking.transactionservice.integration.transaction;
 
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;

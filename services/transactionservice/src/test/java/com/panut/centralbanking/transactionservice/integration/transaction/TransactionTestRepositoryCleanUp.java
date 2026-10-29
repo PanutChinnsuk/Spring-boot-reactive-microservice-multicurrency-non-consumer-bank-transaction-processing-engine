@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.transaction;
+package com.panut.centralbanking.transactionservice.integration.transaction;
 
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionLineRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionProfileRepository;

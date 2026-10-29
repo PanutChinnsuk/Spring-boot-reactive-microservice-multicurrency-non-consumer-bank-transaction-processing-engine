@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.testrepository;
+package com.panut.centralbanking.transactionservice.integration.testrepository;
 
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;

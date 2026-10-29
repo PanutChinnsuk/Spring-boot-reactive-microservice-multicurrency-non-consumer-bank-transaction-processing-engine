@@ -13,24 +13,23 @@ import java.util.Set;
 
 @Getter
 public class ForeignBuyBaseTransferData implements AbstractPipelineTransferData{
-    private String fxMasterAccountId;
+    private String fromAccountId;
+    private BigDecimal foreignAmount;
+
     private String toAccountId;
     private String internalFxClearingAccountId;
     private String internalFxProfitAccountId;
     private final int fixedSize = 4;
-    private final int fixedInternalSize = 3;
-    private final int fixedNonInternalSize = 1;
+    private final int fixedInternalSize = 2;
+    private final int fixedNonInternalSize = 2;
     private final LedgerCode fxLedgerCode = LedgerCode.FX_TRANSFER;
 
-    public ForeignBuyBaseTransferData(String toAccountId) {
+    public ForeignBuyBaseTransferData(String fromAccountId,
+                                      String toAccountId) {
+        this.fromAccountId = fromAccountId;
         this.toAccountId = toAccountId;
     }
 
-    public ForeignBuyBaseTransferData withFxMasterAccountId(final String accountId) {
-        this.fxMasterAccountId = accountId;
-
-        return this;
-    }
 
     public ForeignBuyBaseTransferData withInternalFxClearingAccountId(final String accountId) {
         this.internalFxClearingAccountId = accountId;
@@ -66,7 +65,7 @@ public class ForeignBuyBaseTransferData implements AbstractPipelineTransferData{
 
     @Override
     public Set<String> asAccountIds() {
-        return Set.of(fxMasterAccountId, toAccountId, internalFxClearingAccountId,
+        return Set.of(fromAccountId, toAccountId, internalFxClearingAccountId,
                 internalFxProfitAccountId);
     }
 }

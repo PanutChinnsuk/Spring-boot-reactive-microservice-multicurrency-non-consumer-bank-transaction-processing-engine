@@ -60,17 +60,17 @@ public class TransferPipeline {
 
     private List<AccountData> normalTransfer(PreListAccountDatasInfo info) {
         return List.of(
-                AccountData.linearDebit(info.fromAccountInfo(), info.basedAmount(),
+                AccountData.V1.linearDebit(info.fromAccountInfo(), info.basedAmount(),
                         info.fromAccountLedgerId()),
-                AccountData.linearCredit(info.toAccountInfo(), info.basedAmount(),
+                AccountData.V1.linearCredit(info.toAccountInfo(), info.basedAmount(),
                         info.toAccountLedgerId()));
     }
 
     private List<AccountData> assetExpenseTransfer(PreListAccountDatasInfo info) {
         return List.of(
-                AccountData.linearCredit(info.fromAccountInfo(), info.basedAmount(),
+                AccountData.V1.linearCredit(info.fromAccountInfo(), info.basedAmount(),
                         info.fromAccountLedgerId()),
-                AccountData.linearDebit(info.toAccountInfo(), info.basedAmount(),
+                AccountData.V1.linearDebit(info.toAccountInfo(), info.basedAmount(),
                         info.toAccountLedgerId()));
     }
 

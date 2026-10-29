@@ -1,5 +1,6 @@
 package com.panut.centralbanking.appcurrencycore;
 
+import java.math.RoundingMode;
 import java.util.Currency;
 
 public enum CurrencyCode {
@@ -37,5 +38,13 @@ public enum CurrencyCode {
 
     public static CurrencyCode getBaseCurrency() {
         return CurrencyCode.USD;
+    }
+
+    public static RoundingMode getDefaultRoundingMode() {
+        return RoundingMode.HALF_EVEN;
+    }
+
+    public RoundingMode getRoundingMode() {
+        return RoundingMode.HALF_EVEN;
     }
 }

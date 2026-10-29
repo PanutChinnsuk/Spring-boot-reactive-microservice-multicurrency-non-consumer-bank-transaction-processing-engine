@@ -1,6 +1,7 @@
 package com.panut.centralbanking.fxrateservice.infrastructure.model;
 
 import com.panut.centralbanking.appR2dbccore.persistence.UUIDBasedStringEntity;
+import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.fxrateservice.api.response.FxRateGetLatestResponse;
 import lombok.AllArgsConstructor;
@@ -46,6 +47,9 @@ public class FxRate extends UUIDBasedStringEntity {
                   BigDecimal bidRate,
                   BigDecimal askRate,
                   BigDecimal treasuryRate) {
+        if (askRate.compareTo(bidRate) <= 0)
+            throw new SystemMisused("Ask rate must not be lesser than bid rate.");
+
         this.baseCurrency = baseCurrency;
         this.quoteCurrency = quoteCurrency;
         this.bidRate = bidRate;

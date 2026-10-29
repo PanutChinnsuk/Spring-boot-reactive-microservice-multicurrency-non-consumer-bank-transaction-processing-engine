@@ -1,26 +1,20 @@
-package com.panut.centralbanking.transactionservice.transaction;
+package com.panut.centralbanking.transactionservice.integration.transaction;
 
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
-import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.request.SameCurrencyTransferRequest;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
-import com.panut.centralbanking.transactionservice.api.service.account.data.related.AccountStatus;
-import com.panut.centralbanking.transactionservice.api.service.account.request.GetAccountsInfoForTransactionRequest;
-import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.service.CommonTransactionService;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
-import com.panut.centralbanking.transactionservice.transaction.utils.AccountControllerDataBuilder;
-import com.panut.centralbanking.transactionservice.transaction.utils.DataBuilder;
+import com.panut.centralbanking.transactionservice.integration.testrepository.TransactionLineTestRepository;
+import com.panut.centralbanking.transactionservice.integration.transaction.utils.AccountControllerDataBuilder;
+import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import reactor.core.publisher.Mono;
 
@@ -28,8 +22,6 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Function;
-
-import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionCommonTransferServiceTest implements IntegrationDevTest {

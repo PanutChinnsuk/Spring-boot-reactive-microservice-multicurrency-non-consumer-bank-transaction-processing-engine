@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.transaction.utils;
+package com.panut.centralbanking.transactionservice.integration.transaction.utils;
 
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.AccountStatus;
