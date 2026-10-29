@@ -15,6 +15,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.PreTransactionRegisterData;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ record PreListAccountDatasInfo(AccountInfoForTransactionQueryResult fromAccountI
                                String fromAccountLedgerId,
                                String toAccountLedgerId) {}
 
+@Slf4j
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
 public class TransferPipeline {
@@ -81,9 +83,9 @@ public class TransferPipeline {
                                                                  final TransactionType transactionType) {
         return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
                         getExpectedLedgerTypes(transactionType))
+                .doOnNext(a -> log.info(
+                        "getLedgerAccountMapByCodes"))
                 .map(ledgerAccounts -> {
-
-
                     PreListAccountDatasInfo info = new PreListAccountDatasInfo(
                             response.getAccount(data.getFromAccountId()),
                             response.getAccount(data.getToAccountId()),
@@ -104,13 +106,23 @@ public class TransferPipeline {
     public Mono<TransactionCreationPipelineResult> transfer(final PipelineTransferData data,
                                                             final TransactionType transactionType) {
         return repository.getAccountsInfoForTransaction(data)
+                .doOnNext(a -> log.info(
+                        "After calling account service from business pipeline repository"))
                 .map(response -> response
                         .compact()
                         .expectedSize(data.getFixedSize())
                         .expectedAllAccountStatusActive()
                         .expectedSameCurrency())
+                .doOnNext(a -> log.info(
+                        "Validated response info from account service"))
                 .flatMap(response ->
                         defaultTransferChain(response, data, transactionType))
-                .flatMap(transactionRegisterPipeline::register);
+                .doOnNext(a -> log.info(
+                        "Before passing to transaction register pipeline"))
+                .flatMap(transactionRegisterPipeline::register)
+                .doOnSuccess(a -> log.info(
+                        "Successfully create transaction."))
+                .doOnError(error ->
+                        log.error("Failed to create transaction, {}", error.getLocalizedMessage()));
     }
 }

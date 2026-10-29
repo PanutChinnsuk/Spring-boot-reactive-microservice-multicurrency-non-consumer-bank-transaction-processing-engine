@@ -17,10 +17,10 @@ public class DataBuilder {
                 List.of(
                         new AccountInfoForTransactionQueryResult("TEST",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
-                                false),
+                                null),
                         new AccountInfoForTransactionQueryResult("TEST2",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
-                                false)
+                                null)
                 );
 
         return new GetAccountsInfoForTransactionResponse(queryResults);
@@ -33,10 +33,10 @@ public class DataBuilder {
                 List.of(
                         new AccountInfoForTransactionQueryResult("TEST",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
-                                false),
+                                null),
                         new AccountInfoForTransactionQueryResult("TEST2",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.TERMINATED,
-                                false)
+                                null)
                 );
 
         return new GetAccountsInfoForTransactionResponse(queryResults);
@@ -47,10 +47,10 @@ public class DataBuilder {
                 List.of(
                         new AccountInfoForTransactionQueryResult("TEST",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
-                                false),
+                                null),
                         new AccountInfoForTransactionQueryResult("TEST2",
                                 CurrencyCode.CAD, AccountStatus.ACTIVE,
-                                false)
+                                null)
                 );
 
         return new GetAccountsInfoForTransactionResponse(queryResults);

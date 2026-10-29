@@ -22,6 +22,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +82,7 @@ class FxTransferPipelineChain {
 
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class FxTransferPipeline {
     private final BusinessPipelineRepository repository;
     private final TransactionRegisterPipeline transactionRegisterPipeline;
@@ -124,11 +126,11 @@ public class FxTransferPipeline {
         });
     }
 
-    private Mono<FxTransferPipelineChain> preTransfer(final String toAccountId,
+    private Mono<FxTransferPipelineChain> preTransfer(final String accountIdToGetQuoteCurrency,
                 final AbstractPipelineTransferData data,
                 final GetAccountsInfoForTransactionResponse response,
                 final FxPipeline fxPipeline) {
-        return Mono.fromCallable(() -> response.getAccount(toAccountId))
+        return Mono.fromCallable(() -> response.getAccount(accountIdToGetQuoteCurrency))
                 .map(AccountInfoForTransactionQueryResult::getAccountCurrency)
                 .flatMap(quoteCurrency -> toFxRateData(quoteCurrency, fxPipeline))
                 .flatMap(fxRateData -> getFxRateConversion(fxRateData)
@@ -198,6 +200,8 @@ public class FxTransferPipeline {
 
     public Mono<TransactionCreationPipelineResult> foreignBuyBase(final ForeignBuyBaseTransferData data) {
         return repository.getAccountsInfoForTransaction(data)
+                .doOnNext(a -> log.info(
+                        "After calling account service from business pipeline repository"))
                 .map(response -> response.compact()
                         .expectedSize(data.getFixedSize())
                         .sort()
@@ -206,6 +210,8 @@ public class FxTransferPipeline {
                         .expectedAllAccountStatusActive()
                         .expectedAllNonInternalNotBaseCurrency()
                         .expectedBaseCurrencyInternalAccounts())
+                .doOnNext(a -> log.info(
+                        "Validated response info from account service"))
                 .map(response -> {
                     response.getAccount(data.getFromAccountId()).notExpectedAccountCurrency(
                             CurrencyCode.getBaseCurrency());
@@ -214,11 +220,15 @@ public class FxTransferPipeline {
 
                     return response;
                 })
+                .doOnNext(a -> log.info(
+                        "Validated pricipal accounts' currency"))
                 .flatMap(response -> preTransfer(
-                        data.getToAccountId(),
+                        data.getFromAccountId(),
                         data,
                         response,
                         FxPipeline.FOREIGN_BUY_BASE))
+                .doOnNext(a -> log.info(
+                        "Before passing to defaultForeignBuyBase"))
                 .flatMap(chain -> defaultForeignBuyBase(chain, data));
 
 

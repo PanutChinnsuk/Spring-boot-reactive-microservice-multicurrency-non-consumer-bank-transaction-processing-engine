@@ -7,7 +7,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.AccountSe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.service.CommonTransactionService;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.integration.testrepository.TransactionLineTestRepository;
+import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.AccountControllerDataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -57,7 +57,7 @@ public class TransactionCommonTransferServiceTest implements IntegrationDevTest 
 
 
     private void test(Function<SameCurrencyTransferRequest, Mono<TransactionCreationPipelineResult>> f,
-                     SameCurrencyTransferRequest r) {
+                      SameCurrencyTransferRequest r) {
 
 
         TransactionCreationPipelineResult result = f.apply(r).block();
