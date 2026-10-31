@@ -1,6 +1,6 @@
 package com.panut.centralbanking.accountservice.application.account.implement;
 
-import com.panut.centralbanking.accountservice.api.request.serviceonly.GetAccountsInfoForTransactionRequest;
+import com.panut.centralbanking.accountservice.api.request.serviceonly.transactionprimary.GetAccountsInfoForTransactionRequest;
 import com.panut.centralbanking.accountservice.api.response.serviceonly.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
 import com.panut.centralbanking.accountservice.application.account.service.AccountInfoService;
