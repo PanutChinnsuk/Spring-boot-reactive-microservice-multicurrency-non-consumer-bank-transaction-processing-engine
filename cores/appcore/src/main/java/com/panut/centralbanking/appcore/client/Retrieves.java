@@ -105,4 +105,16 @@ public class Retrieves {
                 .retrieve()
                 .bodyToMono(expectedClass);
     }
+
+    public static final <T>Mono<T> doRequest(final WebClient webClient,
+                                             final String fullPath,
+                                             final Class<? extends RuntimeException> onError,
+                                             final String name,
+                                             final Class<T> expectedClass) {
+        return webClient
+                .post()
+                .uri(fullPath)
+                .retrieve()
+                .bodyToMono(expectedClass);
+    }
 }

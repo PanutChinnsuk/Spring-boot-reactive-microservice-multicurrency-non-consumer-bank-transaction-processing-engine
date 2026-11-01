@@ -25,9 +25,11 @@ public class ForeignBuyBaseTransferData implements AbstractPipelineTransferData{
     private final LedgerCode fxLedgerCode = LedgerCode.FX_TRANSFER;
 
     public ForeignBuyBaseTransferData(String fromAccountId,
-                                      String toAccountId) {
+                                      String toAccountId,
+                                      BigDecimal foreignAmount) {
         this.fromAccountId = fromAccountId;
         this.toAccountId = toAccountId;
+        this.foreignAmount = foreignAmount;
     }
 
 
@@ -54,10 +56,16 @@ public class ForeignBuyBaseTransferData implements AbstractPipelineTransferData{
         return Mono.defer(() -> {
             Objects.requireNonNull(internalFxClearingAccountId);
             Objects.requireNonNull(internalFxProfitAccountId);
+            Objects.requireNonNull(fromAccountId);
+            Objects.requireNonNull(toAccountId);
 
             if (internalFxClearingAccountId.equals(internalFxProfitAccountId))
                 throw new SystemMisused("internalFxClearingAccountId should not be the same as " +
                         "internalFxProfitAccountId.");
+
+            if (fromAccountId.equals(toAccountId))
+                throw new SystemMisused("fromAccountId should not be the same as " +
+                        "toAccountId.");
 
             return Mono.empty();
         });

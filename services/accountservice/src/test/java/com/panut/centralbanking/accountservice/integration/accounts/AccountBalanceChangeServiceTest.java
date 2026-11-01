@@ -1,6 +1,6 @@
 package com.panut.centralbanking.accountservice.integration.accounts;
 
-import com.panut.centralbanking.accountservice.IntegrationDev;
+import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AccountBalanceChangeServiceTest implements IntegrationDev {
+public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
     @Autowired
     private AccountBalanceRepository accountBalanceRepository;
 

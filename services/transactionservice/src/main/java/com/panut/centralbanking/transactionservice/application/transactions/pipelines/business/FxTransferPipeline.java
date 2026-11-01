@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business;
 
+import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
@@ -131,30 +132,47 @@ public class FxTransferPipeline {
                 final GetAccountsInfoForTransactionResponse response,
                 final FxPipeline fxPipeline) {
         return Mono.fromCallable(() -> response.getAccount(accountIdToGetQuoteCurrency))
+                .doOnNext(a -> log.info("after getting current transaction " +
+                        "quote currency for fx transfer"))
                 .map(AccountInfoForTransactionQueryResult::getAccountCurrency)
+                .doOnNext(a -> log.info("Mapped to just quote currency"))
                 .flatMap(quoteCurrency -> toFxRateData(quoteCurrency, fxPipeline))
+                .doOnNext(a -> log.info("quote currency to fx rate data"))
                 .flatMap(fxRateData -> getFxRateConversion(fxRateData)
+                        .doOnNext(a -> log.info("get latest fx " +
+                                "conversion from fx rate service"))
                         .flatMap(latestConversion ->
                                 new FxTransferPipelineChain().fxRateGetLatestResponse(latestConversion))
+                        .doOnNext(a -> log.info("put latest fx rate conversion " +
+                                "into current pipeline chain"))
                         .flatMap(chain ->
                                 chain.fxRateData(fxRateData.withId(chain
                                         .getFxRateGetLatestResponse()
                                         .getFxRateId()))
                         )
+                        .doOnNext(a -> log.info("put fx rate data from before " +
+                                "into current pipeline chain"))
                         .flatMap(chain ->
                                 chain.accountsInfoForTransactionResponse(response)
                         )
+                        .doOnNext(a -> log.info("put accounts info for transaction " +
+                                "into current pipeline chain"))
                 )
+                .doOnNext(a -> log.info("before query for ledger codes map"))
                 .flatMap(chain -> ledgerAccountQuery
                         .getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
                                 FIXED_EXPECTED_LEDGER_TYPES)
-                        .flatMap(chain::ledgerCodeMap));
+                        .doOnNext(a -> log.info("query for ledger codes map"))
+                        .flatMap(chain::ledgerCodeMap))
+                .doOnNext(a -> log.info("completed pre transfer for fx " +
+                        "transfer pipeline"));
     }
 
     protected Mono<TransactionCreationPipelineResult>
     defaultForeignBuyBase(final FxTransferPipelineChain fxTransferPipelineChain,
                           final ForeignBuyBaseTransferData data) {
         return Mono.just(fxTransferPipelineChain)
+                .doOnNext(a -> log.info("After passed to defaultForeignBuyBase"))
                 .map(chain -> {
                     BigDecimal uncovertedForeignAmount = data.getForeignAmount();
                     FxRateGetLatestResponse latestConversion = chain.getFxRateGetLatestResponse();
@@ -171,7 +189,15 @@ public class FxTransferPipeline {
                     BigDecimal convertedForeignAmount = FxRateCurrencyConversion.V1
                             .convertDivide(uncovertedForeignAmount, latestConversion, fxRateData);
                     BigDecimal convertedProfitAmount = FxRateProfitCalculator.V1
-                            .foreignBuyBaseProfit(uncovertedForeignAmount, latestConversion);
+                            .foreignBuyBaseProfit(uncovertedForeignAmount, latestConversion,
+                                    fxRateData);
+
+                    log.info("defaultForeignBuyBase, uncovertedForeignAmount {}",
+                             uncovertedForeignAmount);
+                    log.info("defaultForeignBuyBase, covertedForeignAmount {}",
+                            convertedForeignAmount);
+                    log.info("defaultForeignBuyBase, convertedProfitAmount {}",
+                            convertedProfitAmount);
 
                     List<AccountData> accountDatas = List.of(
                             AccountData.V1.fxDebit(fromAccount,
@@ -193,6 +219,7 @@ public class FxTransferPipeline {
                     return new PreTransactionRegisterData(FIXED_TRANSACTION_TYPE,
                             accountDatas, chain.getFxRateData());
                 })
+                .doOnNext(a -> log.info("pre register fx transfer pipeline"))
                 .flatMap(transactionRegisterPipeline::register);
     }
 
@@ -209,7 +236,6 @@ public class FxTransferPipeline {
                         .expectedNonInternalSize(data.getFixedNonInternalSize())
                         .expectedInternalSize(data.getFixedInternalSize())
                         .expectedAllAccountStatusActive()
-                        .expectedAllNonInternalNotBaseCurrency()
                         .expectedBaseCurrencyInternalAccounts())
                 .doOnNext(a -> log.info(
                         "Validated response info from account service"))
@@ -230,7 +256,12 @@ public class FxTransferPipeline {
                         FxPipeline.FOREIGN_BUY_BASE))
                 .doOnNext(a -> log.info(
                         "Before passing to defaultForeignBuyBase"))
-                .flatMap(chain -> defaultForeignBuyBase(chain, data));
+                .flatMap(chain -> defaultForeignBuyBase(chain, data))
+                .doOnSuccess(a -> log.info("Successfully created fx " +
+                        "transaction from quote to base (ask)"))
+                .doOnError(error ->
+                        log.error("Failed to create fx transaction from quote to base, {}",
+                        error.getLocalizedMessage()));
 
 
     }

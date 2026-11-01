@@ -31,6 +31,7 @@ public class GetFxInternalAccountResponse {
     );
 
 
+    @JsonIgnore
     public static GetFxInternalAccountResponse withMap(final
                                                        Map<InternalAccountType,String> map) {
         return new GetFxInternalAccountResponse(

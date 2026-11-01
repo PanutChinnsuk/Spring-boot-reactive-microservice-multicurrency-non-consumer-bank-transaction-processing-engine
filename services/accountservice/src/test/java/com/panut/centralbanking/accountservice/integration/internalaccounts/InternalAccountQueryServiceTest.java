@@ -1,13 +1,13 @@
 package com.panut.centralbanking.accountservice.integration.internalaccounts;
 
-import com.panut.centralbanking.accountservice.IntegrationDev;
+import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.response.serviceonly.GetFxInternalAccountResponse;
 import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service.InternalAccountQueryService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class InternalAccountQueryServiceTest implements IntegrationDev {
+public class InternalAccountQueryServiceTest implements IntegrationDevTest {
     @Autowired
     private InternalAccountQueryService internalAccountQueryService;
 

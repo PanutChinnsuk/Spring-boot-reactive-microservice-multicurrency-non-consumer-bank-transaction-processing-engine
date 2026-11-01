@@ -1,6 +1,6 @@
 package com.panut.centralbanking.accountservice.integration.accounts;
 
-import com.panut.centralbanking.accountservice.IntegrationDev;
+import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.AccountBalanceCreateData;
 import com.panut.centralbanking.accountservice.api.data.AccountProfileCreateData;
 import com.panut.centralbanking.accountservice.api.response.AccountCreatedData;
@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AccountCreateServiceTest implements IntegrationDev {
+public class AccountCreateServiceTest implements IntegrationDevTest {
     @Autowired
     private TransactionalOperator transactionalOperator;
 

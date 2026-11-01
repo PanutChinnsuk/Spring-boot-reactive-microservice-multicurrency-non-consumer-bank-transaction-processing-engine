@@ -4,8 +4,10 @@ import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public class FxRateData {
     private String fxRateId;
     private final FxDirection fxDirection;
@@ -62,7 +64,7 @@ public class FxRateData {
 
 
     public FxRateData withId(final String fxRateId) {
-        if (fxRateId != null)
+        if (this.fxRateId != null)
             throw new SystemMisused("FxRateData fxRateId can only be set once.");
 
         this.fxRateId = fxRateId;
