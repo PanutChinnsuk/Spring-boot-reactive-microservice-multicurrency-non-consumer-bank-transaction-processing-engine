@@ -12,7 +12,9 @@ import com.panut.centralbanking.accountservice.infrastructure.model.InternalAcco
 import com.panut.centralbanking.accountservice.infrastructure.repository.InternalAccountRepository;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
+import com.panut.centralbanking.appcore.exceptions.Conflicted;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import reactor.core.publisher.Mono;
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 @Slf4j
+//LOW STAKE OPERATIONS
 public class InternalAccountServiceImpl implements InternalAccountService {
     private final InternalAccountRepositoryManager manager;
     private final InternalAccountPersistValidator persistValidator;
@@ -55,8 +58,10 @@ public class InternalAccountServiceImpl implements InternalAccountService {
                 .doOnError(error ->
                         log.error("Failed to add internal account, {}",
                                 error.getLocalizedMessage()))
-                .onErrorMap(err -> new BusinessException("Account must not " +
+                .onErrorMap(DataIntegrityViolationException.class,
+                        err -> new BusinessException("Account must not " +
                         "be internal and id must be exist for internal account adding."));
+
     }
 
     @Override

@@ -20,9 +20,11 @@ public interface InternalAccountRepository
 
     @Query("""
             SELECT a.id FROM internal_accounts a
-            WHERE (a.account_id = :accountId AND a.branch_id = :branchId) OR
-            (a.branch_id = :branchId AND 
-            a.internal_account_type = internalAccountType)
+            WHERE
+            (a.account_id = :accountId AND a.internal_account_branch_id = :branchId)
+            OR
+            (a.internal_account_branch_id = :branchId AND 
+            a.internal_account_type = :internalAccountType)
             """)
     Mono<String> alreadyExists(@Param("accountId") String accountId,
                                @Param("branchId") String branchId,

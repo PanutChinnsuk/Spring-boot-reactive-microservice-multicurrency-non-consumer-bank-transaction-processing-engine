@@ -55,7 +55,7 @@ public class InternalAccountQueryServiceImpl implements InternalAccountQueryServ
 
 
 
-
+    @Override
     public Mono<GetFxInternalAccountResponse> getFxInternalAccount() {
         return internalAccountRepository
                 .getInternalAccounts(internalAccountProperty.getCurrentBankBranch(),

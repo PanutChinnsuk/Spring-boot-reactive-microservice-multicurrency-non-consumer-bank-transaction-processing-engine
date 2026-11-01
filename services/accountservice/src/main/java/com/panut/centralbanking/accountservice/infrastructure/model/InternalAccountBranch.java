@@ -18,5 +18,6 @@ public class InternalAccountBranch extends UUIDBasedStringEntity {
     @Builder
     public InternalAccountBranch(InternalBranch internalBranch) {
         this.internalBranch = internalBranch;
+        setInsert();
     }
 }
