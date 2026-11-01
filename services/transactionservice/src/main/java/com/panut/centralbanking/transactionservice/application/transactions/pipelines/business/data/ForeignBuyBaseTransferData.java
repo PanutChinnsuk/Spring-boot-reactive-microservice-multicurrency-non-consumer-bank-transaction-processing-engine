@@ -19,9 +19,10 @@ public class ForeignBuyBaseTransferData implements AbstractPipelineTransferData{
     private String toAccountId;
     private String internalFxClearingAccountId;
     private String internalFxProfitAccountId;
-    private final int fixedSize = 4;
+
     private final int fixedInternalSize = 2;
     private final int fixedNonInternalSize = 2;
+    private final int fixedSize = fixedInternalSize + fixedNonInternalSize;
     private final LedgerCode fxLedgerCode = LedgerCode.FX_TRANSFER;
 
     public ForeignBuyBaseTransferData(String fromAccountId,

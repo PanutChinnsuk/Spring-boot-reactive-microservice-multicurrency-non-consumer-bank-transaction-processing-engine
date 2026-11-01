@@ -3,10 +3,11 @@ package com.panut.centralbanking.transactionservice.application.transactions.pip
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.ExpectedLedgerTypes;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.PipelineTransferData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.PreListAccountDatasInfo;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.TransferPipelineModuleV1;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
@@ -21,16 +22,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-
-record PreListAccountDatasInfo(AccountInfoForTransactionQueryResult fromAccountInfo,
-                               AccountInfoForTransactionQueryResult toAccountInfo,
-                               BigDecimal basedAmount,
-                               String fromAccountLedgerId,
-                               String toAccountLedgerId) {}
 
 @Slf4j
 @Component
@@ -38,68 +32,14 @@ record PreListAccountDatasInfo(AccountInfoForTransactionQueryResult fromAccountI
 public class TransferPipeline {
     private final BusinessPipelineRepository repository;
     private final TransactionRegisterPipeline transactionRegisterPipeline;
-    private final AccountServiceController accountServiceController;
-    private final LedgerAccountQuery ledgerAccountQuery;
+    private final TransferPipelineModuleV1 v1Module;
 
     public TransferPipeline(BusinessPipelineRepository repository,
                             TransactionRegisterPipeline transactionRegisterPipeline,
-                            AccountServiceController accountServiceController,
-                            LedgerAccountQuery ledgerAccountQuery) {
+                            TransferPipelineModuleV1 v1Module) {
         this.repository = repository;
         this.transactionRegisterPipeline = transactionRegisterPipeline;
-        this.accountServiceController = accountServiceController;
-        this.ledgerAccountQuery = ledgerAccountQuery;
-    }
-
-    private Set<LedgerType> getExpectedLedgerTypes(final TransactionType transactionType) {
-        return switch (transactionType) {
-            case TRANSFER -> ExpectedLedgerTypes.NORMAL_TRANSFER();
-            case ASSET_EXPENSE -> ExpectedLedgerTypes.ASSET_AND_EXPENSE();
-            default -> throw new SystemMisused("TransferPipeline only allowed transaction type " +
-                    "of TRANSFER, ASSET_EXPENSE");
-        };
-    }
-
-    private List<AccountData> normalTransfer(PreListAccountDatasInfo info) {
-        return List.of(
-                AccountData.V1.linearDebit(info.fromAccountInfo(), info.basedAmount(),
-                        info.fromAccountLedgerId()),
-                AccountData.V1.linearCredit(info.toAccountInfo(), info.basedAmount(),
-                        info.toAccountLedgerId()));
-    }
-
-    private List<AccountData> assetExpenseTransfer(PreListAccountDatasInfo info) {
-        return List.of(
-                AccountData.V1.linearCredit(info.fromAccountInfo(), info.basedAmount(),
-                        info.fromAccountLedgerId()),
-                AccountData.V1.linearDebit(info.toAccountInfo(), info.basedAmount(),
-                        info.toAccountLedgerId()));
-    }
-
-
-
-    protected Mono<PreTransactionRegisterData> defaultTransferChain(final GetAccountsInfoForTransactionResponse response,
-                                                                 final PipelineTransferData data,
-                                                                 final TransactionType transactionType) {
-        return ledgerAccountQuery.getLedgerAccountMapByCodes(data.getLedgerCodeSet(),
-                        getExpectedLedgerTypes(transactionType))
-                .doOnNext(a -> log.info(
-                        "getLedgerAccountMapByCodes"))
-                .map(ledgerAccounts -> {
-                    PreListAccountDatasInfo info = new PreListAccountDatasInfo(
-                            response.getAccount(data.getFromAccountId()),
-                            response.getAccount(data.getToAccountId()),
-                            data.getAmount(),
-                            ledgerAccounts.get(data.getFromAccountLedgerCode().getValue()),
-                            ledgerAccounts.get(data.getToAccountLedgerCode().getValue())
-                    );
-
-                    return new PreTransactionRegisterData(
-                            transactionType,
-                            transactionType.isAssetExpense() ? assetExpenseTransfer(info)
-                                                             : normalTransfer(info),
-                            FxRateData.empty());
-                });
+        this.v1Module = v1Module;
     }
 
 
@@ -116,7 +56,7 @@ public class TransferPipeline {
                 .doOnNext(a -> log.info(
                         "Validated response info from account service"))
                 .flatMap(response ->
-                        defaultTransferChain(response, data, transactionType))
+                        v1Module.defaultTransferChain(response, data, transactionType))
                 .doOnNext(a -> log.info(
                         "Before passing to transaction register pipeline"))
                 .flatMap(transactionRegisterPipeline::register)
