@@ -1,16 +1,12 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.FxTransferPipeline.v1;
 
-import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
-import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
-import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.BaseBuyForeignTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.ForeignBuyBaseTransferData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.TransferPipelineChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
@@ -48,9 +44,9 @@ public class FxTransferPipelineModuleV1 {
 
 
     public Mono<TransactionCreationPipelineResult>
-    defaultForeignBuyBase(final FxTransferPipelineChain fxTransferPipelineChain,
+    defaultForeignBuyBase(final TransferPipelineChain transferPipelineChain,
                           final ForeignBuyBaseTransferData data) {
-        return Mono.just(fxTransferPipelineChain)
+        return Mono.just(transferPipelineChain)
                 .doOnNext(a -> log.info("After passed to defaultForeignBuyBase"))
                 .map(chain -> {
                     BigDecimal uncovertedForeignAmount = data.getForeignAmount();
@@ -105,9 +101,9 @@ public class FxTransferPipelineModuleV1 {
 
 
     public Mono<TransactionCreationPipelineResult> defaultBaseBuyForeign
-            (final FxTransferPipelineChain fxTransferPipelineChain,
+            (final TransferPipelineChain transferPipelineChain,
              final BaseBuyForeignTransferData data) {
-        return Mono.just(fxTransferPipelineChain)
+        return Mono.just(transferPipelineChain)
                 .doOnNext(a -> log.info("After passed to defaultBaseBuyForeign"))
                 .map(chain -> {
                     BigDecimal baseAmount = data.getBaseAmount();

@@ -12,39 +12,39 @@ public class FxRateCurrencyConversion {
 
 
     public static class V1 {
-        public static BigDecimal multiply(final BigDecimal base,
+        public static BigDecimal multiply(final BigDecimal any,
                                           final FxRateGetLatestResponse latestConversion,
                                           final FxDirection fxDirection,
                                           final CurrencyCode quoteCurrency) {
-            return base.multiply(latestConversion.getRate(fxDirection))
+            return any.multiply(latestConversion.getRate(fxDirection))
                     .setScale(quoteCurrency.getCurrencyDigits(),
                             quoteCurrency.getRoundingMode());
 
         }
 
-        public static BigDecimal divide(final BigDecimal uncoverted,
+        public static BigDecimal divide(final BigDecimal any,
                                         final FxRateGetLatestResponse latestConversion,
                                         final FxDirection fxDirection) {
             CurrencyCode baseCurrency = latestConversion.getBaseCurrency();
-            return uncoverted.divide(latestConversion.getRate(fxDirection), baseCurrency.getCurrencyDigits(),
+            return any.divide(latestConversion.getRate(fxDirection), baseCurrency.getCurrencyDigits(),
                     baseCurrency.getRoundingMode());
 
 
         }
 
 
-        public static BigDecimal convertMultiply(final BigDecimal base,
+        public static BigDecimal convertMultiply(final BigDecimal any,
                                                  final FxRateGetLatestResponse latestConversion,
                                                  final FxRateData fxRateData) {
 
-            return multiply(base, latestConversion, fxRateData.getFxDirection(),
+            return multiply(any, latestConversion, fxRateData.getFxDirection(),
                     fxRateData.getQuoteCurrency());
         }
 
-        public static BigDecimal convertDivide(final BigDecimal uncoverted,
+        public static BigDecimal convertDivide(final BigDecimal any,
                                                final FxRateGetLatestResponse latestConversion,
                                                final FxRateData fxRateData) {
-            return divide(uncoverted, latestConversion, fxRateData.getFxDirection());
+            return divide(any, latestConversion, fxRateData.getFxDirection());
         }
     }
 

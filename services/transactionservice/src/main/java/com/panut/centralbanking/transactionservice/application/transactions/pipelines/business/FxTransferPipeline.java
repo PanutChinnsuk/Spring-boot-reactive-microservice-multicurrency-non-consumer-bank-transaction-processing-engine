@@ -12,7 +12,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.BaseBuyForeignTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.ForeignBuyBaseTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.FxTransferPipeline.v1.FxPipeline;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.FxTransferPipeline.v1.FxTransferPipelineChain;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.TransferPipelineChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.FxTransferPipeline.v1.FxTransferPipelineModuleV1;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
@@ -62,10 +62,10 @@ public class FxTransferPipeline {
         });
     }
 
-    private Mono<FxTransferPipelineChain> preTransfer(final String accountIdToGetQuoteCurrency,
-                                                      final AbstractPipelineTransferData data,
-                                                      final GetAccountsInfoForTransactionResponse response,
-                                                      final FxPipeline fxPipeline) {
+    private Mono<TransferPipelineChain> preTransfer(final String accountIdToGetQuoteCurrency,
+                                                    final AbstractPipelineTransferData data,
+                                                    final GetAccountsInfoForTransactionResponse response,
+                                                    final FxPipeline fxPipeline) {
         return Mono.fromCallable(() -> response.getAccount(accountIdToGetQuoteCurrency))
                 .doOnNext(a -> log.info("after getting current transaction " +
                         "quote currency for fx transfer"))
@@ -77,7 +77,7 @@ public class FxTransferPipeline {
                         .doOnNext(a -> log.info("get latest fx " +
                                 "conversion from fx rate service"))
                         .flatMap(latestConversion ->
-                                new FxTransferPipelineChain().fxRateGetLatestResponse(latestConversion))
+                                new TransferPipelineChain().fxRateGetLatestResponse(latestConversion))
                         .doOnNext(a -> log.info("put latest fx rate conversion " +
                                 "into current pipeline chain"))
                         .flatMap(chain ->

@@ -17,7 +17,7 @@ public class AccountData {
 
 
     public static class V1 {
-        private static AccountData V1(final AccountInfoForTransactionQueryResult accountInfo,
+        public static AccountData accountData(final AccountInfoForTransactionQueryResult accountInfo,
                                       final BigDecimal transferingAmount,
                                       final BigDecimal convertedTransferingAmount,
                                       final String usedLedgerAccountId,
@@ -32,35 +32,35 @@ public class AccountData {
         public static AccountData linearCredit(final AccountInfoForTransactionQueryResult accountInfo,
                                                final BigDecimal amount,
                                                final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, amount,
+            return accountData(accountInfo, amount, amount,
                     usedLedgerAccountId, TransactionLineDirection.CREDIT);
         }
 
         public static AccountData linearDebit(final AccountInfoForTransactionQueryResult accountInfo,
                                               final BigDecimal amount,
                                               final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, amount,
+            return accountData(accountInfo, amount, amount,
                     usedLedgerAccountId, TransactionLineDirection.DEBIT);
         }
 
         public static AccountData linearNone(final AccountInfoForTransactionQueryResult accountInfo,
                                              final BigDecimal amount,
                                              final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, amount,
+            return accountData(accountInfo, amount, amount,
                     usedLedgerAccountId, TransactionLineDirection.NONE);
         }
 
         public static AccountData linearClearingDebit(final AccountInfoForTransactionQueryResult accountInfo,
                                              final BigDecimal amount,
                                              final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, amount,
+            return accountData(accountInfo, amount, amount,
                     usedLedgerAccountId, TransactionLineDirection.CLEARING_DEBIT);
         }
 
         public static AccountData linearClearingCredit(final AccountInfoForTransactionQueryResult accountInfo,
                                                       final BigDecimal amount,
                                                       final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, amount,
+            return accountData(accountInfo, amount, amount,
                     usedLedgerAccountId, TransactionLineDirection.CREDIT);
         }
 
@@ -69,7 +69,7 @@ public class AccountData {
                                            final BigDecimal amount,
                                            final BigDecimal convertedAmount,
                                            final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, convertedAmount,
+            return accountData(accountInfo, amount, convertedAmount,
                     usedLedgerAccountId, TransactionLineDirection.CREDIT);
         }
 
@@ -79,7 +79,7 @@ public class AccountData {
                                           final BigDecimal amount,
                                           final BigDecimal convertedAmount,
                                           final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, convertedAmount,
+            return accountData(accountInfo, amount, convertedAmount,
                     usedLedgerAccountId, TransactionLineDirection.DEBIT);
         }
 
@@ -87,7 +87,7 @@ public class AccountData {
                                           final BigDecimal amount,
                                           final BigDecimal convertedAmount,
                                           final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, convertedAmount,
+            return accountData(accountInfo, amount, convertedAmount,
                     usedLedgerAccountId, TransactionLineDirection.CLEARING_DEBIT);
         }
 
@@ -95,7 +95,7 @@ public class AccountData {
                                                   final BigDecimal amount,
                                                   final BigDecimal convertedAmount,
                                                   final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, convertedAmount,
+            return accountData(accountInfo, amount, convertedAmount,
                     usedLedgerAccountId, TransactionLineDirection.CLEARING_CREDIT);
         }
 
@@ -103,7 +103,7 @@ public class AccountData {
                                          final BigDecimal amount,
                                          final BigDecimal convertedAmount,
                                          final String usedLedgerAccountId) {
-            return V1(accountInfo, amount, convertedAmount,
+            return accountData(accountInfo, amount, convertedAmount,
                     usedLedgerAccountId, TransactionLineDirection.NONE);
         }
     }

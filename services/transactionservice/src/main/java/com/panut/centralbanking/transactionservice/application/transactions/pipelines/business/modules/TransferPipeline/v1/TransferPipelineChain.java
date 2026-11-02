@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.FxTransferPipeline.v1;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1;
 
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
@@ -9,14 +9,14 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 @Getter
-public class FxTransferPipelineChain {
+public class TransferPipelineChain {
     private FxRateGetLatestResponse fxRateGetLatestResponse;
     private Map<String, String> ledgerCodeMap;
     private FxRateData fxRateData;
     private GetAccountsInfoForTransactionResponse getAccountsInfoForTransactionResponse;
 
 
-    public Mono<FxTransferPipelineChain> fxRateGetLatestResponse(final FxRateGetLatestResponse fxRateGetLatestResponse) {
+    public Mono<TransferPipelineChain> fxRateGetLatestResponse(final FxRateGetLatestResponse fxRateGetLatestResponse) {
         return Mono.defer(() -> {
             this.fxRateGetLatestResponse = fxRateGetLatestResponse;
 
@@ -24,7 +24,7 @@ public class FxTransferPipelineChain {
         });
     }
 
-    public Mono<FxTransferPipelineChain> ledgerCodeMap(final Map<String, String> ledgerCodeMap) {
+    public Mono<TransferPipelineChain> ledgerCodeMap(final Map<String, String> ledgerCodeMap) {
         return Mono.defer(() -> {
             this.ledgerCodeMap = ledgerCodeMap;
 
@@ -32,7 +32,7 @@ public class FxTransferPipelineChain {
         });
     }
 
-    public Mono<FxTransferPipelineChain> fxRateData(final FxRateData fxRateData) {
+    public Mono<TransferPipelineChain> fxRateData(final FxRateData fxRateData) {
         return Mono.defer(() -> {
             this.fxRateData = fxRateData;
 
@@ -40,7 +40,7 @@ public class FxTransferPipelineChain {
         });
     }
 
-    public Mono<FxTransferPipelineChain> accountsInfoForTransactionResponse
+    public Mono<TransferPipelineChain> accountsInfoForTransactionResponse
             (final GetAccountsInfoForTransactionResponse getAccountsInfoForTransactionResponse) {
         return Mono.defer(() -> {
             this.getAccountsInfoForTransactionResponse = getAccountsInfoForTransactionResponse;

@@ -69,4 +69,9 @@ public class AccountInfoForTransactionQueryResult {
 
         return this;
     }
+
+    @JsonIgnore
+    public boolean isBaseCurrency() {
+       return this.accountCurrency.equals(CurrencyCode.getBaseCurrency());
+    }
 }

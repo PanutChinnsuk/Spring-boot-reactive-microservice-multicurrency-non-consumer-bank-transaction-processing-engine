@@ -45,6 +45,12 @@ public class GetAccountsInfoForTransactionResponse {
         return getMapValue(key, queryResultMap);
     }
 
+    public List<CurrencyCode> getQuoteCurrencies() {
+        return getStream().map(AccountInfoForTransactionQueryResult::getAccountCurrency)
+                .filter(currency -> !currency.equals(
+                        CurrencyCode.getBaseCurrency()
+                )).toList();
+    }
 
 
     public GetAccountsInfoForTransactionResponse compact() {
@@ -56,6 +62,11 @@ public class GetAccountsInfoForTransactionResponse {
 
 
         return this;
+    }
+
+    public boolean requiredFxRate() {
+        return getStream()
+                .anyMatch(query -> !query.isBaseCurrency());
     }
 
     public GetAccountsInfoForTransactionResponse sort() {
@@ -79,6 +90,19 @@ public class GetAccountsInfoForTransactionResponse {
         if (queryResult.size() != size)
             throw new BusinessException("Accounts info for transaction size not matched " +
                     "expected size of " + size);
+        return this;
+    }
+
+    public GetAccountsInfoForTransactionResponse limitedQuoteCurrencySize(final int size) {
+        int quoteCurrencySize = getStream().filter(query ->
+                !query.getAccountCurrency().equals(
+                        CurrencyCode.getBaseCurrency()
+                )).toList().size();
+
+        if (quoteCurrencySize != size)
+            throw new BusinessException("Total amount of quote currency in current transaction " +
+                    "is " + quoteCurrencySize + " but has limit of " + size);
+
         return this;
     }
 

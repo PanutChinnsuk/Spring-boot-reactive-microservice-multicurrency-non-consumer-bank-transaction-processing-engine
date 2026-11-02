@@ -13,6 +13,12 @@ public class FxRateGetLatestRequest {
     private CurrencyCode baseCurrency;
     private CurrencyCode quoteCurrency;
 
+    public static FxRateGetLatestRequest withDefault(final CurrencyCode quoteCurrency) {
+        return new FxRateGetLatestRequest(
+                CurrencyCode.getBaseCurrency(),
+                quoteCurrency
+        );
+    }
 
 
     public static FxRateGetLatestRequest withFxRateData(final FxRateData fxRateData) {
