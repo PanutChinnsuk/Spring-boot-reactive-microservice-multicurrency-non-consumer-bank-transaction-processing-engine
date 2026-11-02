@@ -32,23 +32,12 @@ import java.util.Set;
 @Component
 @Slf4j
 public class FxTransferPipelineModuleV1 {
-    private final BusinessPipelineRepository repository;
     private final TransactionRegisterPipeline transactionRegisterPipeline;
-    private final AccountServiceController accountServiceController;
-    private final FxRateServiceController fxRateServiceController;
-    private final LedgerAccountQuery ledgerAccountQuery;
 
 
-    public FxTransferPipelineModuleV1(BusinessPipelineRepository repository,
-                              TransactionRegisterPipeline transactionRegisterPipeline,
-                              AccountServiceController accountServiceController,
-                              FxRateServiceController fxRateServiceController,
-                              LedgerAccountQuery ledgerAccountQuery) {
-        this.repository = repository;
+    public FxTransferPipelineModuleV1(TransactionRegisterPipeline transactionRegisterPipeline) {
         this.transactionRegisterPipeline = transactionRegisterPipeline;
-        this.accountServiceController = accountServiceController;
-        this.fxRateServiceController = fxRateServiceController;
-        this.ledgerAccountQuery = ledgerAccountQuery;
+
     }
 
     //SELF REMINDER >>> CHANGE TO ACCEPT TRANSACTION TYPE AND GET EXPECTED LEDGER TYPE
