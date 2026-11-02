@@ -11,7 +11,7 @@ import java.util.List;
 public class InternalDataBuilder {
 
 
-    public static GetAccountsInfoForTransactionResponse validFxAccountsInfo(
+    public static GetAccountsInfoForTransactionResponse foreignBuyBaseAccountsInfo(
             CurrencyCode quoteCurrency
     ) {
         List<AccountInfoForTransactionQueryResult> queryResults =
@@ -21,6 +21,28 @@ public class InternalDataBuilder {
                                 null),
                         new AccountInfoForTransactionQueryResult("TEST2",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
+                                null),
+                        new AccountInfoForTransactionQueryResult("INTERNAL",
+                                CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
+                                "INTERNAL"),
+                        new AccountInfoForTransactionQueryResult("INTERNAL2",
+                                CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
+                                "INTERNAL2")
+                );
+
+        return new GetAccountsInfoForTransactionResponse(queryResults);
+    }
+
+    public static GetAccountsInfoForTransactionResponse baseBuyForeignAccountsInfo(
+            CurrencyCode quoteCurrency
+    ) {
+        List<AccountInfoForTransactionQueryResult> queryResults =
+                List.of(
+                        new AccountInfoForTransactionQueryResult("TEST",
+                                CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,
+                                null),
+                        new AccountInfoForTransactionQueryResult("TEST2",
+                                quoteCurrency, AccountStatus.ACTIVE,
                                 null),
                         new AccountInfoForTransactionQueryResult("INTERNAL",
                                 CurrencyCode.getBaseCurrency(), AccountStatus.ACTIVE,

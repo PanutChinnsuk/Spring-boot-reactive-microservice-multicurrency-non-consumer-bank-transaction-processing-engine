@@ -6,7 +6,9 @@ import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServ
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
+import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.BaseBuyForeignTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.ForeignBuyBaseTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
@@ -23,6 +25,9 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
+
+
+
 
 @Component
 @Slf4j
@@ -97,6 +102,60 @@ public class FxTransferPipelineModuleV1 {
                                     ledgerAccountId),
                             AccountData.V1.linearClearingDebit(internalFxClearing,
                                     convertedProfitAmount,
+                                    ledgerAccountId)
+                    );
+
+
+                    return new PreTransactionRegisterData(FIXED_TRANSACTION_TYPE,
+                            accountDatas, chain.getFxRateData());
+                })
+                .doOnNext(a -> log.info("pre register fx transfer pipeline"))
+                .flatMap(transactionRegisterPipeline::register);
+    }
+
+
+
+    public Mono<TransactionCreationPipelineResult> defaultBaseBuyForeign
+            (final FxTransferPipelineChain fxTransferPipelineChain,
+             final BaseBuyForeignTransferData data) {
+        return Mono.just(fxTransferPipelineChain)
+                .doOnNext(a -> log.info("After passed to defaultBaseBuyForeign"))
+                .map(chain -> {
+                    BigDecimal baseAmount = data.getBaseAmount();
+                    FxRateGetLatestResponse latestConversion = chain.getFxRateGetLatestResponse();
+                    FxRateData fxRateData = chain.getFxRateData();
+                    GetAccountsInfoForTransactionResponse response = chain
+                            .getGetAccountsInfoForTransactionResponse();
+                    var fromAccount = response.getAccount(data.getFromAccountId());
+                    var toAccount = response.getAccount(data.getToAccountId());
+                    var internalCollector = response.getAccount(data.getInternalCollectorAccountId());
+                    var internalClearing = response.getAccount(data.getInternalClearingAccountId());
+                    String ledgerCode = data.getLedgerCode().getValue();
+                    String ledgerAccountId = chain.getLedgerCodeMap().get(ledgerCode);
+
+                    BigDecimal convertedToForeignAmount = FxRateCurrencyConversion
+                            .V1.convertMultiply(baseAmount, latestConversion, fxRateData);
+
+                    log.info("defaultBaseBuyForeign, convertedToForeignAmount {}",
+                            convertedToForeignAmount);
+                    log.info("defaultBaseBuyForeign, baseAmount {}",
+                            baseAmount);
+
+
+                    List<AccountData> accountDatas = List.of(
+                            AccountData.V1.linearDebit(fromAccount,
+                                    baseAmount,
+                                    ledgerAccountId),
+                            AccountData.V1.fxCredit(toAccount,
+                                    baseAmount,
+                                    convertedToForeignAmount,
+                                    ledgerAccountId),
+                            AccountData.V1.linearCredit(internalCollector,
+                                    baseAmount,
+                                    ledgerAccountId),
+                            AccountData.V1.fxClearingDebit(internalClearing,
+                                    baseAmount,
+                                    convertedToForeignAmount,
                                     ledgerAccountId)
                     );
 

@@ -153,13 +153,18 @@ public class FxTransferPipeline {
 
     public Mono<TransactionCreationPipelineResult> baseBuyForeign(final BaseBuyForeignTransferData data) {
         return repository.getAccountsInfoForTransaction(data)
+                .doOnNext(a -> log.info(
+                        "After calling account service from business pipeline repository"))
                 .map(response -> response.compact()
                         .expectedSize(data.getFixedSize())
+                        .sort()
                         .expectedNonInternalSize(data.getNonInternalSize())
                         .expectedInternalSize(data.getInternalSize())
                         .expectedAllAccountStatusActive()
                         .expectedBaseCurrencyInternalAccounts()
                 )
+                .doOnNext(a -> log.info(
+                        "Validated response info from account service"))
                 .map(response -> {
                     response.getAccount(data.getFromAccountId()).expectedAccountCurrency(
                             CurrencyCode.getBaseCurrency());
@@ -168,9 +173,18 @@ public class FxTransferPipeline {
 
                     return response;
                 })
+                .doOnNext(a -> log.info(
+                        "Validated pricipal accounts' currency"))
                 .flatMap(response -> preTransfer(
                         data.getToAccountId(), data, response, FxPipeline.BASE_BUY_FOREIGN))
-                .flatMap(chain -> null);
+                .doOnNext(a -> log.info(
+                        "Before passing to defaultBaseBuyForeign"))
+                .flatMap(chain -> v1Module.defaultBaseBuyForeign(chain, data))
+                .doOnSuccess(a -> log.info("Successfully created fx " +
+                        "transaction from base to quote (bid)"))
+                .doOnError(error ->
+                        log.error("Failed to create fx transaction from base to quote, {}",
+                                error.getLocalizedMessage()));
     }
 }
 

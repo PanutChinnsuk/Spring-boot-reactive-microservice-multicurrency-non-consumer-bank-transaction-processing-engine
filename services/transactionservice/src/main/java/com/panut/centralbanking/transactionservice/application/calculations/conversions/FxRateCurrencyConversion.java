@@ -12,13 +12,13 @@ public class FxRateCurrencyConversion {
 
 
     public static class V1 {
-        public static BigDecimal multiply(final BigDecimal uncoverted,
+        public static BigDecimal multiply(final BigDecimal base,
                                           final FxRateGetLatestResponse latestConversion,
-                                          final FxDirection fxDirection) {
-            CurrencyCode baseCurrency = latestConversion.getBaseCurrency();
-            return uncoverted.multiply(latestConversion.getRate(fxDirection))
-                    .setScale(baseCurrency.getCurrencyDigits(),
-                            baseCurrency.getRoundingMode());
+                                          final FxDirection fxDirection,
+                                          final CurrencyCode quoteCurrency) {
+            return base.multiply(latestConversion.getRate(fxDirection))
+                    .setScale(quoteCurrency.getCurrencyDigits(),
+                            quoteCurrency.getRoundingMode());
 
         }
 
@@ -33,10 +33,12 @@ public class FxRateCurrencyConversion {
         }
 
 
-        public static BigDecimal convertMultiply(final BigDecimal uncoverted,
+        public static BigDecimal convertMultiply(final BigDecimal base,
                                                  final FxRateGetLatestResponse latestConversion,
                                                  final FxRateData fxRateData) {
-            return multiply(uncoverted, latestConversion, fxRateData.getFxDirection());
+
+            return multiply(base, latestConversion, fxRateData.getFxDirection(),
+                    fxRateData.getQuoteCurrency());
         }
 
         public static BigDecimal convertDivide(final BigDecimal uncoverted,

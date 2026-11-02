@@ -14,19 +14,37 @@ public class BaseBuyForeignTransferData implements AbstractPipelineTransferData{
     private BigDecimal baseAmount;
 
     private String toAccountId;
+
     private String internalCollectorAccountId;
+    private String internalClearingAccountId;
 
 
     private final int nonInternalSize = 2;
-    private final int internalSize = 1;
+    private final int internalSize = 2;
     private final int fixedSize = nonInternalSize + internalSize;
     private final LedgerCode ledgerCode = LedgerCode.FX_TRANSFER;
+
+    public BaseBuyForeignTransferData(String fromAccountId,
+                                      String toAccountId,
+                                      BigDecimal baseAmount) {
+        this.fromAccountId = fromAccountId;
+        this.toAccountId = toAccountId;
+        this.baseAmount = baseAmount;
+    }
 
 
     public BaseBuyForeignTransferData withInternalCollectorAccountId(
             final String internalCollectorAccountId
     ) {
         this.internalCollectorAccountId = internalCollectorAccountId;
+
+        return this;
+    }
+
+    public BaseBuyForeignTransferData withInternalClearingAccountId(
+            final String internalClearingAccountId
+    ) {
+        this.internalClearingAccountId = internalClearingAccountId;
 
         return this;
     }
@@ -38,12 +56,10 @@ public class BaseBuyForeignTransferData implements AbstractPipelineTransferData{
                 return Mono.error(
                         () -> new BusinessException("fromAccountId can't be the same as toAccountId."));
 
-            if (internalCollectorAccountId.equals(fromAccountId) ||
-            internalCollectorAccountId.equals(toAccountId))
+            if (internalClearingAccountId.equals(internalCollectorAccountId))
                 return Mono.error(
-                        () -> new BusinessException("internalCollectorAccountId can't be the same as " +
-                                "fromAccountId or toAccountId."));
-
+                        () -> new BusinessException("internalClearingAccountId can't be the same as " +
+                                "internalCollectorAccountId."));
 
             return Mono.empty();
         });

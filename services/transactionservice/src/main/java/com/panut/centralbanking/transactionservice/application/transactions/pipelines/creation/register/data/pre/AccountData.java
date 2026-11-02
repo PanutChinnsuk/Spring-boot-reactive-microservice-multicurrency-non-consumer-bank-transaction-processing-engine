@@ -83,6 +83,22 @@ public class AccountData {
                     usedLedgerAccountId, TransactionLineDirection.DEBIT);
         }
 
+        public static AccountData fxClearingDebit(final AccountInfoForTransactionQueryResult accountInfo,
+                                          final BigDecimal amount,
+                                          final BigDecimal convertedAmount,
+                                          final String usedLedgerAccountId) {
+            return V1(accountInfo, amount, convertedAmount,
+                    usedLedgerAccountId, TransactionLineDirection.CLEARING_DEBIT);
+        }
+
+        public static AccountData fxClearingCredit(final AccountInfoForTransactionQueryResult accountInfo,
+                                                  final BigDecimal amount,
+                                                  final BigDecimal convertedAmount,
+                                                  final String usedLedgerAccountId) {
+            return V1(accountInfo, amount, convertedAmount,
+                    usedLedgerAccountId, TransactionLineDirection.CLEARING_CREDIT);
+        }
+
         public static AccountData fxNone(final AccountInfoForTransactionQueryResult accountInfo,
                                          final BigDecimal amount,
                                          final BigDecimal convertedAmount,
