@@ -45,11 +45,11 @@ public class GetAccountsInfoForTransactionResponse {
         return getMapValue(key, queryResultMap);
     }
 
-    public List<CurrencyCode> getQuoteCurrencies() {
+    public Set<CurrencyCode> getQuoteCurrencies() {
         return getStream().map(AccountInfoForTransactionQueryResult::getAccountCurrency)
                 .filter(currency -> !currency.equals(
                         CurrencyCode.getBaseCurrency()
-                )).toList();
+                )).collect(Collectors.toSet());
     }
 
 
@@ -97,9 +97,11 @@ public class GetAccountsInfoForTransactionResponse {
         int quoteCurrencySize = getStream().filter(query ->
                 !query.getAccountCurrency().equals(
                         CurrencyCode.getBaseCurrency()
-                )).toList().size();
+                ))
+                .map(AccountInfoForTransactionQueryResult::getAccountCurrency)
+                .collect(Collectors.toSet()).size();
 
-        if (quoteCurrencySize != size)
+        if (quoteCurrencySize > size)
             throw new BusinessException("Total amount of quote currency in current transaction " +
                     "is " + quoteCurrencySize + " but has limit of " + size);
 

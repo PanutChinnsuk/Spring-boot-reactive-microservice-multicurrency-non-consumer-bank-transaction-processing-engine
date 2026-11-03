@@ -15,9 +15,9 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.ForeignBuyBaseTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
-import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.integration.transaction.utils.InternalDataBuilder;
+import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
+import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,15 +70,7 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
     }
 
 
-    public FxRateGetLatestResponse latestConversion() {
-        return new FxRateGetLatestResponse("TEST",
-                BigDecimal.valueOf(25),
-                BigDecimal.valueOf(50),
-                BigDecimal.valueOf(37.5),
-                BigDecimal.valueOf(40),
-                CurrencyCode.getBaseCurrency());
 
-    }
 
 
     @AfterEach
@@ -88,12 +80,12 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
 
     private void foreignBuyBase(final Long transferingForeignAmount) {
         ForeignBuyBaseTransferData data = foreignBuyBaseTransferData(transferingForeignAmount);
-        FxRateGetLatestResponse latestConversion = latestConversion();
+        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
         CurrencyCode quoteCurrency = CurrencyCode.THB;
         FxRateData fxRateData = FxRateData.quoteAsk(quoteCurrency);
         int digits = 4;
 
-        doReturn(Mono.just(InternalDataBuilder.foreignBuyBaseAccountsInfo(quoteCurrency)))
+        doReturn(Mono.just(FxDataBuilder.foreignBuyBaseAccountsInfo(quoteCurrency)))
                 .when(accountServiceController)
                 .getAccountsInfoForTransaction(any(GetAccountsInfoForTransactionRequest.class));
         doReturn(Mono.just(latestConversion))
@@ -137,12 +129,12 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
 
     private void baseBuyForeign(final Long transferingBaseAmount) {
         BaseBuyForeignTransferData data = baseBuyForeignTransferData(transferingBaseAmount);
-        FxRateGetLatestResponse latestConversion = latestConversion();
+        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
         CurrencyCode quoteCurrency = CurrencyCode.THB;
         FxRateData fxRateData = FxRateData.quoteBid(quoteCurrency);
         int digits = 4;
 
-        doReturn(Mono.just(InternalDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency)))
+        doReturn(Mono.just(FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency)))
                 .when(accountServiceController)
                 .getAccountsInfoForTransaction(any(GetAccountsInfoForTransactionRequest.class));
         doReturn(Mono.just(latestConversion))

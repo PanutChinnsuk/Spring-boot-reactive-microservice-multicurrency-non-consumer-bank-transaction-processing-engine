@@ -30,9 +30,15 @@ public class FxRateData {
     public static FxRateData empty() {
         return new FxRateData(FxDirection.NONE,
                 null,
-                null)
-                .withId(null);
+                null);
     }
+
+    public static FxRateData empty(FxDirection fxDirection) {
+        return new FxRateData(fxDirection,
+                null,
+                null);
+    }
+
 
 
     public static FxRateData quote(final CurrencyCode quoteCurrency,
@@ -41,6 +47,8 @@ public class FxRateData {
                 getMainCurrency(),
                 quoteCurrency);
     }
+
+
 
     public static FxRateData quoteBid(final CurrencyCode quoteCurrency) {
         return quote(quoteCurrency, FxDirection.BID);

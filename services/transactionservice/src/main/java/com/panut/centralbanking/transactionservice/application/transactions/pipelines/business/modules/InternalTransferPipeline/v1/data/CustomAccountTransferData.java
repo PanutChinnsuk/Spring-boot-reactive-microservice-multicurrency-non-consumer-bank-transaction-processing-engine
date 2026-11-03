@@ -5,6 +5,7 @@ import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomPerAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomInternalAccountProfitContext;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import jakarta.annotation.Nullable;
@@ -39,8 +40,8 @@ public class CustomAccountTransferData {
     @NotNull
     private TransactionLineDirection direction;
 
-
     private CustomAccountTransferDataFxContext fxContext;
+    private CustomInternalAccountProfitContext profitContext;
 
     private Set<CustomPerAccountTransferDataPolicy> perAccountPolicies;
 
@@ -66,5 +67,37 @@ public class CustomAccountTransferData {
                     "not to be NONE but current is NONE.");
 
         return this;
+    }
+
+    @JsonIgnore
+    public CustomAccountTransferData withPerAccountPolicies(Set<CustomPerAccountTransferDataPolicy> perAccountPolicies) {
+        this.perAccountPolicies = perAccountPolicies;
+
+        return this;
+    }
+
+    @JsonIgnore
+    public CustomAccountTransferData withFxContext(CustomAccountTransferDataFxContext fxContext) {
+        this.fxContext = fxContext;
+
+        return this;
+    }
+
+    @JsonIgnore
+    public CustomAccountTransferData withProfitContext(CustomInternalAccountProfitContext
+                                                       profitContext) {
+        this.profitContext = profitContext;
+
+        return this;
+    }
+
+    @JsonIgnore
+    public boolean hasFxContext() {
+        return this.fxContext != null;
+    }
+
+    @JsonIgnore
+    public boolean hasProfitContext() {
+        return this.profitContext != null;
     }
 }

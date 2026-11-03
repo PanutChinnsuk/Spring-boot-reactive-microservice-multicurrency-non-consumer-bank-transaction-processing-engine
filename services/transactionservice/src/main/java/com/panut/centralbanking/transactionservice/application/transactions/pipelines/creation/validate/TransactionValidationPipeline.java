@@ -42,7 +42,9 @@ public class TransactionValidationPipeline {
             });
 
             if (!totalCredit.get().equals(totalDebit.get())) {
-                return Mono.error(() -> new SystemMisused("Unbalanced transaction ledger."));
+                return Mono.error(() -> new SystemMisused("Unbalanced transaction ledger. " +
+                        "Total debit: " + totalDebit.get() + " | Total credit: " +
+                        totalCredit.get()));
             }
 
             return Mono.empty();

@@ -6,6 +6,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.response.
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.LinearInternalTransferPipelineData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.InternalTransferPipelinePolicies;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.InternalLinearTransferPipelineModuleV1;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
@@ -35,54 +36,36 @@ public class InternalTransferPipeline {
         this.repository = repository;
     }
 
-    private void applyTransferPolicyValidation(final GetAccountsInfoForTransactionResponse response,
-                                       final List<CustomAccountTransferDataPolicy> policies) {
-        if (policies.isEmpty()) return;
 
-        policies.forEach(policy -> {
-            if (policy.ACTIVE_ACCOUNTS_ONLY())
-                response.expectedAllAccountStatusActive();
-        });
-
-    }
-
-    private void applyPerAccountPolicyValidation(final GetAccountsInfoForTransactionResponse response,
-                                                 final List<CustomAccountTransferData> perAccountDatas) {
-
-
-        perAccountDatas.stream().filter(data ->
-                !data.getPerAccountPolicies().isEmpty())
-                .forEach(data -> {
-
-            AccountInfoForTransactionQueryResult account = response.
-                    getAccount(data.getAccountId());
-
-            data.getPerAccountPolicies().forEach(policy -> {
-                if (policy.IS_INTERNAL())
-                    account.expectedInternalAccount();
-                if (policy.IS_BASE_CURRENCY())
-                    account.expectedAccountCurrency(CurrencyCode.getBaseCurrency());
-                if (policy.IS_FOREIGN_CURRENCY())
-                    account.notExpectedAccountCurrency(CurrencyCode.getBaseCurrency());
-
-            });
-        });
-    }
 
     public Mono<TransactionCreationPipelineResult> customLinearTransfer(
             final LinearInternalTransferPipelineData data) {
         return repository.getAccountsInfoForTransaction(data)
+                .doOnNext(a -> log.info("After get account info for " +
+                        "transaction."))
                 .map(response ->
                         response.compact()
                                 .expectedSize(data.getFixedSize())
-                                .limitedQuoteCurrencySize(data.getMaximumQuoteCurrencySize()))
+                                .limitedQuoteCurrencySize(data.getMaximumQuoteCurrencySize())
+                )
+                .doOnNext(a -> log.info("Validated default requirement " +
+                        "for accounts info response"))
                 .map(response -> {
-                    applyTransferPolicyValidation(response, data.getTransferPolicies());
-
+                    InternalTransferPipelinePolicies
+                            .applyTransferPolicyValidation(response, data.getTransferPolicies());
+                    InternalTransferPipelinePolicies
+                            .applyPerAccountPolicyValidation(response, data.getCustomDatas());
                     return response;
                 })
+                .doOnNext(a -> log.info("Apply validation according " +
+                        "to custom data validation policies"))
                 .flatMap(response ->
-                        v1Module.defaultLinearCustomTransfer(response, data));
+                        v1Module.defaultLinearCustomTransfer(response, data))
+                .doOnSuccess(a ->
+                        log.info("Successfully created custom internal linear transaction."))
+                .doOnError(error ->
+                        log.error("Failed to create custom internal linear transaction, {}",
+                                error.getLocalizedMessage()));
     }
 
 

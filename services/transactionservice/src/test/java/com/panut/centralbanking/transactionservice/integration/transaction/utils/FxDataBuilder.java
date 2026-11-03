@@ -8,7 +8,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.response.
 import java.util.List;
 
 
-public class InternalDataBuilder {
+public class FxDataBuilder {
 
 
     public static GetAccountsInfoForTransactionResponse foreignBuyBaseAccountsInfo(
