@@ -3,6 +3,7 @@ package com.panut.centralbanking.transactionservice.api.service.account.data;
 
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
+import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -27,5 +28,13 @@ public class BalanceChangeData {
     private String transactionId;
 
 
+    public static BalanceChangeData eventToRequest(final BalanceChangeEvent event) {
+        return new BalanceChangeData(event.getAccountId(),
+                event.getAmount(),
+                event.getBalanceChangeType(),
+                event.getBalanceImpact(),
+                event.getCreatedAt(),
+                event.getTransactionId());
+    }
 
 }

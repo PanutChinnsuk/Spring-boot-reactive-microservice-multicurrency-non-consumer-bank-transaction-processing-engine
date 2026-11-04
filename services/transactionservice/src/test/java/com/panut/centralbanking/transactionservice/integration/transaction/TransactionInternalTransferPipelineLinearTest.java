@@ -309,7 +309,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
     @Test
     public void shouldCreateLinearFxForeignBuyBase() {
-        BigDecimal foreignAmount = BigDecimal.valueOf(1000);
+        BigDecimal foreignAmount = BigDecimal.valueOf(257.25156);
         FxDirection fxDirection = FxDirection.ASK;
 
         CurrencyCode quoteCurrency = CurrencyCode.CAD;
