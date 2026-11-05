@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
 public class TransactionManageChain {
     private Transaction transaction;
     private TransactionProfile transactionProfile;
-    private List<TransactionLine> transactionLines;
+    private Flux<TransactionLine> transactionLines;
 
 
     public Mono<TransactionManageChain> transaction(final Transaction transaction) {
@@ -34,7 +35,7 @@ public class TransactionManageChain {
         });
     }
 
-    public Mono<TransactionManageChain> transactionLines(final List<TransactionLine> transactionLines ) {
+    public Mono<TransactionManageChain> transactionLines(final Flux<TransactionLine> transactionLines ) {
         return Mono.defer(() -> {
             this.transactionLines = transactionLines;
 
