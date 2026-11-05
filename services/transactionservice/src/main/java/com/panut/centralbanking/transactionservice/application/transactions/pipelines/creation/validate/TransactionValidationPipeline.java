@@ -35,9 +35,9 @@ public class TransactionValidationPipeline {
                 TransactionLineDirection direction = data.getDirection();
                 BigDecimal convertedAmount = data.getConvertedAmount();
 
-                if (direction.isCredit())
+                if (direction.isCreditSide())
                     totalCredit.set(totalCredit.get().add(convertedAmount));
-                if (direction.isDebit())
+                if (direction.isDebitSide())
                     totalDebit.set(totalDebit.get().add(convertedAmount));
             });
 

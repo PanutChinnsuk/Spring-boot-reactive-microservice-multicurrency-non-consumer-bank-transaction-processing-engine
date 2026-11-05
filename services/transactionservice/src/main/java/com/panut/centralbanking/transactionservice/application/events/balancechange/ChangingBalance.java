@@ -1,10 +1,17 @@
 package com.panut.centralbanking.transactionservice.application.events.balancechange;
 
+import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
+import com.panut.centralbanking.transactionservice.core.LedgerType;
+import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
+import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+
+import java.util.Map;
 
 @Data
 @Getter
@@ -12,6 +19,10 @@ import lombok.Getter;
 public class ChangingBalance {
     private final BalanceImpact balanceImpact;
     private final BalanceChangeType balanceChangeType;
+
+
+
+
 
 
 

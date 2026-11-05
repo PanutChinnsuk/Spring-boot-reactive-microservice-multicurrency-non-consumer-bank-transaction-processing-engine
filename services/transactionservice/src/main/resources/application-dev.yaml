@@ -12,6 +12,7 @@ spring:
     password: a11211121A_
 
 
+
 app:
   security:
     core:
@@ -33,6 +34,9 @@ eureka:
 
 logging:
   level:
+    org:
+      springframework:
+        r2dbc: DEBUG
     com:
       panut:
         centralbanking:

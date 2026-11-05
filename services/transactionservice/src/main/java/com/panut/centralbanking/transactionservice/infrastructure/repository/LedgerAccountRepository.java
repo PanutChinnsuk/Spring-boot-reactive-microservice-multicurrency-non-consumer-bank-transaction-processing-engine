@@ -3,12 +3,14 @@ package com.panut.centralbanking.transactionservice.infrastructure.repository;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.infrastructure.model.LedgerAccount;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerAccountMapQueryResult;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerTypeMapQueryResult;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Set;
 
 public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAccount, String> {
@@ -39,5 +41,12 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
                                                                  Set<LedgerType> ledgerTypes);
 
 
+    @Query("""
+            SELECT l.id, l.ledger_type FROM ledger_accounts l
+            INNER JOIN transaction_lines tl
+            ON tl.ledger_account_id = l.id AND
+            tl.transaction_id = :transactionId
+            """)
+    Flux<LedgerTypeMapQueryResult> getLedgerTypeMapByTransactionId(@Param("transactionId") String transactionId);
 
 }

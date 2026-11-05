@@ -4,9 +4,11 @@ import com.panut.centralbanking.appcore.exceptions.NotFound;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.LedgerAccountRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerAccountMapQueryResult;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.LedgerTypeMapQueryResult;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,7 +21,12 @@ public class LedgerAccountQuery {
         this.ledgerAccountRepository = ledgerAccountRepository;
     }
 
+    private void enforceListSize(List<?> anyList,
+                                 Set<?> anySet) {
+        if (anyList.size() != anySet.size())
+            throw new NotFound("One or more ledger accounts is missing.");
 
+    }
 
 
     public Mono<String> findIdGeneric(final String code) {
@@ -36,13 +43,21 @@ public class LedgerAccountQuery {
                         expectedLedgerType)
                 .collectList()
                 .flatMap(list -> {
-                    if (list.size() != codes.size())
-                        return Mono.<Map<String, String>>error(() -> new NotFound("One or more ledger accounts is missing."));
-
+                    enforceListSize(list, codes);
 
                     return Mono.just(list.stream().collect(Collectors.toMap(
                             LedgerAccountMapQueryResult::getCode,
                             LedgerAccountMapQueryResult::getId)));
+                });
+    }
+
+    public Mono<Map<String,LedgerType>> getLedgerTypeMapByTransactionId(final String transactionId) {
+        return ledgerAccountRepository.getLedgerTypeMapByTransactionId(transactionId)
+                .collectList()
+                .flatMap(list -> {
+                    return Mono.just(list.stream().collect(Collectors.toMap(
+                            LedgerTypeMapQueryResult::getId,
+                            LedgerTypeMapQueryResult::getLedgerType)));
                 });
     }
 

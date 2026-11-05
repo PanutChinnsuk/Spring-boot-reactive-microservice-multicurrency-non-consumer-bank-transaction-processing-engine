@@ -33,8 +33,8 @@ public class Transaction extends VersionedUUIDStringEntity {
         setInsert();
     }
 
-    public Transaction changeStatus(final TransactionStatus transactionStatus) {
-        this.transactionStatus = transactionStatus;
+    public Transaction upNextTransactionStatus() {
+        this.transactionStatus = this.transactionStatus.getUpnextStatus();
 
         return this;
     }

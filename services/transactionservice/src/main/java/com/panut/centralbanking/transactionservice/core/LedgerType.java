@@ -6,5 +6,13 @@ public enum LedgerType {
     REVENUE,
 
     EXPENSE,
-    ASSET,
+    ASSET;
+
+
+    public boolean isAssetExpense() {
+        return this == EXPENSE ||
+                this == ASSET;
+    }
+
+
 }
