@@ -46,6 +46,7 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
         this.balanceImpact = balanceImpact;
         this.balanceChangeType = balanceChangeType;
         this.transactionId = transactionId;
+        this.status = BalanceChangeEventStatus.PENDING;
         setInsert();
     }
 

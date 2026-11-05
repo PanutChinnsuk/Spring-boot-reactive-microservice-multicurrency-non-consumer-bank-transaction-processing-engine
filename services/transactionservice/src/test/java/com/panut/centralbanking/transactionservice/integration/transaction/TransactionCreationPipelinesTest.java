@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.integration.transaction;
 
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
@@ -36,13 +37,13 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
     }
 
     public AccountData accountData1() {
-        return new AccountData("TEST", BigDecimal.ONE, BigDecimal.ONE,
-                "TEST", TransactionLineDirection.CREDIT);
+        return new AccountData(SeededDatabase.ID_NORMAL_ACCOUNT_1, BigDecimal.ONE, BigDecimal.ONE,
+                SeededDatabase.ID_NORMAL_ACCOUNT_1, TransactionLineDirection.CREDIT);
     }
 
     public AccountData accountData2() {
-        return new AccountData("TEST2", BigDecimal.ONE, BigDecimal.ONE,
-                "TEST", TransactionLineDirection.DEBIT);
+        return new AccountData(SeededDatabase.ID_NORMAL_ACCOUNT_2, BigDecimal.ONE, BigDecimal.ONE,
+                SeededDatabase.ID_NORMAL_ACCOUNT_1, TransactionLineDirection.DEBIT);
     }
 
     public List<AccountData> validAccountDatas() {

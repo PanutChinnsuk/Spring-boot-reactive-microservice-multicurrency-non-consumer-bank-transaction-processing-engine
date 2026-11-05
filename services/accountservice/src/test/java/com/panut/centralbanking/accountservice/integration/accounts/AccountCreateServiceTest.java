@@ -10,6 +10,7 @@ import com.panut.centralbanking.accountservice.core.AccountType;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountProfileRepository;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -65,7 +66,7 @@ public class AccountCreateServiceTest implements IntegrationDevTest {
     @Test
     public void shouldCreateAccount() {
         AccountCreatedData data = accountCreateService
-                .createAccount("TEST", accountProfileCreateData(),
+                .createAccount(SeededDatabase.ID_CUSTOMER_1, accountProfileCreateData(),
                         accountBalanceCreateData()).block();
 
 

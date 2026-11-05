@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.integration.transaction;
 
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
@@ -49,10 +50,10 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
     @Autowired
     private TransactionLineTestRepository transactionLineTestRepository;
 
-    private String internalProfitAccountId = "INTERNAL";
-    private String internalClearingAccountId = "INTERNAL2";
-    private String fromAccountId = "TEST";
-    private String toAccountId = "TEST2";
+    private String internalProfitAccountId = SeededDatabase.ID_INTERNAL_ACCOUNT_1;
+    private String internalClearingAccountId = SeededDatabase.ID_INTERNAL_ACCOUNT_2;
+    private String fromAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    private String toAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_2;
 
 
     public ForeignBuyBaseTransferData foreignBuyBaseTransferData(Long amount) {

@@ -11,6 +11,7 @@ import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -29,6 +30,8 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
     @Autowired
     private AccountQuery accountQuery;
 
+    private String account1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    private String account2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
 
     private List<String> accountIds = new ArrayList<>();
 
@@ -53,15 +56,6 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
         return data;
     }
-
-
-    private List<BalanceChangeData> invalidList() {
-        return List.of(balanceChangeData("a", BigDecimal.ONE,
-                        BalanceImpact.ADD),
-                balanceChangeData("b", BigDecimal.ONE,
-                        BalanceImpact.DEDUCT));
-    }
-
 
 
     private Account account(String accountId) {
@@ -98,14 +92,14 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @AfterAll
     public void setBack() {
-        accountIds.add(accountQuery.findGeneric("TEST").block().getId());
-        accountIds.add(accountQuery.findGeneric("TEST2").block().getId());
+        accountIds.add(accountQuery.findGeneric(account1).block().getId());
+        accountIds.add(accountQuery.findGeneric(account2).block().getId());
         accountIds.forEach(a -> resetAccountBalance(a));
     }
 
     @Test
     public void shouldAddBalance() {
-        List<BalanceChangeData> single = List.of(balanceChangeData("TEST",
+        List<BalanceChangeData> single = List.of(balanceChangeData(account1,
                 BigDecimal.ONE, BalanceImpact.ADD));
 
         CommonResult result = balanceChangeService
@@ -126,11 +120,11 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Test
     public void shouldBalanceToReserve() {
-        List<BalanceChangeData> single = List.of( balanceChangeData("TEST",
+        List<BalanceChangeData> single = List.of( balanceChangeData(account1,
                         BigDecimal.ONE,
                         BalanceChangeType.BALANCE,
                         BalanceImpact.DEDUCT),
-                balanceChangeData("TEST",
+                balanceChangeData(account1,
                         BigDecimal.ONE,
                         BalanceChangeType.RESERVE,
                         BalanceImpact.ADD));
@@ -158,11 +152,11 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Test
     public void shouldTransfer() {
-        List<BalanceChangeData> single = List.of( balanceChangeData("TEST",
+        List<BalanceChangeData> single = List.of( balanceChangeData(account1,
                         BigDecimal.TEN,
                         BalanceChangeType.BALANCE,
                         BalanceImpact.DEDUCT),
-                balanceChangeData("TEST2",
+                balanceChangeData(account2,
                         BigDecimal.TEN,
                         BalanceChangeType.BALANCE,
                         BalanceImpact.ADD));
@@ -178,10 +172,10 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         BalanceChangeData add = single.get(1);
         AccountBalanceChangedData deductFrom = resultList
                 .stream().filter(a -> a.getAccountId()
-                        .equals("TEST")).toList().getFirst();
+                        .equals(account1)).toList().getFirst();
         AccountBalanceChangedData transferTo = resultList
                 .stream().filter(a -> a.getAccountId()
-                        .equals("TEST2")).toList().getFirst();
+                        .equals(account2)).toList().getFirst();
 
         Assertions.assertTrue(result.isSuccess());
 

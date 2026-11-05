@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.integration.transaction;
 
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
@@ -58,10 +59,10 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     private TransactionLineTestRepository transactionLineTestRepository;
 
 
-    private String fromAccountId = "TEST";
-    private String toAccountId = "TEST2";
-    private String internal1 = "INTERNAL";
-    private String internal2 = "INTERNAL2";
+    private String fromAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    private String toAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_2;
+    private String internal1 = SeededDatabase.ID_INTERNAL_ACCOUNT_1;
+    private String internal2 = SeededDatabase.ID_INTERNAL_ACCOUNT_2;
 
     private List<CustomAccountTransferDataPolicy> defaultTransferPolicy() {
         return List.of(

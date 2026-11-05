@@ -11,6 +11,7 @@ import com.panut.centralbanking.accountservice.integration.testrepository.Intern
 import com.panut.centralbanking.accountservice.integration.testrepository.InternalAccountTestRepository;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.Conflicted;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,8 +34,8 @@ public class InternalAccountCycleTest implements IntegrationDevTest {
     private BranchQuery branchQuery;
 
     private InternalBranch testBranch = InternalBranch.TEST;
-    private String nonInternalAccountId = "TEST";
-    private String nonInternalAccountId2 = "TEST2";
+    private String nonInternalAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    private String nonInternalAccountId2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
 
     @AfterAll
     public void cleanUp() {

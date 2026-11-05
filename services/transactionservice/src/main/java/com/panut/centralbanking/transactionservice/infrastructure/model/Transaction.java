@@ -38,4 +38,10 @@ public class Transaction extends VersionedUUIDStringEntity {
 
         return this;
     }
+
+    public Transaction changeStatus(final TransactionStatus transactionStatus) {
+        this.transactionStatus = transactionStatus;
+
+        return this;
+    }
 }

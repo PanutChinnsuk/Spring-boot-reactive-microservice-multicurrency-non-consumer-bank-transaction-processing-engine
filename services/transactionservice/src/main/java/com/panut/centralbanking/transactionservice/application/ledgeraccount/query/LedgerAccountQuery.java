@@ -55,7 +55,7 @@ public class LedgerAccountQuery {
         return ledgerAccountRepository.getLedgerTypeMapByTransactionId(transactionId)
                 .collectList()
                 .flatMap(list -> {
-                    return Mono.just(list.stream().collect(Collectors.toMap(
+                    return Mono.just(list.stream().distinct().collect(Collectors.toMap(
                             LedgerTypeMapQueryResult::getId,
                             LedgerTypeMapQueryResult::getLedgerType)));
                 });

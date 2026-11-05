@@ -48,7 +48,7 @@ public class TransactionManagePipelineRepository {
                         "put transaction into chain"))
                 .flatMap(chain -> transactionProfileQuery
                         .findTransactionProfileById(transactionId)
-                        .doOnNext(a -> log.info("after find transaction lines with " +
+                        .doOnNext(a -> log.info("after find transaction profile with " +
                                 "previous transaction id"))
                         .flatMap(profile -> chain.transactionProfile(profile))
                         .doOnNext(a -> log.info("put transaction profile " +
@@ -63,7 +63,7 @@ public class TransactionManagePipelineRepository {
                 .doOnNext(a -> log.info("called justTransaction for fullTransaction"))
                 .flatMap(chain -> transactionLineQuery
                         .findTransactionLines(transactionId)
-                        .doOnNext(a -> log.info("after find transaction lines"))
+                        .doOnNext(a -> log.info("emits each transaction line (LAZY)"))
                         .as(chain::transactionLines)
                         .doOnNext(a -> log.info("put transaction lines (flux) " +
                                 "into chain")

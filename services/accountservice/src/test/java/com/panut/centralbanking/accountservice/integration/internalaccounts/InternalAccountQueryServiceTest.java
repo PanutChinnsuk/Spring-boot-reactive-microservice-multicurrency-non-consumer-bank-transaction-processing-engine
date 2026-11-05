@@ -35,7 +35,7 @@ public class InternalAccountQueryServiceTest implements IntegrationDevTest {
     }
 
     @Test
-    public void shouldApplyInternalMarker() {
+    public void shouldApplyMarker() {
         String internalAccountId = "INTERNAL";
         String nonInternalAccountId = "TEST";
         GetAccountsInfoForTransactionResponse withInternal = accountInfoService

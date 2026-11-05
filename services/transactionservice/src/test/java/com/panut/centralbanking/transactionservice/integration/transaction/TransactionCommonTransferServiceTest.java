@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.integration.transaction;
 
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.request.SameCurrencyTransferRequest;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
@@ -10,10 +11,7 @@ import com.panut.centralbanking.transactionservice.infrastructure.model.Transact
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.AccountControllerDataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import reactor.core.publisher.Mono;
@@ -44,12 +42,13 @@ public class TransactionCommonTransferServiceTest implements IntegrationDevTest 
 
 
     public SameCurrencyTransferRequest sameCurrencyTransferRequest() {
-        return new SameCurrencyTransferRequest("TEST", "TEST2",
+        return new SameCurrencyTransferRequest(SeededDatabase.ID_NORMAL_ACCOUNT_1,
+                SeededDatabase.ID_NORMAL_ACCOUNT_2,
                 BigDecimal.ONE);
     }
 
 
-    @AfterAll
+    @AfterEach
     public void cleanUp() {
         cleanUpRepo.cleanUp();
     }
