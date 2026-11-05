@@ -11,7 +11,7 @@ import com.panut.centralbanking.transactionservice.api.service.fxRate.response.F
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.InternalTransferPipeline;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.LinearInternalTransferPipelineData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.InternalLinearTransferPipelineData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomAccountTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomInternalAccountProfitContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomPerAccountFxTransferDataPolicy;
@@ -102,7 +102,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 null);
     }
 
-    private LinearInternalTransferPipelineData linearAtoB() {
+    private InternalLinearTransferPipelineData linearAtoB() {
         List<CustomAccountTransferData> perAccounts = List.of(
                 customAccountTransferData(fromAccountId, BigDecimal.ONE,
                         TransactionLineDirection.DEBIT)
@@ -112,11 +112,11 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         .withPerAccountPolicies(defaultPerAccountolicy())
         );
 
-        return new LinearInternalTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
     }
 
-    private LinearInternalTransferPipelineData linearBaseBuyForeignWithConvertedAmount(BigDecimal baseAmount,
-                                                                                 BigDecimal convertedAmount) {
+    private InternalLinearTransferPipelineData linearBaseBuyForeignWithConvertedAmount(BigDecimal baseAmount,
+                                                                                       BigDecimal convertedAmount) {
         List<CustomAccountTransferData> perAccounts = List.of(
                customAccountTransferData(fromAccountId, baseAmount,
                        TransactionLineDirection.DEBIT)
@@ -134,10 +134,10 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         TransactionLineDirection.CLEARING_CREDIT)
         );
 
-        return new LinearInternalTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
     }
 
-    private LinearInternalTransferPipelineData linearBaseBuyForeign(BigDecimal baseAmount,
+    private InternalLinearTransferPipelineData linearBaseBuyForeign(BigDecimal baseAmount,
                                                                     FxDirection fxDirection) {
         List<CustomAccountTransferData> perAccounts = List.of(
                 customAccountTransferData(fromAccountId, baseAmount,
@@ -163,10 +163,10 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         .withPerAccountPolicies(defaultPerAccountolicy())
         );
 
-        return new LinearInternalTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
     }
 
-    private LinearInternalTransferPipelineData linearForeignBuyBase(BigDecimal foreignAmount,
+    private InternalLinearTransferPipelineData linearForeignBuyBase(BigDecimal foreignAmount,
                                                                     FxDirection fxDirection) {
         List<CustomAccountTransferData> perAccounts = List.of(
                 customAccountTransferData(fromAccountId, foreignAmount,
@@ -200,7 +200,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         .withProfitContext(new CustomInternalAccountProfitContext(foreignAmount))
         );
 
-        return new LinearInternalTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
     }
 
 
@@ -219,7 +219,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
 
     private Map<String, CustomAccountTransferData> getCustomAccountTransferDataMap
-            (LinearInternalTransferPipelineData data) {
+            (InternalLinearTransferPipelineData data) {
         return data.getCustomDatas()
                 .stream()
                 .collect(Collectors.toMap(
@@ -235,7 +235,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
     @Test
     public void shouldCreateLinearNonFx() {
-        LinearInternalTransferPipelineData data = linearAtoB();
+        InternalLinearTransferPipelineData data = linearAtoB();
         GetAccountsInfoForTransactionResponse response =
                 DataBuilder.validAccountsInfo();
         int digits = 4;
@@ -274,7 +274,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         BigDecimal converted = BigDecimal.valueOf(25);
 
         CurrencyCode quoteCurrency = CurrencyCode.CAD;
-        LinearInternalTransferPipelineData data =
+        InternalLinearTransferPipelineData data =
                 linearBaseBuyForeignWithConvertedAmount(baseAmount, converted);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
@@ -292,7 +292,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         FxDirection fxDirection = FxDirection.BID;
 
         CurrencyCode quoteCurrency = CurrencyCode.CAD;
-        LinearInternalTransferPipelineData data =
+        InternalLinearTransferPipelineData data =
                 linearBaseBuyForeign(baseAmount, fxDirection);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
@@ -313,7 +313,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         FxDirection fxDirection = FxDirection.ASK;
 
         CurrencyCode quoteCurrency = CurrencyCode.CAD;
-        LinearInternalTransferPipelineData data =
+        InternalLinearTransferPipelineData data =
                 linearForeignBuyBase(foreignAmount, fxDirection);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.foreignBuyBaseAccountsInfo(quoteCurrency);
@@ -333,7 +333,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         BigDecimal converted,
                         BigDecimal expectedConverted,
                         FxRateGetLatestResponse latestConversion,
-                        LinearInternalTransferPipelineData data,
+                        InternalLinearTransferPipelineData data,
                         GetAccountsInfoForTransactionResponse response) {
 
 

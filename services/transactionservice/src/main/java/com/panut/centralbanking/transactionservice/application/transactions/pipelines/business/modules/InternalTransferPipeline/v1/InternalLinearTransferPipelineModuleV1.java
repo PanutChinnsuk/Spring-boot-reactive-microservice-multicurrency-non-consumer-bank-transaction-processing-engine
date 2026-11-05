@@ -12,7 +12,7 @@ import com.panut.centralbanking.transactionservice.application.calculations.conv
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.ExpectedLedgerTypes;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.LinearInternalTransferPipelineData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.InternalLinearTransferPipelineData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.TransferPipelineChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomPerAccountFxTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
@@ -198,7 +198,7 @@ public class InternalLinearTransferPipelineModuleV1 {
 
     public Mono<TransactionCreationPipelineResult>
     defaultLinearCustomTransfer(final GetAccountsInfoForTransactionResponse getAccountsInfoForTransactionResponse,
-                                final LinearInternalTransferPipelineData pipelineData) {
+                                final InternalLinearTransferPipelineData pipelineData) {
         return Mono.just(getAccountsInfoForTransactionResponse)
                 .doOnNext(a ->
                         log.info("defaultLinearCustomTransfer started with accounts info for transaction " +

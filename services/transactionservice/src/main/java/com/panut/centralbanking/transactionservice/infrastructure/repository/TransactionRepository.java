@@ -18,4 +18,10 @@ public interface TransactionRepository extends ReactiveCrudRepository<Transactio
     Mono<Transaction> findTransactionById(@Param("transactionId") String transactionId,
                                           @Param("status")
                                           TransactionStatus expectedTransactionStatus);
+
+
+
+
+
+
 }

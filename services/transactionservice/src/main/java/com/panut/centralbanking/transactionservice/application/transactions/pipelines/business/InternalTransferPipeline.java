@@ -1,14 +1,9 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business;
 
-import com.panut.centralbanking.appcurrencycore.CurrencyCode;
-import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.LinearInternalTransferPipelineData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.InternalLinearTransferPipelineData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.InternalTransferPipelinePolicies;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.InternalLinearTransferPipelineModuleV1;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Component
 @Slf4j
@@ -39,7 +32,7 @@ public class InternalTransferPipeline {
 
 
     public Mono<TransactionCreationPipelineResult> customLinearTransfer(
-            final LinearInternalTransferPipelineData data) {
+            final InternalLinearTransferPipelineData data) {
         return repository.getAccountsInfoForTransaction(data)
                 .doOnNext(a -> log.info("After get account info for " +
                         "transaction."))

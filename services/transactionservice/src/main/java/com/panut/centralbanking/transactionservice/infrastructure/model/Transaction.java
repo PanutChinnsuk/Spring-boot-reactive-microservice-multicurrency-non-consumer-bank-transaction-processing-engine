@@ -32,4 +32,10 @@ public class Transaction extends VersionedUUIDStringEntity {
         this.createdAt = LocalDateTime.now();
         setInsert();
     }
+
+    public Transaction changeStatus(final TransactionStatus transactionStatus) {
+        this.transactionStatus = transactionStatus;
+
+        return this;
+    }
 }

@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
-public class LinearInternalTransferPipelineData implements AbstractPipelineTransferData {
+public class InternalLinearTransferPipelineData implements AbstractPipelineTransferData {
     private final List<CustomAccountTransferData> customDatas;
     private final List<CustomAccountTransferDataPolicy> transferPolicies;
 
@@ -22,7 +22,7 @@ public class LinearInternalTransferPipelineData implements AbstractPipelineTrans
     private final Set<String> ledgerCodes;
 
 
-    public LinearInternalTransferPipelineData(List<CustomAccountTransferData> customDatas,
+    public InternalLinearTransferPipelineData(List<CustomAccountTransferData> customDatas,
                                               List<CustomAccountTransferDataPolicy> transferPolicies) {
         this.customDatas = customDatas;
         this.transferPolicies = transferPolicies;

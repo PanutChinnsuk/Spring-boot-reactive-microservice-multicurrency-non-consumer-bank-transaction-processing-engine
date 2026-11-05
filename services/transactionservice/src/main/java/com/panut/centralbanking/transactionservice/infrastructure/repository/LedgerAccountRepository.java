@@ -38,4 +38,6 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
                                                                  @Param("ledgerTypes")
                                                                  Set<LedgerType> ledgerTypes);
 
+
+
 }
