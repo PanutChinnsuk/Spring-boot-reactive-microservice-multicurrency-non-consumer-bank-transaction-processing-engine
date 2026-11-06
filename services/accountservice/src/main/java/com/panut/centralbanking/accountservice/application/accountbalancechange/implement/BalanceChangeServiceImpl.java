@@ -70,7 +70,12 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
                                 List<AccountBalanceChange> filter = records
                                         .stream().filter(record ->
-                                                record.getAccountId().equals(accountId)).toList();
+                                                record.getAccountId().equals(accountId))
+                                        .sorted(Comparator.comparingInt(record ->
+                                                record.getBalanceImpact().getAscendingPriority()))
+                                        .toList();
+
+
 
                                 log.debug("before orchest accountBalance {}",
                                         accountBalance.getBalance());
