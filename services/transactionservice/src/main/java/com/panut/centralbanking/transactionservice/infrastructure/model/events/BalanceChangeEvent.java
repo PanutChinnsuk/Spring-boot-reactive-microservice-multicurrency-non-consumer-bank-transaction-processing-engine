@@ -35,8 +35,11 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
     @Column("transaction_id")
     private String transactionId;
 
-    @Builder
-    public BalanceChangeEvent(String accountId,
+    @Column("created_at")
+    private LocalDateTime createdAt;
+
+
+    public BalanceChangeEvent balanceChangeEvent(String accountId,
                               BigDecimal amount,
                               BalanceImpact balanceImpact,
                               BalanceChangeType balanceChangeType,
@@ -47,9 +50,23 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
         this.balanceChangeType = balanceChangeType;
         this.transactionId = transactionId;
         this.status = BalanceChangeEventStatus.PENDING;
+
+        return this;
+    }
+
+    @Builder
+    public BalanceChangeEvent(String accountId,
+                              BigDecimal amount,
+                              BalanceImpact balanceImpact,
+                              BalanceChangeType balanceChangeType,
+                              String transactionId) {
+        balanceChangeEvent(accountId,
+                amount,
+                balanceImpact,
+                balanceChangeType,
+                transactionId);
         setInsert();
     }
 
-    @Column("created_at")
-    private LocalDateTime createdAt;
+
 }

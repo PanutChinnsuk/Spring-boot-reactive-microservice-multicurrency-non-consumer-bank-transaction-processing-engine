@@ -55,6 +55,7 @@ public class TransactionAuthorizePipelineTest implements IntegrationDevTest {
     public void afterEach() {
         cleanRepo.cleanUpBalanceChangeEvents(no_asset_expense_id);
         cleanRepo.cleanUpBalanceChangeEvents(asset_expense_id);
+        beforeEach();
     }
 
     private BigDecimal getTotalDeductFromLines(String transactionId,

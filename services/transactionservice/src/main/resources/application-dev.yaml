@@ -14,6 +14,12 @@ spring:
 
 
 app:
+  events:
+    transactions:
+      clearing:
+        scheduleMinutes: 1
+        scheduleMilliOffset: 10000
+        sizeLimit: 100
 
   security:
     core:

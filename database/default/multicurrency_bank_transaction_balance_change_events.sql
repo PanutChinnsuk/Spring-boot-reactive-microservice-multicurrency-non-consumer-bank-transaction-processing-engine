@@ -47,6 +47,7 @@ CREATE TABLE `transaction_balance_change_events` (
 
 LOCK TABLES `transaction_balance_change_events` WRITE;
 /*!40000 ALTER TABLE `transaction_balance_change_events` DISABLE KEYS */;
+INSERT INTO `transaction_balance_change_events` VALUES ('TEST1','TEST',1.0000,'DEDUCT','BALANCE','PENDING','TEST','2026-10-18 15:19:33',0),('TEST2','TEST2',1.0000,'ADD','BALANCE','PENDING','TEST','2026-10-18 15:19:33',0),('TEST3','TEST',1.0000,'DEDUCT','BALANCE','PENDING','TEST2','2026-10-18 15:19:33',0),('TEST4','TEST2',1.0000,'ADD','BALANCE','PENDING','TEST2','2026-10-18 15:19:33',0);
 /*!40000 ALTER TABLE `transaction_balance_change_events` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -59,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-04 17:07:31
+-- Dump completed on 2026-11-06 22:41:26

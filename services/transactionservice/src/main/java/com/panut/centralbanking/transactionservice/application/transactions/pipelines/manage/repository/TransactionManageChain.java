@@ -2,6 +2,8 @@ package com.panut.centralbanking.transactionservice.application.transactions.pip
 
 import com.panut.centralbanking.appcore.exceptions.NotFound;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
+import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
+import com.panut.centralbanking.transactionservice.api.service.account.request.PerTransactionBalanceChangeRequest;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
@@ -79,5 +81,17 @@ public class TransactionManageChain {
     public void addBalanceChangeEvent(final BalanceChangeEvent event) {
         balanceChangeEvents.add(event);
         log.info("added balance change event");
+    }
+
+    public PerTransactionBalanceChangeRequest toPerTransactionBalanceChangeRequest() {
+        if (balanceChangeEvents.isEmpty())
+            throw new SystemMisused("balanceChangeEvents list can't convert to " +
+                    "toPerTransactionBalanceChangeRequest, due to empty list.");
+
+        return new PerTransactionBalanceChangeRequest(
+                balanceChangeEvents.stream()
+                        .map(BalanceChangeData::eventToRequest)
+                        .toList()
+        );
     }
 }
