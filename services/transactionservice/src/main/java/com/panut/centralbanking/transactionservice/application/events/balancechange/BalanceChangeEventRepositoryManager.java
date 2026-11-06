@@ -3,7 +3,10 @@ package com.panut.centralbanking.transactionservice.application.events.balancech
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Collection;
 
 @Component
 public class BalanceChangeEventRepositoryManager {
@@ -14,7 +17,7 @@ public class BalanceChangeEventRepositoryManager {
     }
 
 
-    public Mono<BalanceChangeEvent> save(final BalanceChangeEvent event) {
-        return balanceChangeEventRepository.save(event);
+    public Flux<BalanceChangeEvent> saveAll(final Collection<BalanceChangeEvent> events) {
+        return balanceChangeEventRepository.saveAll(events);
     }
 }

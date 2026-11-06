@@ -8,9 +8,11 @@ import com.panut.centralbanking.transactionservice.infrastructure.model.Transact
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 
 @Service
 @Slf4j
@@ -22,25 +24,23 @@ public class BalanceChangeEventService {
     }
 
 
-    private Mono<BalanceChangeEvent> put(final String accountId,
+    private BalanceChangeEvent put(final String accountId,
                                          final BigDecimal amount,
                                          final BalanceImpact balanceImpact,
                                          final BalanceChangeType balanceChangeType,
                                         final String transactionId) {
-        return manager.save(BalanceChangeEvent
+        return BalanceChangeEvent
                 .builder()
                 .accountId(accountId)
                 .amount(amount)
                 .balanceImpact(balanceImpact)
                 .balanceChangeType(balanceChangeType)
                 .transactionId(transactionId)
-                .build())
-                .doOnNext(a -> log
-                        .info("Created balance change event."));
+                .build();
     }
 
 
-    public Mono<BalanceChangeEvent> create(final String accountId,
+    public BalanceChangeEvent create(final String accountId,
                                            final BigDecimal amount,
                                            final String transactionId,
                                            final ChangingBalance changingBalance) {
@@ -48,13 +48,18 @@ public class BalanceChangeEventService {
                 changingBalance.getBalanceChangeType(), transactionId);
     }
 
-    public Mono<BalanceChangeEvent> create(final TransactionLine line,
+    public BalanceChangeEvent create(final TransactionLine line,
                                            final ChangingBalance changingBalance) {
         return put(line.getAccountId(),
                 line.getConvertedAmount(),
                 changingBalance.getBalanceImpact(),
                 changingBalance.getBalanceChangeType(),
                 line.getTransactionId());
+    }
+
+
+    public Flux<BalanceChangeEvent> flush(final Collection<BalanceChangeEvent> events) {
+        return manager.saveAll(events);
     }
 
 

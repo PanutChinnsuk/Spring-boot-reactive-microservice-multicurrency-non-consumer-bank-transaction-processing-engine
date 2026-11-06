@@ -47,15 +47,17 @@ public class TransactionAuthorizePipeline {
                     return (isAssetExpense && isCredit) || (!isAssetExpense && isDebit);
 
                 })
-                .flatMap(line ->
-                        eventService.create(line, ChangingBalance.balanceDeduct())
-                                .then(eventService.create(line, ChangingBalance.reserveAdd()))
-                                .doOnNext(a ->
-                                    log.info("account: {} deduct balance to reserve",
-                                            line.getAccountId()))
+                .map(line -> {
+                    chain.addBalanceChangeEvent(eventService.create(line,
+                            ChangingBalance.balanceDeduct()));
+                    chain.addBalanceChangeEvent(eventService.create(line,
+                            ChangingBalance.reserveAdd()));
 
-
-                )
+                    log.info("account: {} deduct balance to reserve",
+                            line.getAccountId());
+                    return line;
+                })
+                .thenMany(eventService.flush(chain.getBalanceChangeEvents()))
                 .then(Mono.just(chain));
     }
 

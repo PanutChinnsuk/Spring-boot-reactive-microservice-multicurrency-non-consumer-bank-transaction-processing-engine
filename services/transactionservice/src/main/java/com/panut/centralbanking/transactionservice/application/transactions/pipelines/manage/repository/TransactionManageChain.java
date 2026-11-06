@@ -6,22 +6,28 @@ import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionProfile;
+import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 @Getter
+@Slf4j
 public class TransactionManageChain {
     private Transaction transaction;
     private TransactionProfile transactionProfile;
     private Flux<TransactionLine> transactionLines;
     private Map<String, LedgerType> ledgerTypeMap;
+    private List<BalanceChangeEvent> balanceChangeEvents = new ArrayList<>();
 
 
     public LedgerType getLedgerTypeOfLine(final TransactionLine line) {
@@ -68,5 +74,10 @@ public class TransactionManageChain {
 
             return Mono.just(this);
         });
+    }
+
+    public void addBalanceChangeEvent(final BalanceChangeEvent event) {
+        balanceChangeEvents.add(event);
+        log.info("added balance change event");
     }
 }

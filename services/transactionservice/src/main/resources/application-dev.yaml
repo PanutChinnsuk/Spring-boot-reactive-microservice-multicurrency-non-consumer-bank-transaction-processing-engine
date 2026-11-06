@@ -35,6 +35,9 @@ eureka:
 
 logging:
   level:
+    org:
+      springframework:
+        r2dbc: DEBUG
 
     com:
       panut:
