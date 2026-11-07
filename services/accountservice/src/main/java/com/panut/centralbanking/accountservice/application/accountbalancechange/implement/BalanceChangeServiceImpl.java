@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
@@ -47,7 +48,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
 
     private Mono<CommonResult> map(final TransactionAccounts transactionAccounts,
-                                           final List<AccountBalanceChange> records,
+                                           final Map<String, List<AccountBalanceChange>> records,
                                            boolean requiredResult) {
         return accountBalanceQuery.findTransactionAccountBalances(
                 transactionAccounts.accountIds())
@@ -69,8 +70,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                 }
 
                                 List<AccountBalanceChange> filter = records
-                                        .stream().filter(record ->
-                                                record.getAccountId().equals(accountId))
+                                        .get(accountId)
+                                        .stream()
                                         .sorted(Comparator.comparingInt(record ->
                                                 record.getBalanceImpact().getAscendingPriority()))
                                         .toList();
@@ -133,6 +134,9 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                 .doOnError(error -> log.error("Failed to apply change to account balance, {}"
                         , error.getLocalizedMessage()));
     }
+
+
+
 
 
 

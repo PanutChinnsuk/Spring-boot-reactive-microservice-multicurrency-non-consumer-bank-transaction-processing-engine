@@ -41,6 +41,8 @@ public class AccountBalance extends VersionedUUIDStringEntity {
     public void orchest(final List<AccountBalanceChange> changes) {
 
         changes.forEach(change -> {
+            log.info("asc order account balance change orchest {}", change
+                    .getBalanceImpact().getAscendingPriority());
             if (change.getBalanceImpact().equals(BalanceImpact.DEDUCT))
                 deductSimple(change.getAmount(),
                         change.getBalanceChangeType());
