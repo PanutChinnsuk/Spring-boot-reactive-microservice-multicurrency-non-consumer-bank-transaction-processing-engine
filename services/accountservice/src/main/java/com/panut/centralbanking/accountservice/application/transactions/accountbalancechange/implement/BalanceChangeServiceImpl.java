@@ -8,6 +8,8 @@ import com.panut.centralbanking.accountservice.application.accounts.accountbalan
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.query.AccountBalanceQuery;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
+import com.panut.centralbanking.accountservice.core.BalanceChangeType;
+import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +50,16 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     }
 
 
+    private BigDecimal getTotalDeduct(final List<AccountBalanceChange> records,
+                                      final BalanceChangeType balanceChangeType) {
+        return records
+                .stream()
+                .filter(a -> a.getBalanceImpact()
+                        .equals(BalanceImpact.DEDUCT) &&
+                        a.getBalanceChangeType().equals(balanceChangeType))
+                .map(AccountBalanceChange::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
 
     private Mono<CommonResult> map(final Map<String, List<AccountBalanceChange>> records,
@@ -75,13 +88,27 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                         record.getBalanceImpact().getAscendingPriority()))
                                 .toList();
 
+                        BigDecimal totalBalanceDeduct = getTotalDeduct(filtered,
+                                BalanceChangeType.BALANCE);
+                        BigDecimal totalReserveDeduct = getTotalDeduct(filtered,
+                                BalanceChangeType.RESERVE);
+
 
 
                         log.info("before orchest accountBalance {}",
                                 accountBalance.getBalance());
                         log.info("before orchest filter size {}",
                                 filtered.size());
-                        accountBalance.orchest(filtered);
+
+                        boolean canSafeApply = accountBalance.canSafeApply(totalBalanceDeduct,
+                                        totalReserveDeduct);
+                        if (canSafeApply)
+                            accountBalance.orchest(filtered);
+
+                        log.info("Account {} can safely apply balance change: {}",
+                                accountId, canSafeApply);
+
+
                         if (requiredResult) {
                             changeResult.after(accountBalance);
                             optionalResult.add(changeResult);

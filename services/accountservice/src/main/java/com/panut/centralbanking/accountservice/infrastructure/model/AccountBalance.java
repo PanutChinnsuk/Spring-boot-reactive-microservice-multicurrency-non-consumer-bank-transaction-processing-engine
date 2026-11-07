@@ -61,12 +61,6 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         });
     }
 
-    private void forcePreventNegative() {
-        if (this.balance.signum() < 0)
-            throw new IllegalStateException("Account balance can't be negative.");
-        if (this.reserve.signum() < 0)
-            throw new IllegalStateException("Account reserve can't be negative.");
-    }
 
     public void addLedgerSimple(final BigDecimal amount) {
         this.ledger = this.ledger.add(amount);
@@ -87,8 +81,11 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
     public void deductSimple(final BigDecimal amount,
                           final BalanceChangeType type) {
-        if (type == BalanceChangeType.BALANCE) this.balance = this.balance.subtract(amount);
+        if (type == BalanceChangeType.BALANCE &&) this.balance = this.balance.subtract(amount);
         if (type == BalanceChangeType.RESERVE) this.reserve = this.reserve.subtract(amount);
+
+
+
         deductLedgerSimple(amount);
 
         forcePreventNegative();
@@ -124,6 +121,29 @@ public class AccountBalance extends VersionedUUIDStringEntity {
             deductLedgerSimple(amount);
             return Mono.just(this);
         });
+    }
+
+
+    public boolean canSafeApply(final BigDecimal balance,
+                                final BigDecimal reserve) {
+        return canDeductBalance(balance) &&
+                canDeductReserve(reserve);
+    }
+
+
+    private boolean canDeductBalance(final BigDecimal amount) {
+        return this.balance.compareTo(amount) >= 0;
+    }
+
+    private boolean canDeductReserve(final BigDecimal amount) {
+        return this.reserve.compareTo(amount) >= 0;
+    }
+
+    private void forcePreventNegative() {
+        if (this.balance.signum() < 0)
+            throw new IllegalStateException("Account balance can't be negative.");
+        if (this.reserve.signum() < 0)
+            throw new IllegalStateException("Account reserve can't be negative.");
     }
 
 }
