@@ -14,7 +14,6 @@ public enum TransactionStatus {
 
 
     PENDING_REVERSED(TransactionStatus.REVERSED),
-    PENDING_CANCELLED(TransactionStatus.CANCELLED),
     ;
 
 

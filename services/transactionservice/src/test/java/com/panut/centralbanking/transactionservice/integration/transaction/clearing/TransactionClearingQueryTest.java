@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.integration.transaction.clearing;
 
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
 import com.panut.centralbanking.transactionservice.application.property.TransactionClearingProperty;
@@ -8,6 +9,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.clea
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,7 +25,10 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
     private TransactionClearingQuery query;
 
     @Autowired
-    private BalanceChangeEventTestRepository repository;
+    private BalanceChangeEventRepository repository;
+
+    @Autowired
+    private BalanceChangeEventTestRepository testRepository;
 
     @Autowired
     private TransactionClearingProperty property;
@@ -39,7 +44,7 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
         for (Map.Entry<String, Sinks.Many<BalanceChangeEvent>> entry : poop.entrySet()) {
             List<BalanceChangeEvent> events = entry.getValue().asFlux().collectList().block();
 
-            List<BalanceChangeEvent> eventSizes = repository
+            List<BalanceChangeEvent> eventSizes = testRepository
                     .findByTransactionId(entry.getKey()).collectList().block();
 
 
@@ -63,11 +68,12 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
         String id2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
         var eventStatus = BalanceChangeEventStatus.PENDING;
 
-        repository.setAllStatus(Set.of(id1, id2),
+        testRepository.setAllStatus(Set.of(id1, id2),
                 eventStatus).block();
 
-        List<BalanceChangeData> datas = query.getBulk(eventStatus,
-                property.getSizeLimit()).collectList().block();
+        List<BalanceChangeData> datas = repository.findAllForClearing(eventStatus,
+                property.getSizeLimit(), SeededDatabaseIdFlag
+                        .NONE).collectList().block();
 
         datas.forEach(event -> {
             Assertions.assertNotNull(event.getAccountId(), "account id");
@@ -78,8 +84,8 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
             Assertions.assertNotNull(event.getTransactionId(), "transaction id");
         });
 
-        int t1Size = repository.findByTransactionId(id1).collectList().block().size();
-        int t2Size = repository.findByTransactionId(id2).collectList().block().size();
+        int t1Size = testRepository.findByTransactionId(id1).collectList().block().size();
+        int t2Size = testRepository.findByTransactionId(id2).collectList().block().size();
 
         Assertions.assertEquals(datas.size(), t1Size + t2Size);
     }

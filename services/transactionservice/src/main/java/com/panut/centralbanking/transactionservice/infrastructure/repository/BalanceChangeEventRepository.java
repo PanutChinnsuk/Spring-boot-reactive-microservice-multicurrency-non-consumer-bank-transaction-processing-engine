@@ -16,12 +16,14 @@ public interface BalanceChangeEventRepository
             SELECT e.account_id, e.amount, e.balance_change_type, e.balance_impact,
             e.created_at, e.transaction_id
             FROM transaction_balance_change_events e
-            WHERE e.status = :eventStatus 
+            WHERE e.status = :eventStatus AND
+            e.id NOT LIKE :excludedIdFlag
             ORDER BY e.created_at ASC, e.transaction_id ASC
             LIMIT :sizeLimit FOR UPDATE
             """)
     Flux<BalanceChangeData> findAllForClearing(@Param("eventStatus")
                                                 BalanceChangeEventStatus eventStatus,
-                                               @Param("sizeLimit") int sizeLimit);
+                                               @Param("sizeLimit") int sizeLimit,
+                                               @Param("excludedIdFlag") String excludedIdFlag);
 
 }

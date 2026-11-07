@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.transactions.clearing.query;
 
 
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
@@ -97,7 +98,8 @@ public class TransactionClearingQuery {
 
     public Flux<BalanceChangeData> getBulk(final BalanceChangeEventStatus eventStatus,
                                            final int sizeLimit) {
-        return eventRepository.findAllForClearing(eventStatus, sizeLimit);
+        return eventRepository.findAllForClearing(eventStatus, sizeLimit,
+                SeededDatabaseIdFlag.TEST);
     }
 
 
