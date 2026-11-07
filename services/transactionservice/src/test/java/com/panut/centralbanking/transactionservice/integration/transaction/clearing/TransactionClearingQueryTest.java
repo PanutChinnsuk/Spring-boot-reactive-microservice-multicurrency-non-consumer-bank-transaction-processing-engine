@@ -4,12 +4,10 @@ import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.query.TransactionClearingQuery;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.List;
@@ -25,7 +23,7 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
 
     @Test
     public void shouldMap() {
-        var chain = query.getClearingData(TransactionStatus.PENDING).block();
+        var chain = query.getSortedEachTransaction(TransactionStatus.PENDING).block();
         Map<String, Sinks.Many<BalanceChangeEvent>> poop = chain.getPerTransactionSink();
 
 

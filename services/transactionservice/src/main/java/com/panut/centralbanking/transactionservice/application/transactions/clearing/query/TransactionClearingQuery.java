@@ -1,17 +1,15 @@
 package com.panut.centralbanking.transactionservice.application.transactions.clearing.query;
 
 
+import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.TransactionBalanceClearingChain;
-import com.panut.centralbanking.transactionservice.application.transactions.clearing.query.data.TransactionBalanceClearingData;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
-import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
-import io.r2dbc.spi.Row;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
@@ -20,8 +18,6 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @Slf4j
@@ -41,7 +37,7 @@ public class TransactionClearingQuery {
 
     private final BalanceChangeEventStatus EXPECTING_EVENT_STATUS = BalanceChangeEventStatus.PENDING;
 
-    public Mono<TransactionBalanceClearingChain> getClearingData(final TransactionStatus status) {
+    public Mono<TransactionBalanceClearingChain> getSortedEachTransaction(final TransactionStatus status) {
         return databaseClient.sql("""
                 SELECT t.id as t_id, e.* FROM transaction_balance_change_events e
                 INNER JOIN transactions t
@@ -98,6 +94,11 @@ public class TransactionClearingQuery {
 
     }
 
+
+    public Flux<BalanceChangeData> getBulk(final BalanceChangeEventStatus eventStatus,
+                                           final int sizeLimit) {
+        return eventRepository.findAllForClearing(eventStatus, sizeLimit);
+    }
 
 
 }

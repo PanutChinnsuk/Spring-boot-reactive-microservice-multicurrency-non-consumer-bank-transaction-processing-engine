@@ -6,14 +6,14 @@ import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@Component("transactionBalanceClearingProperty")
+@Component("transactionClearingProperty")
 @ConfigurationProperties(prefix = "app.events.transactions.clearing")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionBalanceClearingProperty {
+public class TransactionClearingProperty {
     private int scheduleMinutes;
-    private long scheduleMilliOffset;
+    private int scheduleMilliOffset;
     private int sizeLimit;
 
 

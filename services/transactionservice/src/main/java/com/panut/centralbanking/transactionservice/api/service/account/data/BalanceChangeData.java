@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.api.service.account.data;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
@@ -21,13 +22,12 @@ public class BalanceChangeData {
     private String accountId;
     private BigDecimal amount;
     private BalanceChangeType balanceChangeType;
-
     private BalanceImpact balanceImpact;
-
-    private LocalDateTime at = LocalDateTime.now();
+    private LocalDateTime createdAt;
     private String transactionId;
 
 
+    @JsonIgnore
     public static BalanceChangeData eventToRequest(final BalanceChangeEvent event) {
         return new BalanceChangeData(event.getAccountId(),
                 event.getAmount(),

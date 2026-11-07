@@ -1,14 +1,14 @@
 package com.panut.centralbanking.transactionservice.property;
 
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
-import com.panut.centralbanking.transactionservice.application.property.TransactionBalanceClearingProperty;
+import com.panut.centralbanking.transactionservice.application.property.TransactionClearingProperty;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class TransactionBalanceClearingPropertyTest implements IntegrationDevTest {
+public class TransactionClearingPropertyTest implements IntegrationDevTest {
     @Autowired
-    private TransactionBalanceClearingProperty property;
+    private TransactionClearingProperty property;
 
 
 
