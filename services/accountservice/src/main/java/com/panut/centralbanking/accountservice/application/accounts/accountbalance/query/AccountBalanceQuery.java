@@ -6,6 +6,8 @@ import com.panut.centralbanking.appcore.exceptions.NotFound;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,7 +31,7 @@ public class AccountBalanceQuery {
     }
 
 
-    public Mono<Map<String, AccountBalance>> findTransactionAccountBalances(final Set<String> accountIds) {
+    public Mono<Map<String, AccountBalance>> findTransactionAccountBalances(final Collection<String> accountIds) {
       return accountBalanceRepository.findTransactionAccountBalances(accountIds)
               .collectList()
               .map(list -> {

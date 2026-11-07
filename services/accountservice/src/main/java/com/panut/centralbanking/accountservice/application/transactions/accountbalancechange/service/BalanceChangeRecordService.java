@@ -2,6 +2,7 @@ package com.panut.centralbanking.accountservice.application.transactions.account
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.BalanceChangeRepositoryManager;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeConnectionFactory;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,26 +17,18 @@ import java.util.Map;
 @Service
 public class BalanceChangeRecordService {
     private final BalanceChangeRepositoryManager balanceChangeRepositoryManager;
+    private final BalanceChangeConnectionFactory connectionFactory;
 
-    public BalanceChangeRecordService(BalanceChangeRepositoryManager balanceChangeRepositoryManager) {
+    public BalanceChangeRecordService(BalanceChangeRepositoryManager balanceChangeRepositoryManager,
+                                      BalanceChangeConnectionFactory connectionFactory) {
         this.balanceChangeRepositoryManager = balanceChangeRepositoryManager;
+        this.connectionFactory = connectionFactory;
     }
 
 
-    public Mono<Map<String,List<AccountBalanceChange>>> create(final Map<String,String> accountMap,
-                                                   final List<BalanceChangeData> datas) {
+    public Mono<Map<String,List<AccountBalanceChange>>> create(final List<BalanceChangeData> datas) {
         return Mono.defer(() -> {
-                    return balanceChangeRepositoryManager.saveAll(datas
-                            .stream().map(change ->
-                                    AccountBalanceChange.builder()
-                                            .accountId(accountMap.get(
-                                                    change.getAccountId()))
-                                            .changedAt(change.getCreatedAt())
-                                            .amount(change.getAmount())
-                                            .balanceImpact(change.getBalanceImpact())
-                                            .balanceChangeType(change.getBalanceChangeType())
-                                            .transactionId(change.getTransactionId())
-                                            .build()).toList());
+                    return connectionFactory.batchInsert(datas);
                 })
                 .map(list -> {
                     log.info("mapping unsorted account balance change records " +

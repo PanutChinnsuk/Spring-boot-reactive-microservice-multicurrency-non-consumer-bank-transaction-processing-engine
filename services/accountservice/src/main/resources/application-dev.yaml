@@ -46,7 +46,7 @@ logging:
       asyncer:
         r2dbc:
           mysql:
-            QUERY: DEBUG
+            QUERY: ERROR
 
     org:
      springframework:

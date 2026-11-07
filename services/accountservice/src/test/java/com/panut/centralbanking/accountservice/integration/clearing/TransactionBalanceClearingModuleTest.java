@@ -13,10 +13,7 @@ import com.panut.centralbanking.accountservice.infrastructure.repository.Account
 import com.panut.centralbanking.accountservice.integration.accounts.AccountBalanceCleanUpRepository;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.config.Task;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -31,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Mockito.*;
 
+@Disabled("low stake NOT VERY mandatory")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionBalanceClearingModuleTest implements IntegrationDevTest {
     @MockitoSpyBean

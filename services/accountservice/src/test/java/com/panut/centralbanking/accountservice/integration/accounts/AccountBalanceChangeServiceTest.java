@@ -123,8 +123,13 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Test
     public void shouldTransfer() {
-        List<BalanceChangeData> single = List.of( balanceChangeData(account1,
-                        BigDecimal.TEN,
+        List<BalanceChangeData> single = List.of(
+                balanceChangeData(account1,
+                        BigDecimal.valueOf(5),
+                        BalanceChangeType.BALANCE,
+                        BalanceImpact.DEDUCT),
+                balanceChangeData(account1,
+                        BigDecimal.valueOf(5),
                         BalanceChangeType.BALANCE,
                         BalanceImpact.DEDUCT),
                 balanceChangeData(account2,
@@ -140,7 +145,8 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         AccountBalanceChangedData data = resultList.getFirst();
 
         BalanceChangeData deduct = single.get(0);
-        BalanceChangeData add = single.get(1);
+        BalanceChangeData deduct2 = single.get(1);
+        BalanceChangeData add = single.get(2);
         AccountBalanceChangedData deductFrom = resultList
                 .stream().filter(a -> a.getAccountId()
                         .equals(account1)).toList().getFirst();
@@ -151,7 +157,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         Assertions.assertTrue(result.isSuccess());
 
         BigDecimal deductFromBalanceSubtracted = deductFrom
-                .getBeforeBalance().subtract(deduct.getAmount());
+                .getBeforeBalance().subtract(deduct.getAmount().add(deduct2.getAmount()));
         BigDecimal transferToBalanceAdded = transferTo
                 .getBeforeBalance().add(add.getAmount());
 

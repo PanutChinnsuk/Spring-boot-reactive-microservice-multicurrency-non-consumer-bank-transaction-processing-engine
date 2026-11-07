@@ -1,6 +1,5 @@
 package com.panut.centralbanking.accountservice.application.accounts.account.query;
 
-import com.panut.centralbanking.accountservice.application.accounts.account.query.result.TransactionAccounts;
 import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
@@ -51,30 +50,7 @@ public class AccountQuery {
                 });
     }
 
-    public Mono<TransactionAccounts> findTransactionAccounts(final Set<String> transactionAccountIds) {
-        return accountRepository
-                .findTransactionAccounts(transactionAccountIds)
-                .collectList()
-                .map(list -> new HashSet<>(list))
-                .flatMap(setIds -> {
-                    if (!setIds.containsAll(transactionAccountIds))
-                        return Mono.<TransactionAccounts>error(
-                                () -> new NotFound("One or more accounts " +
-                                        "in transaction are missing to perform " +
-                                        "account balance changes.")
-                        );
 
-                    Map<String,String> accountMap = setIds.stream()
-                            .collect(Collectors.toMap(
-                                    key -> key,
-                                    value -> value));
-
-                    return Mono.just(new TransactionAccounts(transactionAccountIds,
-                            accountMap));
-                });
-
-
-    }
 
     public Mono<List<AccountInfoForTransactionQueryResult>> getAccountsInfoForTransaction(
             final Set<String> accountIds) {

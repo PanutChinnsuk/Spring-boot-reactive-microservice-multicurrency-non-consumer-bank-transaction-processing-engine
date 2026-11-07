@@ -3,7 +3,6 @@ package com.panut.centralbanking.accountservice.application.transactions.account
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
-import com.panut.centralbanking.accountservice.application.accounts.account.query.result.TransactionAccounts;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceRepositoryManager;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.query.AccountBalanceQuery;
@@ -50,51 +49,50 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
 
 
-    private Mono<CommonResult> map(final TransactionAccounts transactionAccounts,
-                                           final Map<String, List<AccountBalanceChange>> records,
-                                           boolean requiredResult) {
+    private Mono<CommonResult> map(final Map<String, List<AccountBalanceChange>> records,
+                                   boolean requiredResult) {
         return accountBalanceQuery.findTransactionAccountBalances(
-                transactionAccounts.accountIds())
+                records.keySet())
                 .doOnNext(a -> log.info("Created account balances " +
                         "mono chain."))
                 .map(accountBalances -> {
                     List<AccountBalanceChangedData> optionalResult = new ArrayList<>();
 
-                    transactionAccounts.accountIds()
-                            .forEach(accountId -> {
-                                AccountBalanceChangedData changeResult = null;
-                                AccountBalance accountBalance = accountBalances
-                                        .get(accountId);
-                                if (requiredResult) {
-                                    log.debug("Method return required balance change " +
-                                            "result.");
-                                    changeResult = new AccountBalanceChangedData();
-                                    changeResult.before(accountBalance);
-                                }
+                    records.forEach((accountId, list) -> {
+                        AccountBalanceChangedData changeResult = null;
+                        AccountBalance accountBalance = accountBalances
+                                .get(accountId);
+                        if (requiredResult) {
+                            log.debug("Method return required balance change " +
+                                    "result.");
+                            changeResult = new AccountBalanceChangedData();
+                            changeResult.before(accountBalance);
+                        }
 
-                                List<AccountBalanceChange> filter = records
-                                        .get(accountId)
-                                        .stream()
-                                        .sorted(Comparator.comparingInt(record ->
-                                                record.getBalanceImpact().getAscendingPriority()))
-                                        .toList();
+                        List<AccountBalanceChange> filtered = list
+                                .stream()
+                                .sorted(Comparator.comparingInt(record ->
+                                        record.getBalanceImpact().getAscendingPriority()))
+                                .toList();
 
 
 
-                                log.debug("before orchest accountBalance {}",
-                                        accountBalance.getBalance());
-                                log.debug("before orchest filter size {}",
-                                        filter.size());
-                                accountBalance.orchest(filter);
-                                if (requiredResult) {
-                                    changeResult.after(accountBalance);
-                                    optionalResult.add(changeResult);
-                                    log.debug("Added balance change result.");
-                                }
+                        log.info("before orchest accountBalance {}",
+                                accountBalance.getBalance());
+                        log.info("before orchest filter size {}",
+                                filtered.size());
+                        accountBalance.orchest(filtered);
+                        if (requiredResult) {
+                            changeResult.after(accountBalance);
+                            optionalResult.add(changeResult);
+                            log.debug("Added balance change result.");
+                        }
 
-                                log.debug("after orchest accountBalance {}",
-                                        accountBalance.getBalance());
-                            });
+                        log.info("after orchest accountBalance {}",
+                                accountBalance.getBalance());
+                    });
+
+
 
                     return new Result(accountBalances.values().
                             stream().toList(), optionalResult);
@@ -114,25 +112,14 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
     }
 
-    private Mono<TransactionAccounts> preChange(final List<BalanceChangeData> datas) {
-        return Mono.defer(() -> {
-            Set<String> transactionAccountIds = datas.stream()
-                    .map(BalanceChangeData::getAccountId)
-                    .collect(Collectors.toSet());
-
-            return accountQuery.findTransactionAccounts(transactionAccountIds);
-        });
-    }
 
 
     @Override
     public Mono<CommonResult> bulk(final List<BalanceChangeData> data,
                                    final boolean requiredResult) {
-        return preChange(data)
-                .flatMap(transaction -> recordService
-                        .create(transaction.accountMap(), data)
-                        .flatMap(addRecord ->
-                                map(transaction, addRecord, requiredResult)))
+        return recordService.create(data)
+                .flatMap(addRecord ->
+                        map(addRecord, requiredResult))
                 .doOnSuccess(a -> log.info("Successfully " +
                         "applied balance change."))
                 .doOnError(error -> log.error("Failed to apply change to account balance, {}"

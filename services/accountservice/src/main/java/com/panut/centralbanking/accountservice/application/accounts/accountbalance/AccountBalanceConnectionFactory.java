@@ -1,5 +1,6 @@
 package com.panut.centralbanking.accountservice.application.accounts.accountbalance;
 
+import com.panut.centralbanking.accountservice.application.ListIndex;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import io.r2dbc.spi.ConnectionFactory;
@@ -53,7 +54,7 @@ public class AccountBalanceConnectionFactory {
                                .bind("id", accountBalance.getId())
                                .bind("currentVersion", accountBalance.getVersion());
 
-                       if (i < accountBalances.size() - 1)
+                       if (ListIndex.isLast(i, accountBalances.size()))
                            statement.add();
 
                    }

@@ -7,6 +7,8 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public interface AccountBalanceRepository
@@ -25,5 +27,5 @@ public interface AccountBalanceRepository
             WHERE ab.id IN (:accountIds) FOR UPDATE
             """)
     Flux<AccountBalance> findTransactionAccountBalances
-            (@Param("accountIds") Set<String> accountIds);
+            (@Param("accountIds") Collection<String> accountIds);
 }
