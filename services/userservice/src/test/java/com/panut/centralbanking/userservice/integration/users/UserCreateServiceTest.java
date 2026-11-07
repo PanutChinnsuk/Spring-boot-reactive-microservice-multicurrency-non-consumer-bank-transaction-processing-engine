@@ -2,7 +2,7 @@ package com.panut.centralbanking.userservice.integration.users;
 
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appsecuritycore.encoder.BCrypts;
-import com.panut.centralbanking.userservice.IntegrationDev;
+import com.panut.centralbanking.userservice.IntegrationDevTest;
 import com.panut.centralbanking.userservice.api.response.UserCreatedData;
 import com.panut.centralbanking.userservice.api.service.customerservice.CustomerUserActivationCodeService;
 import com.panut.centralbanking.userservice.api.service.customerservice.request.ActivateUserRequest;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class UserCreateServiceTest implements IntegrationDev {
+public class UserCreateServiceTest implements IntegrationDevTest {
     @Autowired
     private UserCreateService userCreateService;
 

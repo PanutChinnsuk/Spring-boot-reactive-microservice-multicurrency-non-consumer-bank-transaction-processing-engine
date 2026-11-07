@@ -1,5 +1,7 @@
 package com.panut.centralbanking.accountservice;
 
+import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,6 +23,7 @@ public class AccountserviceApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
+
 
 			System.out.println("Account service started///////////////////////");
 		};

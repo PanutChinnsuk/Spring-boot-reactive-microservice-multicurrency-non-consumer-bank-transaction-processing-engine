@@ -28,7 +28,7 @@ public class AccountBalanceChangeServiceController {
     @PostMapping(AccountService.BALANCE_CHANGE_PER_TRANSACTION_METHOD)
     public Mono<CommonResult> perTransaction(@RequestBody @Valid
                                              PerTransactionBalanceChangeRequest r) {
-        return balanceChangeService.perTransaction(r.getBalanceChangeDatas(),
+        return balanceChangeService.bulk(r.getBalanceChangeDatas(),
                 REQUIRED_RESULT);
     }
 }

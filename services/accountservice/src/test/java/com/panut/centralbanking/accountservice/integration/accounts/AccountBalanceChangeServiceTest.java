@@ -103,7 +103,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
                 BigDecimal.ONE, BalanceImpact.ADD));
 
         CommonResult result = balanceChangeService
-                .perTransaction(single, true).block();
+                .bulk(single, true).block();
         List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
                 result.getOptionalBody();
         AccountBalanceChangedData data = resultList.getFirst();
@@ -130,7 +130,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
                         BalanceImpact.ADD));
 
         CommonResult result = balanceChangeService
-                .perTransaction(single, true).block();
+                .bulk(single, true).block();
         List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
                 result.getOptionalBody();
         Assertions.assertEquals(1, resultList.size());
@@ -162,7 +162,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
                         BalanceImpact.ADD));
 
         CommonResult result = balanceChangeService
-                .perTransaction(single, true).block();
+                .bulk(single, true).block();
         List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
                 result.getOptionalBody();
         Assertions.assertEquals(2, resultList.size());

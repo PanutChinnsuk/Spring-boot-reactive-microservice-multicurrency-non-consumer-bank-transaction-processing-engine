@@ -1,5 +1,6 @@
 package com.panut.centralbanking.appsecuritycore.signature.jwt;
 
+import com.panut.centralbanking.appcore.exceptions.Unauthorized;
 import com.panut.centralbanking.appsecuritycore.signature.secretkeys.HMACs;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -30,7 +31,10 @@ public class CoreClaims {
                    .verifyWith(secretKey)
                    .build()
                    .parseSignedClaims(token)
-                   .getPayload());
+                   .getPayload())
+                   .onErrorMap(error -> new Unauthorized(
+                           error.getLocalizedMessage()
+                   ));
        }).subscribeOn(Schedulers.boundedElastic());
     }
 

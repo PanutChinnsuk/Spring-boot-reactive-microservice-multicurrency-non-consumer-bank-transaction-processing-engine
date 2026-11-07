@@ -17,8 +17,7 @@ public interface BalanceChangeEventRepository
             e.created_at, e.transaction_id
             FROM transaction_balance_change_events e
             WHERE e.status = :eventStatus 
-            GROUP BY e.transaction_id
-            ORDER BY e.created_at ASC
+            ORDER BY e.created_at ASC, e.transaction_id ASC
             LIMIT :sizeLimit FOR UPDATE
             """)
     Flux<BalanceChangeData> findAllForClearing(@Param("eventStatus")

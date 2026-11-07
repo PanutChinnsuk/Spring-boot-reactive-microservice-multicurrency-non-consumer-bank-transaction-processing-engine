@@ -1,7 +1,11 @@
 package com.panut.centralbanking.transactionservice.integration.transaction.clearing;
 
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
+import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
+import com.panut.centralbanking.transactionservice.application.property.TransactionClearingProperty;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.query.TransactionClearingQuery;
+import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
@@ -12,6 +16,7 @@ import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TransactionClearingQueryTest implements IntegrationDevTest {
     @Autowired
@@ -20,9 +25,11 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
     @Autowired
     private BalanceChangeEventTestRepository repository;
 
+    @Autowired
+    private TransactionClearingProperty property;
 
     @Test
-    public void shouldMap() {
+    public void shouldSort() {
         var chain = query.getSortedEachTransaction(TransactionStatus.PENDING).block();
         Map<String, Sinks.Many<BalanceChangeEvent>> poop = chain.getPerTransactionSink();
 
@@ -48,5 +55,32 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
             });
 
         }
+    }
+
+    @Test
+    public void shouldGetAndMappedDTO() {
+        String id1 = SeededDatabase.ID_PENDING_TRANSACTION_1;
+        String id2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
+        var eventStatus = BalanceChangeEventStatus.PENDING;
+
+        repository.setAllStatus(Set.of(id1, id2),
+                eventStatus).block();
+
+        List<BalanceChangeData> datas = query.getBulk(eventStatus,
+                property.getSizeLimit()).collectList().block();
+
+        datas.forEach(event -> {
+            Assertions.assertNotNull(event.getAccountId(), "account id");
+            Assertions.assertNotNull(event.getAmount(), "amount");
+            Assertions.assertNotNull(event.getBalanceImpact(), "balance impact");
+            Assertions.assertNotNull(event.getBalanceChangeType(), "balance change type");
+            Assertions.assertNotNull(event.getCreatedAt(), "created at");
+            Assertions.assertNotNull(event.getTransactionId(), "transaction id");
+        });
+
+        int t1Size = repository.findByTransactionId(id1).collectList().block().size();
+        int t2Size = repository.findByTransactionId(id2).collectList().block().size();
+
+        Assertions.assertEquals(datas.size(), t1Size + t2Size);
     }
 }

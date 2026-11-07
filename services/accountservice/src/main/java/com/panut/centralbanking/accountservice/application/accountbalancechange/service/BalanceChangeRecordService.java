@@ -28,7 +28,7 @@ public class BalanceChangeRecordService {
                                     AccountBalanceChange.builder()
                                             .accountId(accountMap.get(
                                                     change.getAccountId()))
-                                            .changedAt(change.getAt())
+                                            .changedAt(change.getCreatedAt())
                                             .amount(change.getAmount())
                                             .balanceImpact(change.getBalanceImpact())
                                             .balanceChangeType(change.getBalanceChangeType())

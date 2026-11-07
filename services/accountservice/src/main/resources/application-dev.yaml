@@ -20,6 +20,13 @@ eureka:
 
 
 app:
+  events:
+    transactions:
+      clearing:
+        scheduleMinutes: 1
+        scheduleMilliOffset: 10000
+        sizeLimit: 100
+
   internal:
     accounts:
       currentBankBranch: MAIN
@@ -27,6 +34,7 @@ app:
   security:
     core:
       securityMode: TEST
+      transactionServiceKey: transactionService2
 
       mySecretKey: accountService
       apiKey: apiKey

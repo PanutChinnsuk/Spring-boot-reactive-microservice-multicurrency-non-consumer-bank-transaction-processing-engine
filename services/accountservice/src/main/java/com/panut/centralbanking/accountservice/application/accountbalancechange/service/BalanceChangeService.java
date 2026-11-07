@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface BalanceChangeService {
-    Mono<CommonResult> perTransaction(List<BalanceChangeData> datas,
-                             boolean requiredResult);
+    Mono<CommonResult> bulk(List<BalanceChangeData> datas,
+                            boolean requiredResult);
 
 }

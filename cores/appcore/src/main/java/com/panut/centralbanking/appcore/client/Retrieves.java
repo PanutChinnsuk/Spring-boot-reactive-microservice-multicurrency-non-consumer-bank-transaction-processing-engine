@@ -5,6 +5,7 @@ import com.panut.centralbanking.appcore.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.function.Supplier;
@@ -116,5 +117,17 @@ public class Retrieves {
                 .uri(fullPath)
                 .retrieve()
                 .bodyToMono(expectedClass);
+    }
+
+    public static final <T> Flux<T> doRequestFlux(final WebClient webClient,
+                                              final String fullPath,
+                                              final Class<? extends RuntimeException> onError,
+                                              final String name,
+                                              final Class<T> expectedClass) {
+        return webClient
+                .post()
+                .uri(fullPath)
+                .retrieve()
+                .bodyToFlux(expectedClass);
     }
 }

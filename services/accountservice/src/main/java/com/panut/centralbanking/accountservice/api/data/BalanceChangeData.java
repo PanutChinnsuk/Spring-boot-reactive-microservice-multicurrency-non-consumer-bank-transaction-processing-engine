@@ -29,7 +29,10 @@ public class BalanceChangeData {
     @NotNull
     private BalanceImpact balanceImpact;
 
-    private LocalDateTime at = LocalDateTime.now();
+    @NotNull
+    private LocalDateTime createdAt;
+
+    @NotBlank
     private String transactionId;
 
 

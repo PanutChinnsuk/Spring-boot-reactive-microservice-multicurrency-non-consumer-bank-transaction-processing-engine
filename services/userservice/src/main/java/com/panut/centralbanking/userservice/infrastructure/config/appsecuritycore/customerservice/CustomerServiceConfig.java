@@ -4,11 +4,13 @@ import com.panut.centralbanking.appcore.servicemaps.map.CustomerService;
 import com.panut.centralbanking.appsecuritycore.config.ServiceSignatureConfig;
 import com.panut.centralbanking.appsecuritycore.core.ServiceSignatureConfigSecurityContext;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.signaturegenerator.ServiceSignature;
+import com.panut.centralbanking.appsecuritycore.signature.webclient.ServiceSignatureWebClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class CustomerServiceConfig {
@@ -34,6 +36,12 @@ public class CustomerServiceConfig {
         return new ServiceSignature(customerServiceSignatureConfig);
     }
 
+
+    @Bean
+    public WebClient customerServiceWebClient(WebClient.Builder builder,
+                                              ServiceSignature customerServiceSignature) {
+        return new ServiceSignatureWebClient(customerServiceSignature, builder).create();
+    }
 
 
 

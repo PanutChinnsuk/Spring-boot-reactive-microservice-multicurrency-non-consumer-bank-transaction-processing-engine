@@ -23,4 +23,16 @@ public class TransactionStatusClearingScheduler {
     public void clearPendingAuthorize() {
         System.out.println("clear authorize");
     }
+
+    @Scheduled(fixedDelayString = "#{(120000 * @transactionClearingProperty.getScheduleMinutes) + " +
+            "@transactionClearingProperty.getScheduleMilliOffset}")
+    public void clearPendingPosted() {
+        System.out.println("clear post");
+    }
+
+    @Scheduled(fixedDelayString = "#{(180000 * @transactionClearingProperty.getScheduleMinutes) + " +
+            "@transactionClearingProperty.getScheduleMilliOffset}")
+    public void clearPendingReverse() {
+        System.out.println("clear reverse");
+    }
 }

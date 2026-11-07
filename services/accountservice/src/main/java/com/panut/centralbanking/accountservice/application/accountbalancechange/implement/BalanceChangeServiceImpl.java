@@ -121,8 +121,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
 
     @Override
-    public Mono<CommonResult> perTransaction(final List<BalanceChangeData> data,
-                                    final boolean requiredResult) {
+    public Mono<CommonResult> bulk(final List<BalanceChangeData> data,
+                                   final boolean requiredResult) {
         return preChange(data)
                 .flatMap(transaction -> recordService
                         .create(transaction.accountMap(), data)

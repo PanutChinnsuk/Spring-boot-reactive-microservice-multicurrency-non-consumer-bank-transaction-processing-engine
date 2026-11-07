@@ -6,6 +6,7 @@ import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotatio
 import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.service.TransactionClearingService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
@@ -21,7 +22,7 @@ public class TransactionClearingServiceController {
 
 
     @ServiceHasAuthorityExpectsFlux(TransactionService.TRANSACTION_CLEAR_PENDING_BALANCE_METHOD)
-    @GetMapping(TransactionService.TRANSACTION_CLEAR_PENDING_BALANCE_METHOD)
+    @PostMapping(TransactionService.TRANSACTION_CLEAR_PENDING_BALANCE_METHOD)
     public Flux<BalanceChangeData> getBulkPending() {
         return transactionClearingService.getBulkPending();
     }
