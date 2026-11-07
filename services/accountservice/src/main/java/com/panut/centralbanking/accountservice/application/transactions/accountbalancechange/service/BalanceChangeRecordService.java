@@ -1,11 +1,10 @@
-package com.panut.centralbanking.accountservice.application.accountbalancechange.service;
+package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service;
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
-import com.panut.centralbanking.accountservice.application.accountbalancechange.BalanceChangeRepositoryManager;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.BalanceChangeRepositoryManager;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;

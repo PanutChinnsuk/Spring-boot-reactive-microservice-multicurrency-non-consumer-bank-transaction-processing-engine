@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.account.service;
+package com.panut.centralbanking.accountservice.application.accounts.account.service;
 
 import com.panut.centralbanking.accountservice.api.data.AccountBalanceCreateData;
 import com.panut.centralbanking.accountservice.api.data.AccountProfileCreateData;

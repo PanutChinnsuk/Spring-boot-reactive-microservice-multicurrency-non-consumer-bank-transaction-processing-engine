@@ -1,7 +1,7 @@
-package com.panut.centralbanking.accountservice.application.accountoverdraft.implement;
+package com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.implement;
 
 import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
-import com.panut.centralbanking.accountservice.application.accountoverdraft.AccountOverdraftRepositoryManager;
+import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.AccountOverdraftRepositoryManager;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import lombok.extern.slf4j.Slf4j;

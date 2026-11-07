@@ -1,18 +1,15 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.accounts.implement;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.implement;
 
-import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountAddRequest;
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountIdRequest;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.InternalAccountRepositoryManager;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service.InternalAccountService;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.validate.InternalAccountPersistValidator;
-import com.panut.centralbanking.accountservice.application.internalaccounts.branch.query.BranchQuery;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.InternalAccountRepositoryManager;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.service.InternalAccountService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.validate.InternalAccountPersistValidator;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.query.BranchQuery;
 import com.panut.centralbanking.accountservice.core.InternalAccountType;
 import com.panut.centralbanking.accountservice.core.InternalBranch;
 import com.panut.centralbanking.accountservice.infrastructure.model.InternalAccount;
-import com.panut.centralbanking.accountservice.infrastructure.repository.InternalAccountRepository;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
-import com.panut.centralbanking.appcore.exceptions.Conflicted;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

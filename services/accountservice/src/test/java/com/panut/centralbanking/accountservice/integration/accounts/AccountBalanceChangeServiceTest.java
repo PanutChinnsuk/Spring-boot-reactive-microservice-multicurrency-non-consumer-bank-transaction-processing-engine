@@ -3,8 +3,8 @@ package com.panut.centralbanking.accountservice.integration.accounts;
 import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
-import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
-import com.panut.centralbanking.accountservice.application.accountbalancechange.service.BalanceChangeService;
+import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
@@ -29,6 +29,9 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Autowired
     private AccountQuery accountQuery;
+
+    @Autowired
+    private AccountBalanceCleanUpRepository cleanRepo;
 
     private String account1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     private String account2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
@@ -58,43 +61,11 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
     }
 
 
-    private Account account(String accountId) {
-        Account account = accountQuery.findGeneric(accountId).block();
-        if (!accountIds.contains(accountId)) accountIds.add(accountId);
 
-        return account;
-    }
-
-    private AccountBalance accountBalance(String accountId) {
-        Account account = account(accountId);
-
-        return accountBalanceRepository.findById(account.getId()).block();
-    }
-
-    private void resetAccountBalance(String accountId) {
-        if (accountId == null) return;
-
-        AccountBalance accountBalance = accountBalanceRepository
-                .findById(accountId).block();
-
-        accountBalance.deductSimple(accountBalance.getBalance(),
-                BalanceChangeType.BALANCE);
-        accountBalance.deductSimple(accountBalance.getReserve(),
-                BalanceChangeType.RESERVE);
-
-        accountBalance.addSimple(BigDecimal.valueOf(100L),
-                BalanceChangeType.BALANCE);
-
-
-
-        accountBalanceRepository.save(accountBalance).block();
-    }
 
     @AfterAll
     public void setBack() {
-        accountIds.add(accountQuery.findGeneric(account1).block().getId());
-        accountIds.add(accountQuery.findGeneric(account2).block().getId());
-        accountIds.forEach(a -> resetAccountBalance(a));
+        cleanRepo.setBack(account1, account2);
     }
 
     @Test

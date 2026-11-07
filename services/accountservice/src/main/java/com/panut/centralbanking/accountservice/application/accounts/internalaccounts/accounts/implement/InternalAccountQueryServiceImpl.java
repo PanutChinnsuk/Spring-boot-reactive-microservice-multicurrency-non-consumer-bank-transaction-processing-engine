@@ -1,7 +1,7 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.accounts.implement;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.implement;
 
 import com.panut.centralbanking.accountservice.api.response.serviceonly.GetFxInternalAccountResponse;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service.InternalAccountQueryService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.service.InternalAccountQueryService;
 import com.panut.centralbanking.accountservice.application.property.InternalAccountProperty;
 import com.panut.centralbanking.accountservice.core.InternalAccountType;
 import com.panut.centralbanking.accountservice.infrastructure.repository.InternalAccountRepository;
@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;

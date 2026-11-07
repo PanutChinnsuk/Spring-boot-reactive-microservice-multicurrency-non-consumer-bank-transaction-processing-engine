@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.accountbalancechange.service;
+package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service;
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.appcore.common.response.CommonResult;

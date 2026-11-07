@@ -1,7 +1,7 @@
-package com.panut.centralbanking.accountservice.application.accountprofile.service;
+package com.panut.centralbanking.accountservice.application.accounts.accountprofile.service;
 
 import com.panut.centralbanking.accountservice.api.data.AccountProfileCreateData;
-import com.panut.centralbanking.accountservice.application.accountprofile.AccountProfileRepositoryManager;
+import com.panut.centralbanking.accountservice.application.accounts.accountprofile.AccountProfileRepositoryManager;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

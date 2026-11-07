@@ -1,7 +1,7 @@
 package com.panut.centralbanking.accountservice.api.controller.service;
 
 import com.panut.centralbanking.accountservice.api.request.serviceonly.VerifyAccountsStateRequest;
-import com.panut.centralbanking.accountservice.application.account.service.AccountStateVerificationService;
+import com.panut.centralbanking.accountservice.application.accounts.account.service.AccountStateVerificationService;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.AccountService;

@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.accounts.validate;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.validate;
 
 import com.panut.centralbanking.accountservice.core.InternalAccountType;
 import com.panut.centralbanking.accountservice.core.InternalBranch;

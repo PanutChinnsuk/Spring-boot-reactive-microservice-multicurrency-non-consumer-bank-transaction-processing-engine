@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.accountoverdraft;
+package com.panut.centralbanking.accountservice.application.accounts.accountoverdraft;
 
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountOverdraftRepository;

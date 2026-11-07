@@ -1,8 +1,7 @@
 package com.panut.centralbanking.accountservice.api.controller.service;
 
 import com.panut.centralbanking.accountservice.api.response.serviceonly.GetFxInternalAccountResponse;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service.InternalAccountQueryService;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service.InternalAccountService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.service.InternalAccountQueryService;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.InternalAccountsService;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;

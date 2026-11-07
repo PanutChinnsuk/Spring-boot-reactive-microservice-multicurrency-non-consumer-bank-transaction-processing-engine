@@ -8,11 +8,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.security.autoconfigure.ReactiveUserDetailsServiceAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(exclude = {
 		UserDetailsServiceAutoConfiguration.class,
 		ReactiveUserDetailsServiceAutoConfiguration.class
 })
+@EnableScheduling
 public class AccountserviceApplication {
 
 

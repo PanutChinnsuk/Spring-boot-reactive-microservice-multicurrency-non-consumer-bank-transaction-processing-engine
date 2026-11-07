@@ -1,9 +1,9 @@
-package com.panut.centralbanking.accountservice.application.account.implement;
+package com.panut.centralbanking.accountservice.application.accounts.account.implement;
 
 import com.panut.centralbanking.accountservice.api.request.serviceonly.transactionprimary.GetAccountsInfoForTransactionRequest;
 import com.panut.centralbanking.accountservice.api.response.serviceonly.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
-import com.panut.centralbanking.accountservice.application.account.service.AccountInfoService;
+import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
+import com.panut.centralbanking.accountservice.application.accounts.account.service.AccountInfoService;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

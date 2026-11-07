@@ -2,9 +2,9 @@ package com.panut.centralbanking.accountservice.integration.internalaccounts;
 
 import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountBranchAddRequest;
-import com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service.InternalAccountService;
-import com.panut.centralbanking.accountservice.application.internalaccounts.branch.query.BranchQuery;
-import com.panut.centralbanking.accountservice.application.internalaccounts.branch.service.BranchService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.service.InternalAccountService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.query.BranchQuery;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.service.BranchService;
 import com.panut.centralbanking.accountservice.core.InternalAccountType;
 import com.panut.centralbanking.accountservice.core.InternalBranch;
 import com.panut.centralbanking.accountservice.integration.testrepository.InternalAccountBranchTestRepository;

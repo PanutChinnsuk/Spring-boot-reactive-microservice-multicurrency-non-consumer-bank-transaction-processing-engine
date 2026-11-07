@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.accountbalance.query;
+package com.panut.centralbanking.accountservice.application.accounts.accountbalance.query;
 
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;

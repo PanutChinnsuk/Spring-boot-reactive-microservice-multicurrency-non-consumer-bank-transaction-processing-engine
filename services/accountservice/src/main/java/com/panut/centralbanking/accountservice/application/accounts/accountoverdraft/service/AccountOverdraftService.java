@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.accountoverdraft.service;
+package com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.service;
 
 import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
 import com.panut.centralbanking.appcore.common.response.CommonResult;

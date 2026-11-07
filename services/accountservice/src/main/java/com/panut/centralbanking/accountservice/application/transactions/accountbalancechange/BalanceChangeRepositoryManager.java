@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.accountbalancechange;
+package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange;
 
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceChangeRepository;

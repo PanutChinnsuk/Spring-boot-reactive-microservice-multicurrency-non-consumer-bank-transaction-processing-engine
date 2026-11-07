@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.account;
+package com.panut.centralbanking.accountservice.application.accounts.account;
 
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;

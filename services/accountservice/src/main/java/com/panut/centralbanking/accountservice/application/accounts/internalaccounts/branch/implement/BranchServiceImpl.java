@@ -1,8 +1,8 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.branch.implement;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.implement;
 
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountBranchAddRequest;
-import com.panut.centralbanking.accountservice.application.internalaccounts.branch.InternalAccountBranchRepositoryManager;
-import com.panut.centralbanking.accountservice.application.internalaccounts.branch.service.BranchService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.InternalAccountBranchRepositoryManager;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.service.BranchService;
 import com.panut.centralbanking.accountservice.infrastructure.model.InternalAccountBranch;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.exceptions.Conflicted;

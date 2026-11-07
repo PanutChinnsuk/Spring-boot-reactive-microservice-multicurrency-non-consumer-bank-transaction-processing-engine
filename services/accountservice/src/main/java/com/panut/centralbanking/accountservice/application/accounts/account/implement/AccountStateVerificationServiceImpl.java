@@ -1,8 +1,8 @@
-package com.panut.centralbanking.accountservice.application.account.implement;
+package com.panut.centralbanking.accountservice.application.accounts.account.implement;
 
 import com.panut.centralbanking.accountservice.api.request.serviceonly.VerifyAccountsStateRequest;
-import com.panut.centralbanking.accountservice.application.account.query.AccountQuery;
-import com.panut.centralbanking.accountservice.application.account.service.AccountStateVerificationService;
+import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
+import com.panut.centralbanking.accountservice.application.accounts.account.service.AccountStateVerificationService;
 import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import org.springframework.stereotype.Component;

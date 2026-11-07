@@ -25,7 +25,7 @@ app:
       clearing:
         scheduleMinutes: 1
         scheduleMilliOffset: 10000
-        sizeLimit: 100
+
 
   internal:
     accounts:

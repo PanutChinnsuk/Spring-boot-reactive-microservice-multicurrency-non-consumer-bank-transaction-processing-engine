@@ -1,0 +1,44 @@
+package com.panut.centralbanking.accountservice.application.transactions.clearing.modules;
+
+import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
+import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+@Component
+@Slf4j
+public class TransactionBalanceClearingSchedulerModuleV1 {
+    private final BalanceChangeService balanceChangeService;
+    private final TransactionClearingServiceController serviceController;
+
+    public TransactionBalanceClearingSchedulerModuleV1(BalanceChangeService balanceChangeService,
+                                               TransactionClearingServiceController serviceController) {
+        this.balanceChangeService = balanceChangeService;
+        this.serviceController = serviceController;
+    }
+
+    private String name = "TransactionBalanceClearingScheduler";
+
+    public Disposable process(final List<BalanceChangeData> datas) {
+        log.info("{} : pre process", name);
+        return balanceChangeService.bulk(datas, false)
+                .doOnNext(a -> log.info("{} : post process", name))
+                .subscribe();
+    }
+
+    public Mono<Void> clearPending() {
+        return serviceController.getBulkPending()
+                .collectList()
+                .doOnNext(a -> log.info("{} : bulkPending to list",
+                        name))
+                .map(this::process)
+                .doOnNext(a -> log.info("{} : after processed", name))
+                .then();
+    }
+}

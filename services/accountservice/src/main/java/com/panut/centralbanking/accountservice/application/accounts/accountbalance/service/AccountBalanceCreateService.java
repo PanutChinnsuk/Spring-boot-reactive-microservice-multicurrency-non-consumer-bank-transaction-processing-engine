@@ -1,7 +1,7 @@
-package com.panut.centralbanking.accountservice.application.accountbalance.service;
+package com.panut.centralbanking.accountservice.application.accounts.accountbalance.service;
 
 import com.panut.centralbanking.accountservice.api.data.AccountBalanceCreateData;
-import com.panut.centralbanking.accountservice.application.accountbalance.AccountBalanceRepositoryManager;
+import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceRepositoryManager;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.branch;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch;
 
 import com.panut.centralbanking.accountservice.infrastructure.model.InternalAccountBranch;
 import com.panut.centralbanking.accountservice.infrastructure.repository.InternalAccountBranchRepository;

@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.branch.service;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.service;
 
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountBranchAddRequest;
 import com.panut.centralbanking.appcore.common.response.CommonResult;

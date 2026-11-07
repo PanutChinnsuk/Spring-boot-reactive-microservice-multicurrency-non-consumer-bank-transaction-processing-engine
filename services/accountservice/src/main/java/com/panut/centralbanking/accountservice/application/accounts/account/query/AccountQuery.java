@@ -1,6 +1,6 @@
-package com.panut.centralbanking.accountservice.application.account.query;
+package com.panut.centralbanking.accountservice.application.accounts.account.query;
 
-import com.panut.centralbanking.accountservice.application.account.query.result.TransactionAccounts;
+import com.panut.centralbanking.accountservice.application.accounts.account.query.result.TransactionAccounts;
 import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;

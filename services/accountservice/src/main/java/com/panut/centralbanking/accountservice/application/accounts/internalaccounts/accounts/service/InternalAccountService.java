@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.internalaccounts.accounts.service;
+package com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.service;
 
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountAddRequest;
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountIdRequest;

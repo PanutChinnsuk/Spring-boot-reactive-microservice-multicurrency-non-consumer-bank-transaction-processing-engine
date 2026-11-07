@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.account.query.result;
+package com.panut.centralbanking.accountservice.application.accounts.account.query.result;
 
 import java.util.Map;
 import java.util.Set;

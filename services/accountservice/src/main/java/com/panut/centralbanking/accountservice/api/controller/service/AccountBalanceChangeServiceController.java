@@ -1,7 +1,7 @@
 package com.panut.centralbanking.accountservice.api.controller.service;
 
 import com.panut.centralbanking.accountservice.api.request.serviceonly.transactionprimary.PerTransactionBalanceChangeRequest;
-import com.panut.centralbanking.accountservice.application.accountbalancechange.service.BalanceChangeService;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.AccountService;
