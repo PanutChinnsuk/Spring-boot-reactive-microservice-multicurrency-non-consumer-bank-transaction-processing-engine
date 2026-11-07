@@ -4,6 +4,7 @@ import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
 import com.panut.centralbanking.accountservice.application.accounts.account.query.result.TransactionAccounts;
+import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceRepositoryManager;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.query.AccountBalanceQuery;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
@@ -21,7 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-record Result(Collection<AccountBalance> accountBalances,
+record Result(List<AccountBalance> accountBalances,
               List<AccountBalanceChangedData> optional) {}
 
 @Service
@@ -32,15 +33,18 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     private final AccountBalanceQuery accountBalanceQuery;
     private final BalanceChangeRecordService recordService;
     private final AccountBalanceRepositoryManager manager;
+    private final AccountBalanceConnectionFactory connectionFactory;
 
     public BalanceChangeServiceImpl(AccountQuery accountQuery,
                                     AccountBalanceQuery accountBalanceQuery,
                                     BalanceChangeRecordService recordService,
-                                    AccountBalanceRepositoryManager manager) {
+                                    AccountBalanceRepositoryManager manager,
+                                    AccountBalanceConnectionFactory connectionFactory) {
         this.accountQuery = accountQuery;
         this.accountBalanceQuery = accountBalanceQuery;
         this.recordService = recordService;
         this.manager = manager;
+        this.connectionFactory = connectionFactory;
     }
 
 
@@ -92,12 +96,13 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                         accountBalance.getBalance());
                             });
 
-                    return new Result(accountBalances.values(), optionalResult);
+                    return new Result(accountBalances.values().
+                            stream().toList(), optionalResult);
 
                 })
                 .doOnNext(a -> log.info("Applied (unsaved) balance changes."))
                 .flatMap(result ->
-                        manager.saveAll(result.accountBalances())
+                        connectionFactory.batchUpdate(result.accountBalances())
                                 .thenReturn(result))
                 .map(result -> new CommonResult(
                         "Successfully applied balance changes",
