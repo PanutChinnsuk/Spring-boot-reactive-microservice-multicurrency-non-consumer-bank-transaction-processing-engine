@@ -2,6 +2,7 @@ package com.panut.centralbanking.accountservice.application.accounts.accountover
 
 import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.AccountOverdraftRepositoryManager;
+import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.service.AccountOverdraftService;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
-public class AccountOverdraftServiceImpl {
+public class AccountOverdraftServiceImpl implements AccountOverdraftService {
     private final AccountOverdraftRepositoryManager manager;
 
     public AccountOverdraftServiceImpl(AccountOverdraftRepositoryManager manager) {
@@ -18,6 +19,7 @@ public class AccountOverdraftServiceImpl {
     }
 
 
+    @Override
     public Mono<CommonResult> overdraft(final AccountOverdraftCreateData data) {
         return manager.save(AccountOverdraft
                 .builder()

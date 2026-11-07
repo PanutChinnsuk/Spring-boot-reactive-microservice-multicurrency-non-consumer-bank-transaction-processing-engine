@@ -6,6 +6,7 @@ import com.panut.centralbanking.accountservice.application.accounts.account.quer
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceRepositoryManager;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.query.AccountBalanceQuery;
+import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.service.AccountOverdraftService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
@@ -36,17 +37,20 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     private final BalanceChangeRecordService recordService;
     private final AccountBalanceRepositoryManager manager;
     private final AccountBalanceConnectionFactory connectionFactory;
+    private final AccountOverdraftService overdraftService;
 
     public BalanceChangeServiceImpl(AccountQuery accountQuery,
                                     AccountBalanceQuery accountBalanceQuery,
                                     BalanceChangeRecordService recordService,
                                     AccountBalanceRepositoryManager manager,
-                                    AccountBalanceConnectionFactory connectionFactory) {
+                                    AccountBalanceConnectionFactory connectionFactory,
+                                    AccountOverdraftService overdraftService) {
         this.accountQuery = accountQuery;
         this.accountBalanceQuery = accountBalanceQuery;
         this.recordService = recordService;
         this.manager = manager;
         this.connectionFactory = connectionFactory;
+        this.overdraftService = overdraftService;
     }
 
 
@@ -88,10 +92,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                         record.getBalanceImpact().getAscendingPriority()))
                                 .toList();
 
-                        BigDecimal totalBalanceDeduct = getTotalDeduct(filtered,
-                                BalanceChangeType.BALANCE);
-                        BigDecimal totalReserveDeduct = getTotalDeduct(filtered,
-                                BalanceChangeType.RESERVE);
+
 
 
 
@@ -100,13 +101,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                         log.info("before orchest filter size {}",
                                 filtered.size());
 
-                        boolean canSafeApply = accountBalance.canSafeApply(totalBalanceDeduct,
-                                        totalReserveDeduct);
-                        if (canSafeApply)
-                            accountBalance.orchest(filtered);
-
-                        log.info("Account {} can safely apply balance change: {}",
-                                accountId, canSafeApply);
+                        accountBalance.orchest(filtered, accountId);
 
 
                         if (requiredResult) {

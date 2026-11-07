@@ -10,6 +10,9 @@ import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoCon
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @SpringBootApplication(exclude = {
 		UserDetailsServiceAutoConfiguration.class,
 		ReactiveUserDetailsServiceAutoConfiguration.class
@@ -22,9 +25,12 @@ public class AccountserviceApplication {
 		SpringApplication.run(AccountserviceApplication.class, args);
 	}
 
+
+
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
+
 
 
 			System.out.println("Account service started///////////////////////");
