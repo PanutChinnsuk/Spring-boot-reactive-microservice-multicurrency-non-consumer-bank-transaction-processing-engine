@@ -2,7 +2,9 @@ package com.panut.centralbanking.accountservice.integration.internalaccounts;
 
 import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.request.useronly.InternalAccountBranchAddRequest;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.implement.InternalAccountServiceImpl;
 import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.accounts.service.InternalAccountService;
+import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.implement.BranchServiceImpl;
 import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.query.BranchQuery;
 import com.panut.centralbanking.accountservice.application.accounts.internalaccounts.branch.service.BranchService;
 import com.panut.centralbanking.accountservice.core.InternalAccountType;
@@ -19,10 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class InternalAccountCycleTest implements IntegrationDevTest {
     @Autowired
-    private InternalAccountService internalAccountService;
+    private InternalAccountServiceImpl internalAccountService;
 
     @Autowired
-    private BranchService branchService;
+    private BranchServiceImpl branchService;
 
     @Autowired
     private InternalAccountBranchTestRepository internalAccountBranchTestRepository;

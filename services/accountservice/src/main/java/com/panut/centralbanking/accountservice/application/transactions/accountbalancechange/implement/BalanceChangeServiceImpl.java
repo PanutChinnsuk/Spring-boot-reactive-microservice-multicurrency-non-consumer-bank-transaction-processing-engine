@@ -1,11 +1,13 @@
 package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement;
 
+import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceRepositoryManager;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.query.AccountBalanceQuery;
+import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.AccountOverdraftConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.service.AccountOverdraftService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
@@ -13,6 +15,7 @@ import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
+import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,31 +29,27 @@ import java.util.stream.Collectors;
 
 
 record Result(List<AccountBalance> accountBalances,
-              List<AccountBalanceChangedData> optional) {}
+              List<AccountBalanceChangedData> optional,
+              List<AccountOverdraftCreateData> possibleOverdrafts) {}
 
 @Service
 @Slf4j
 @Transactional(propagation = Propagation.REQUIRED)
 public class BalanceChangeServiceImpl implements BalanceChangeService {
-    private final AccountQuery accountQuery;
+
     private final AccountBalanceQuery accountBalanceQuery;
     private final BalanceChangeRecordService recordService;
-    private final AccountBalanceRepositoryManager manager;
     private final AccountBalanceConnectionFactory connectionFactory;
-    private final AccountOverdraftService overdraftService;
+    private final AccountOverdraftConnectionFactory overdraftConnectionFactory;
 
-    public BalanceChangeServiceImpl(AccountQuery accountQuery,
-                                    AccountBalanceQuery accountBalanceQuery,
+    public BalanceChangeServiceImpl(AccountBalanceQuery accountBalanceQuery,
                                     BalanceChangeRecordService recordService,
-                                    AccountBalanceRepositoryManager manager,
                                     AccountBalanceConnectionFactory connectionFactory,
-                                    AccountOverdraftService overdraftService) {
-        this.accountQuery = accountQuery;
+                                    AccountOverdraftConnectionFactory overdraftConnectionFactory) {
         this.accountBalanceQuery = accountBalanceQuery;
         this.recordService = recordService;
-        this.manager = manager;
         this.connectionFactory = connectionFactory;
-        this.overdraftService = overdraftService;
+        this.overdraftConnectionFactory = overdraftConnectionFactory;
     }
 
 
@@ -74,6 +73,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                         "mono chain."))
                 .map(accountBalances -> {
                     List<AccountBalanceChangedData> optionalResult = new ArrayList<>();
+                    List<AccountOverdraftCreateData> pendingOverdrafts = new ArrayList<>();
 
                     records.forEach((accountId, list) -> {
                         AccountBalanceChangedData changeResult = null;
@@ -101,7 +101,11 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                         log.info("before orchest filter size {}",
                                 filtered.size());
 
-                        accountBalance.orchest(filtered, accountId);
+                        var possibleOverdrafts = accountBalance
+                                .orchest(filtered, accountId);
+
+                        if (!possibleOverdrafts.isEmpty())
+                            pendingOverdrafts.addAll(possibleOverdrafts);
 
 
                         if (requiredResult) {
@@ -117,12 +121,16 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
 
                     return new Result(accountBalances.values().
-                            stream().toList(), optionalResult);
+                            stream().toList(),
+                            optionalResult,
+                            pendingOverdrafts);
 
                 })
                 .doOnNext(a -> log.info("Applied (unsaved) balance changes."))
                 .flatMap(result ->
                         connectionFactory.batchUpdate(result.accountBalances())
+                                .then(overdraftConnectionFactory.batchInsert(
+                                        result.possibleOverdrafts()))
                                 .thenReturn(result))
                 .map(result -> new CommonResult(
                         "Successfully applied balance changes",

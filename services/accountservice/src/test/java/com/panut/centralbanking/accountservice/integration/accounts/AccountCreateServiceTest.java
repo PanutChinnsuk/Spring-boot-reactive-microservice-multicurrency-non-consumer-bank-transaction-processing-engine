@@ -4,6 +4,7 @@ import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.AccountBalanceCreateData;
 import com.panut.centralbanking.accountservice.api.data.AccountProfileCreateData;
 import com.panut.centralbanking.accountservice.api.response.AccountCreatedData;
+import com.panut.centralbanking.accountservice.application.accounts.account.implement.AccountCreateServiceImpl;
 import com.panut.centralbanking.accountservice.application.accounts.account.service.AccountCreateService;
 import com.panut.centralbanking.accountservice.core.AccountStatus;
 import com.panut.centralbanking.accountservice.core.AccountType;
@@ -25,10 +26,7 @@ import java.math.BigDecimal;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AccountCreateServiceTest implements IntegrationDevTest {
     @Autowired
-    private TransactionalOperator transactionalOperator;
-
-    @Autowired
-    private AccountCreateService accountCreateService;
+    private AccountCreateServiceImpl accountCreateService;
 
     @Autowired
     private AccountRepository accountRepository;

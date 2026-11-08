@@ -5,6 +5,7 @@ import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeServiceImpl;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.application.transactions.clearing.modules.TransactionBalanceClearingSchedulerModuleV1;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
@@ -44,7 +45,7 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
     private TransactionClearingServiceController transactionController;
 
     @MockitoSpyBean
-    private BalanceChangeService balanceChangeService;
+    private BalanceChangeServiceImpl balanceChangeService;
 
     String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
 

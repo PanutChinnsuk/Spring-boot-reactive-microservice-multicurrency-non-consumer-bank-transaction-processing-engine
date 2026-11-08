@@ -2,7 +2,7 @@ package com.panut.centralbanking.accountservice.application.transactions.account
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.BalanceChangeRepositoryManager;
-import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeConnectionFactory;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.BalanceChangeConnectionFactory;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

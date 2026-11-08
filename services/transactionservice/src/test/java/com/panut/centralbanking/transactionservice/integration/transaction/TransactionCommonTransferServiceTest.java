@@ -6,6 +6,7 @@ import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.request.SameCurrencyTransferRequest;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
+import com.panut.centralbanking.transactionservice.application.transactions.transaction.implement.CommonTransactionServiceImpl;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.service.CommonTransactionService;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
@@ -24,7 +25,7 @@ import java.util.function.Function;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionCommonTransferServiceTest implements IntegrationDevTest {
     @Autowired
-    private CommonTransactionService commonTransactionService;
+    private CommonTransactionServiceImpl commonTransactionService;
 
     @MockitoSpyBean
     private AccountServiceController accountServiceController;

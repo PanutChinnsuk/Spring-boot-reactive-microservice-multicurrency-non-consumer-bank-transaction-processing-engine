@@ -4,6 +4,7 @@ import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
+import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeServiceImpl;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
@@ -25,7 +26,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
     private AccountBalanceRepository accountBalanceRepository;
 
     @Autowired
-    private BalanceChangeService balanceChangeService;
+    private BalanceChangeServiceImpl balanceChangeService;
 
     @Autowired
     private AccountQuery accountQuery;

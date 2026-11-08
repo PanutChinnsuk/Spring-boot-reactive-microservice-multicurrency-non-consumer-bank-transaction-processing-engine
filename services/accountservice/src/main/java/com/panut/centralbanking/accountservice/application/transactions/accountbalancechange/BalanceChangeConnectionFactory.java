@@ -1,9 +1,8 @@
-package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement;
+package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange;
 
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.application.ListIndex;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
-import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.UUID;
 
 record Chain(List<AccountBalanceChange> records) {}
 
@@ -45,11 +43,19 @@ public class BalanceChangeConnectionFactory {
                         .flatMap(chain ->  databaseClient.inConnectionMany(conn -> {
                             Statement statement = conn.createStatement("""
                                         INSERT INTO account_balance_changes (
-                                            id, account_id, amount, change_type,
-                                            balance_impact, transaction_id
+                                            id, account_id,
+                                            amount,
+                                            change_type,
+                                            balance_impact,
+                                            transaction_id
                                         ) 
-                                        VALUES (?id, ?accountId, ?amount, ?changeType,
-                                            ?balanceImpact, ?transactionId
+                                        VALUES (
+                                            ?id, 
+                                            ?accountId, 
+                                            ?amount, 
+                                            ?changeType,
+                                            ?balanceImpact, 
+                                            ?transactionId
                                         )
                                         """);
                             log.info("batch insert balance change data records");
@@ -84,12 +90,14 @@ public class BalanceChangeConnectionFactory {
                                     statement.bind("transactionId", transactionId);
                                 }
 
-                                if (ListIndex.isLast(i, datas.size()))
+                                if (ListIndex.isNotLast(i, records.size()))
                                     statement.add();
                             }
 
-                            log.info("BalanceChangeConnectionFactory statement execute");
-                            return Flux.from(statement.execute());
+
+                            return Flux.from(statement.execute())
+                                    .doOnNext(a ->
+                                            log.info("BalanceChangeConnectionFactory statement execute"));
                         }).then().thenReturn(chain.records())
                     );
 

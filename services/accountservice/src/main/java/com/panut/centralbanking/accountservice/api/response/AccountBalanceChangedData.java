@@ -17,10 +17,12 @@ public class AccountBalanceChangedData {
     private BigDecimal beforeBalance;
     private BigDecimal beforeReserve;
     private BigDecimal beforeLedger;
+    private BigDecimal beforeOverdrafted;
 
     private BigDecimal afterBalance;
     private BigDecimal afterReserve;
     private BigDecimal afterLedger;
+    private BigDecimal afterOverdrafted;
 
 
     @JsonIgnore
@@ -29,6 +31,7 @@ public class AccountBalanceChangedData {
         this.beforeBalance = accountBalance.getBalance();
         this.beforeReserve = accountBalance.getReserve();
         this.beforeLedger = accountBalance.getLedger();
+        this.beforeOverdrafted = accountBalance.getOverdrafted();
         return this;
     }
 
@@ -38,6 +41,7 @@ public class AccountBalanceChangedData {
         this.afterBalance = accountBalance.getBalance();
         this.afterReserve = accountBalance.getReserve();
         this.afterLedger = accountBalance.getLedger();
+        this.afterOverdrafted = accountBalance.getOverdrafted();
         return this;
     }
 }

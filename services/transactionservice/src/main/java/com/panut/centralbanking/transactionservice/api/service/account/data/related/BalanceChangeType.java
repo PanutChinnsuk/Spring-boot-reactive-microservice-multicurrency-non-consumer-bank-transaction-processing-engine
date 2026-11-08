@@ -2,5 +2,6 @@ package com.panut.centralbanking.transactionservice.api.service.account.data.rel
 
 public enum BalanceChangeType {
     BALANCE,
-    RESERVE
+    RESERVE,
+    OVERDRAFTED
 }

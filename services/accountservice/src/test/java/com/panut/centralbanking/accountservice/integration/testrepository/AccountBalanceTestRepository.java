@@ -19,9 +19,13 @@ public interface AccountBalanceTestRepository
     @Modifying
     @Query("""
             UPDATE account_balances ab SET ab.balance = :defaultTo, 
-            ab.reserve = 0, ab.ledger = :defaultTo
+            ab.reserve = 0, ab.ledger = :defaultTo, overdrafted = 0
             WHERE ab.id IN (:ids)
             """)
     Mono<Void> setDefaultBalance(@Param("defaultTo")BigDecimal defaultTo,
                                  @Param("ids") List<String> ids);
+
+
+
+
 }

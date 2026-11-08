@@ -12,6 +12,10 @@ public class VersionedUUIDStringEntity extends UUIDBasedStringEntity {
         return version;
     }
 
+    public Long getDefaultVersionValue() {
+        return 0L;
+    }
+
     public void setVersion(Long version) {
         this.version = version;
     }

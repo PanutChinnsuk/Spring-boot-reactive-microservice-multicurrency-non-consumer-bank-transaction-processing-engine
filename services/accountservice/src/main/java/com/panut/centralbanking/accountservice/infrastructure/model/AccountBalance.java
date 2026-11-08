@@ -30,6 +30,9 @@ public class AccountBalance extends VersionedUUIDStringEntity {
     @Column("ledger")
     private BigDecimal ledger;
 
+    @Column("overdrafted")
+    private BigDecimal overdrafted;
+
 
     @Builder
     public AccountBalance(String accountId,
@@ -49,9 +52,9 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         };
     }
 
-    private void createOverdraft(final BigDecimal amount,
+    private AccountOverdraftCreateData createOverdraft(final BigDecimal amount,
                                  final AccountBalanceChange change,
-                                 final Map<String, List<AccountOverdraftCreateData>>
+                                 final List<AccountOverdraftCreateData>
                                  possibleOverdrafts,
                                  final String accountId,
                                  final BalanceChangeType type) {
@@ -60,24 +63,19 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         BigDecimal overdrafted = amount.subtract(available);
         String transactionId = change.getTransactionId();
 
-        var overdraftList = possibleOverdrafts.computeIfAbsent(accountId,
-                id -> new ArrayList<>());
-
         var overdraftData = AccountOverdraftCreateData
                 .createDefault(accountId, overdrafted, transactionId);
-
-        overdraftList.add(overdraftData);
-
-        possibleOverdrafts.put(accountId, overdraftList);
-
+        addOverdraftedSimple(overdrafted);
 
         deductSimple(available, type);
+
+        return overdraftData;
     }
 
-    public Optional<Map<String,List<AccountOverdraftCreateData>>> orchest(final List<AccountBalanceChange> changes,
+    public List<AccountOverdraftCreateData> orchest(final List<AccountBalanceChange> changes,
                                                         final String accountId) {
-        Map<String,List<AccountOverdraftCreateData>> possibleOverdrafts
-                = new HashMap<>();
+        List<AccountOverdraftCreateData> possibleOverdrafts
+                = new ArrayList<>();
 
         changes.forEach(change -> {
             log.info("asc order account balance change orchest {}", change
@@ -85,7 +83,11 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
             var type = change.getBalanceChangeType();
             var amount = change.getAmount();
-            if (change.getBalanceImpact().equals(BalanceImpact.DEDUCT)) {
+            var isOverdraftCycle = type.equals(BalanceChangeType.OVERDRAFTED);
+            var isDeduct = change.getBalanceImpact().equals(BalanceImpact.DEDUCT);
+            var isAdd = change.getBalanceImpact().equals(BalanceImpact.ADD);
+
+            if (isDeduct && !isOverdraftCycle) {
                 boolean isBalanceType = type.equals(BalanceChangeType.BALANCE);
                 boolean isReserveType = type.equals(BalanceChangeType.RESERVE);
 
@@ -94,26 +96,35 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
 
                 if (isOverdrafted) {
-                   createOverdraft(amount, change, possibleOverdrafts,
+
+                   var overdraftData = createOverdraft(amount, change, possibleOverdrafts,
                            accountId, type);
+                   possibleOverdrafts.add(overdraftData);
+
+                    log.info("Account balance orchest, is overdrafted amount {}",
+                            overdraftData.getAmount());
                 }else {
                     deductSimple(amount, type);
                 }
 
             }
 
-            if (change.getBalanceImpact().equals(BalanceImpact.ADD)) {
+            //self reminder: seperate cycle in the future
+            if (isAdd && !isOverdraftCycle)
                 addSimple(amount, type);
-            }
+
+            if (isDeduct && isOverdraftCycle)
+                deductOverdraftedSimple(amount);
+
+            if (isAdd && isOverdraftCycle)
+                addOverdraftedSimple(amount);
 
         });
 
 
 
 
-        return possibleOverdrafts.isEmpty()
-                ? Optional.empty()
-                : Optional.of(possibleOverdrafts);
+        return possibleOverdrafts;
     }
 
     public Mono<AccountBalance> orchestMono(final List<AccountBalanceChange> changes,
@@ -126,6 +137,21 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         });
     }
 
+    public void addOverdraftedSimple(final BigDecimal amount) {
+        this.overdrafted = this.overdrafted.add(amount);
+        deductLedgerSimple(amount);
+    }
+
+    public void deductOverdraftedSimple(final BigDecimal amount) {
+        this.overdrafted = this.overdrafted.subtract(amount);
+
+
+        if (this.overdrafted.signum() < 0)
+            throw new IllegalStateException("Account balance's overdrafted amount can't " +
+                    "be negative.");
+
+        addLedgerSimple(amount);
+    }
 
     public void addLedgerSimple(final BigDecimal amount) {
         this.ledger = this.ledger.add(amount);
@@ -137,23 +163,25 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
     public void addSimple(final BigDecimal amount,
                                     final BalanceChangeType type) {
-        if (type == BalanceChangeType.BALANCE) this.balance = this.balance.add(amount);
-        if (type == BalanceChangeType.RESERVE) this.reserve = this.reserve.add(amount);
+        preventModifyingOverdrafted(type);
+
+        if (type.equals(BalanceChangeType.BALANCE)) this.balance = this.balance.add(amount);
+        if (type.equals(BalanceChangeType.RESERVE)) this.reserve = this.reserve.add(amount);
         addLedgerSimple(amount);
 
-        forcePreventNegative();
+
+        preventNegative();
     }
 
     public void deductSimple(final BigDecimal amount,
                           final BalanceChangeType type) {
-        if (type == BalanceChangeType.BALANCE) this.balance = this.balance.subtract(amount);
-        if (type == BalanceChangeType.RESERVE) this.reserve = this.reserve.subtract(amount);
+        preventModifyingOverdrafted(type);
 
-
-
+        if (type.equals(BalanceChangeType.BALANCE)) this.balance = this.balance.subtract(amount);
+        if (type.equals(BalanceChangeType.RESERVE)) this.reserve = this.reserve.subtract(amount);
         deductLedgerSimple(amount);
 
-        forcePreventNegative();
+        preventNegative();
     }
 
     public Mono<AccountBalance> add(final BigDecimal amount,
@@ -204,11 +232,16 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         return this.reserve.compareTo(amount) >= 0;
     }
 
-    private void forcePreventNegative() {
+    private void preventNegative() {
         if (this.balance.signum() < 0)
             throw new IllegalStateException("Account balance can't be negative.");
         if (this.reserve.signum() < 0)
             throw new IllegalStateException("Account reserve can't be negative.");
+    }
+
+    private void preventModifyingOverdrafted(final BalanceChangeType type) {
+        if (type.equals(BalanceChangeType.OVERDRAFTED))
+            throw new SystemMisused("Modifying overdraft can't be use in this operation.");
     }
 
 }
