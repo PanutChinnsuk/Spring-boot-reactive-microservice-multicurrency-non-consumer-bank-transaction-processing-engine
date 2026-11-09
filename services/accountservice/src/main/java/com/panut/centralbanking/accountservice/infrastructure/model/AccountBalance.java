@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Table("account_balances")
@@ -127,15 +127,42 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         return possibleOverdrafts;
     }
 
-    public Mono<AccountBalance> orchestMono(final List<AccountBalanceChange> changes,
-                                            final String accountId) {
+    public void orchestWithOverdraftContext(final List<AccountBalanceChange> fromWithOverdraftContext,
+                               final Map<String, AccountOverdraft> overdraftMap,
+                               final String accountId) {
+        fromWithOverdraftContext.forEach(change -> {
+            var ctx = change.getOverdraftChangeContext();
+            AtomicReference<BigDecimal> clearingAmount = new AtomicReference<>(change.getAmount());
 
-        return Mono.defer(() -> {
-            orchest(changes, accountId);
 
-            return Mono.just(this);
+            ctx.getAccountOverdraftIds().forEach(overdraftId -> {
+                var overdraft = overdraftMap.get(overdraftId);
+                BigDecimal totalUnpaid = overdraft.getAmount()
+                        .subtract(overdraft.getPaid());
+                BigDecimal clearing = clearingAmount.get();
+                BigDecimal beforePaid = overdraft.getPaid();
+
+                if (clearing.compareTo(totalUnpaid) > 0) {
+                   clearingAmount.set(clearing.subtract(totalUnpaid));
+                   overdraft.paid(totalUnpaid);
+
+                }else {
+                    clearingAmount.set(clearing.subtract(clearing));
+                    overdraft.paid(clearing);
+                }
+
+                deductOverdraftedSimple(overdraft.getPaid().subtract(beforePaid));
+            });
+
+            BigDecimal overpaid = clearingAmount.get();
+            if (overpaid.signum() > 0)
+                addSimple(overpaid, BalanceChangeType.BALANCE);
+
         });
+
     }
+
+
 
     public void addOverdraftedSimple(final BigDecimal amount) {
         this.overdrafted = this.overdrafted.add(amount);
@@ -195,44 +222,7 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         preventNegative();
     }
 
-    public Mono<AccountBalance> add(final BigDecimal amount,
-                                    final BalanceChangeType type) {
-        return Mono.defer(() -> {
-            addSimple(amount, type);
-            return Mono.just(this);
-        });
-    }
 
-
-    public Mono<AccountBalance> deduct(final BigDecimal amount,
-                                       final BalanceChangeType type) {
-        return Mono.defer(() -> {
-            deductSimple(amount, type);
-            return Mono.just(this);
-        });
-    }
-
-
-    public Mono<AccountBalance> addLedger(final BigDecimal amount) {
-        return Mono.defer(() -> {
-            addLedgerSimple(amount);
-            return Mono.just(this);
-        });
-    }
-
-    public Mono<AccountBalance> deductLedger(final BigDecimal amount) {
-        return Mono.defer(() -> {
-            deductLedgerSimple(amount);
-            return Mono.just(this);
-        });
-    }
-
-
-    public boolean canSafeApply(final BigDecimal balance,
-                                final BigDecimal reserve) {
-        return canDeductBalance(balance) &&
-                canDeductReserve(reserve);
-    }
 
 
     private boolean canDeductBalance(final BigDecimal amount) {

@@ -125,7 +125,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
 
     @Test
     @Order(2)
-    public void shouldClearOverdrafted() {
+    public void shouldClearOverdraftedWithNoOverdraftChangeContext() {
         Assertions.assertNotNull(previousResult);
 
         BigDecimal clearingAmount = previousResult.getAfterOverdrafted();
@@ -150,7 +150,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
 
     @Test
     @Order(3)
-    public void shouldClearOverdraftedWithOverpaying() {
+    public void shouldClearOverdraftedWithOverpayingAndNoOverdraftChangeContext() {
         BigDecimal overdrafting = BigDecimal.ONE.setScale(digits);
         BigDecimal overpaying = BigDecimal.TEN.setScale(digits);
         accountBalanceTestRepository.setDefaultOverdraft(BigDecimal.ONE,

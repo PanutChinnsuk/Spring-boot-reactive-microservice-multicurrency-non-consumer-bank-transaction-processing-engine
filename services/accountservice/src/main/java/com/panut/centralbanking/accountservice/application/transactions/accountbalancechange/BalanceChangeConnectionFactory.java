@@ -37,7 +37,8 @@ public class BalanceChangeConnectionFactory {
                                 .balanceImpact(change.getBalanceImpact())
                                 .balanceChangeType(change.getBalanceChangeType())
                                 .transactionId(change.getTransactionId())
-                                .build()).toList())
+                                .build()
+                                .withOverdraftChangeContext(change.getOverdraftChangeContext())).toList())
                         .map(records ->
                                 new Chain(records))
                         .flatMap(chain ->  databaseClient.inConnectionMany(conn -> {

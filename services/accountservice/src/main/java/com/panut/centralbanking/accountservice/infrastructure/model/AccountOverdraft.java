@@ -53,7 +53,8 @@ public class AccountOverdraft extends VersionedUUIDStringEntity {
     public AccountOverdraft paid(final BigDecimal amount) {
         this.paid = this.paid.add(amount);
 
-
+        if (this.paid.compareTo(this.amount) >= 0)
+            this.accountOverdraftStatus = AccountOverdraftStatus.CLEARED;
 
         return this;
     }
