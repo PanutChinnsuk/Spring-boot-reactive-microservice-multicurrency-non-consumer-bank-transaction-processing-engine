@@ -8,6 +8,19 @@ public enum BalanceImpact {
     ADD(2),
     NOTHING(3);
 
+    public boolean add() {
+        return this == ADD;
+    }
+
+    public boolean deduct() {
+        return this == DEDUCT;
+    }
+
+    public boolean add_or_deduct() {
+        return add() || deduct();
+    }
+
+
     private int ascendingPriority;
 
     BalanceImpact(int ascendingPriority) {
