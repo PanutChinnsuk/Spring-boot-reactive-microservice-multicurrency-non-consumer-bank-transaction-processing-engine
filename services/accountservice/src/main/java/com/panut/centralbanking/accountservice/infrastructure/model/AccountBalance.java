@@ -130,35 +130,89 @@ public class AccountBalance extends VersionedUUIDStringEntity {
     public void orchestWithOverdraftContext(final List<AccountBalanceChange> fromWithOverdraftContext,
                                final Map<String, AccountOverdraft> overdraftMap,
                                final String accountId) {
-        fromWithOverdraftContext.forEach(change -> {
+        for (int balanceChangeIndex = 0;
+             balanceChangeIndex < fromWithOverdraftContext.size();
+             balanceChangeIndex++) {
+
+            var change = fromWithOverdraftContext.get(balanceChangeIndex);
+            if (!change.hasOverdraftChangeContext()) {
+                log.info("orchestWithOverdraftContext has no context");
+                deductOverdraftedSimple(change.getAmount());
+                continue;
+            }
+            log.info("orchestWithOverdraftContext has context");
+
+
             var ctx = change.getOverdraftChangeContext();
+            List<String> accountOverdraftIds = ctx.getAccountOverdraftIds();
             AtomicReference<BigDecimal> clearingAmount = new AtomicReference<>(change.getAmount());
+            log.info("orchestWithOverdraftContext clearing amount: {}",
+                    clearingAmount.get());
 
+            for (int accountOverdraftIndex = 0;
+                 accountOverdraftIndex < accountOverdraftIds.size();
+                 accountOverdraftIndex++) {
 
-            ctx.getAccountOverdraftIds().forEach(overdraftId -> {
+                String overdraftId = accountOverdraftIds.get(accountOverdraftIndex);
                 var overdraft = overdraftMap.get(overdraftId);
+                BigDecimal clearing = clearingAmount.get();
+
+                log.info("orchestWithOverdraftContext clearing amount: {}, on index: {}",
+                        clearing, accountOverdraftIndex);
+
+                if (clearing.signum() <= 0) {
+                    log.info("orchestWithOverdraftContext clearing amount is less " +
+                            "or equal zero, skipping the rest");
+                    continue;
+                }
+
+
+                if (overdraft == null) {
+                    clearingAmount.set(clearing.subtract(clearing));
+                    deductOverdraftedSimple(clearing);
+                    log.info("orchestWithOverdraftContext overdraft record is null, clearing amount: {}",
+                            clearingAmount.get());
+                    continue;
+                }
+
+
                 BigDecimal totalUnpaid = overdraft.getAmount()
                         .subtract(overdraft.getPaid());
-                BigDecimal clearing = clearingAmount.get();
                 BigDecimal beforePaid = overdraft.getPaid();
 
+                log.info("total unpaid: {}", totalUnpaid);
+                log.info("before paid: {}", beforePaid);
+
                 if (clearing.compareTo(totalUnpaid) > 0) {
-                   clearingAmount.set(clearing.subtract(totalUnpaid));
-                   overdraft.paid(totalUnpaid);
+                    clearingAmount.set(clearing.subtract(totalUnpaid));
+                    overdraft.paid(totalUnpaid);
+                    log.info("clearing is greater than total unpaid");
 
                 }else {
                     clearingAmount.set(clearing.subtract(clearing));
                     overdraft.paid(clearing);
+                    log.info("Clearing is lesser or equal to total unapid");
                 }
 
-                deductOverdraftedSimple(overdraft.getPaid().subtract(beforePaid));
-            });
+                BigDecimal totalPaid = overdraft.getPaid().subtract(beforePaid);
+                deductOverdraftedSimple(totalPaid);
+
+                log.info("total paid: {}", totalPaid);
+                log.info("after paid: {}", overdraft.getPaid());
+
+            }
+
 
             BigDecimal overpaid = clearingAmount.get();
-            if (overpaid.signum() > 0)
+            log.info("overpaid: {}", overpaid);
+            if (overpaid.signum() > 0) {
+                log.info("overpaid is greater than 0, refunded without calling deductOverdraftedSimple");
                 addSimple(overpaid, BalanceChangeType.BALANCE);
+            }
 
-        });
+
+        }
+
 
     }
 
@@ -170,6 +224,7 @@ public class AccountBalance extends VersionedUUIDStringEntity {
     }
 
     public void deductOverdraftedSimple(final BigDecimal amount) {
+        log.info("called deductOverdraftedSimple, due to no overdraft context");
         BigDecimal clearing = amount;
 
         if (amount.compareTo(this.overdrafted) > 0) {
