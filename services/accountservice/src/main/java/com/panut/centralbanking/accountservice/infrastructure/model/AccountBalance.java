@@ -143,14 +143,25 @@ public class AccountBalance extends VersionedUUIDStringEntity {
     }
 
     public void deductOverdraftedSimple(final BigDecimal amount) {
-        this.overdrafted = this.overdrafted.subtract(amount);
+        BigDecimal clearing = amount;
+
+        if (amount.compareTo(this.overdrafted) > 0) {
+
+            clearing = this.overdrafted;
+
+            BigDecimal refund = amount.subtract(overdrafted);
+            addSimple(refund, BalanceChangeType.BALANCE);
+
+            log.info("Overdraft deducting amount is greater than original, refunded, {}",
+                    refund);
+
+        }
+        log.info("final overdraft clearing amount, {}", clearing);
+
+        this.overdrafted = this.overdrafted.subtract(clearing);
 
 
-        if (this.overdrafted.signum() < 0)
-            throw new IllegalStateException("Account balance's overdrafted amount can't " +
-                    "be negative.");
-
-        addLedgerSimple(amount);
+        addLedgerSimple(clearing);
     }
 
     public void addLedgerSimple(final BigDecimal amount) {

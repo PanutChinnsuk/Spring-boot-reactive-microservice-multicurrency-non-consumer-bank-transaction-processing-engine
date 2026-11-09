@@ -26,6 +26,7 @@ CREATE TABLE `account_overdrafts` (
   `id` varchar(255) NOT NULL,
   `account_id` varchar(255) NOT NULL,
   `amount` decimal(19,4) NOT NULL,
+  `paid` decimal(19,4) NOT NULL,
   `status` varchar(45) NOT NULL,
   `overdrafted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `transaction_id` varchar(255) DEFAULT NULL,
@@ -57,4 +58,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-07 20:45:55
+-- Dump completed on 2026-11-09 17:44:21

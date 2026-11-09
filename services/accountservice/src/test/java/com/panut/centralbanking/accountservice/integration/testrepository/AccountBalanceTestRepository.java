@@ -25,6 +25,16 @@ public interface AccountBalanceTestRepository
     Mono<Void> setDefaultBalance(@Param("defaultTo")BigDecimal defaultTo,
                                  @Param("ids") List<String> ids);
 
+    @Modifying
+    @Query("""
+            UPDATE account_balances ab SET ab.balance = 0, 
+            ab.reserve = 0, ab.ledger = :ledgerAmount, overdrafted = :defaultTo
+            WHERE ab.id IN (:ids)
+            """)
+    Mono<Void> setDefaultOverdraft(@Param("defaultTo")BigDecimal defaultTo,
+                                   @Param("ledgerAmount")BigDecimal ledgerAmount,
+                                 @Param("ids") List<String> ids);
+
 
 
 

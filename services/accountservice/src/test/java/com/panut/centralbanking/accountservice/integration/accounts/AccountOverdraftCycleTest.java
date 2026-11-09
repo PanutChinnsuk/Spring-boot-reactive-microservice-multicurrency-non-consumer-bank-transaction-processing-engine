@@ -121,10 +121,13 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
         checkAccountBalance(result);
     }
 
+
+
     @Test
     @Order(2)
     public void shouldClearOverdrafted() {
         Assertions.assertNotNull(previousResult);
+
         BigDecimal clearingAmount = previousResult.getAfterOverdrafted();
 
 
@@ -144,4 +147,36 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
 
         checkAccountBalance(result);
     }
+
+    @Test
+    @Order(3)
+    public void shouldClearOverdraftedWithOverpaying() {
+        BigDecimal overdrafting = BigDecimal.ONE.setScale(digits);
+        BigDecimal overpaying = BigDecimal.TEN.setScale(digits);
+        accountBalanceTestRepository.setDefaultOverdraft(BigDecimal.ONE,
+               BigDecimal.ZERO.subtract(overdrafting),
+                List.of(accountId))
+                .block();
+
+
+
+
+        BigDecimal clearingAmount = overdrafting.add(overpaying);
+
+        var clearing = deductOverdraft(clearingAmount);
+
+        List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
+                balanceChangeService.bulk(clearing, true)
+                        .block()
+                        .getOptionalBody();
+        var result = resultList.getFirst();
+
+        Assertions.assertEquals(result.getAfterLedger(),
+                overpaying, "after ledger check refund");
+        Assertions.assertEquals(BigDecimal.ZERO.setScale(digits),
+                result.getAfterOverdrafted());
+
+        checkAccountBalance(result);
+    }
+
 }

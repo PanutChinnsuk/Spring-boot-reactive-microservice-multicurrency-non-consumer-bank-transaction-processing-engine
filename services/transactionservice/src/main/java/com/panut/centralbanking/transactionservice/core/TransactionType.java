@@ -5,6 +5,7 @@ public enum TransactionType {
     ASSET_EXPENSE,
     FX_TRANSFER,
     CLEARING,
+    OVERDRAFT_PAYMENT,
     INTERNAL;
 
 

@@ -21,6 +21,9 @@ public class AccountOverdraft extends VersionedUUIDStringEntity {
     @Column("amount")
     private BigDecimal amount;
 
+    @Column("paid")
+    private BigDecimal paid;
+
     @Column("status")
     private AccountOverdraftStatus accountOverdraftStatus;
 
@@ -40,9 +43,18 @@ public class AccountOverdraft extends VersionedUUIDStringEntity {
                             LocalDateTime overdraftedAt) {
         this.accountId = accountId;
         this.amount = amount;
+        this.paid = BigDecimal.ZERO;
         this.transactionId = transactionId;
         this.accountOverdraftStatus = AccountOverdraftStatus.UNPAID;
         this.overdraftedAt = overdraftedAt;
         setInsert();
+    }
+
+    public AccountOverdraft paid(final BigDecimal amount) {
+        this.paid = this.paid.add(amount);
+
+
+
+        return this;
     }
 }
