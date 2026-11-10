@@ -11,6 +11,7 @@ import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
+import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import org.junit.jupiter.api.*;
@@ -33,6 +34,9 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Autowired
     private AccountBalanceCleanUpRepository cleanRepo;
+
+    @Autowired
+    private AccountBalanceMatcher accountBalanceMatcher;
 
     private String account1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     private String account2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
@@ -88,6 +92,8 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         Assertions.assertEquals(balanceAdded, data.getAfterBalance());
         Assertions.assertEquals(data.getAfterLedger(), ledgerAdded);
 
+        accountBalanceMatcher.checkAccountBalance(data, account1);
+
     }
 
     @Test
@@ -120,6 +126,8 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         Assertions.assertEquals(reserveAdded, data.getAfterReserve());
         Assertions.assertEquals(data.getBeforeLedger(), data.getAfterLedger());
 
+        accountBalanceMatcher.checkAccountBalance(data, account1);
+
     }
 
     @Test
@@ -143,14 +151,17 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
                 result.getOptionalBody();
         Assertions.assertEquals(2, resultList.size());
-        AccountBalanceChangedData data = resultList.getFirst();
+
 
         BalanceChangeData deduct = single.get(0);
         BalanceChangeData deduct2 = single.get(1);
         BalanceChangeData add = single.get(2);
+
         AccountBalanceChangedData deductFrom = resultList
                 .stream().filter(a -> a.getAccountId()
                         .equals(account1)).toList().getFirst();
+
+
         AccountBalanceChangedData transferTo = resultList
                 .stream().filter(a -> a.getAccountId()
                         .equals(account2)).toList().getFirst();
@@ -169,7 +180,8 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
                 transferTo.getAfterBalance());
 
 
-
+        accountBalanceMatcher.checkAccountBalance(deductFrom, account1);
+        accountBalanceMatcher.checkAccountBalance(transferTo, account2);
     }
 
 

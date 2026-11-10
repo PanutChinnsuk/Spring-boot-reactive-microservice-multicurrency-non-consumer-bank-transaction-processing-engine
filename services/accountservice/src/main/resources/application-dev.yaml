@@ -50,7 +50,7 @@ logging:
 
     org:
      springframework:
-      r2dbc: DEBUG
+      r2dbc: ERROR
     com:
       panut:
         centralbanking:

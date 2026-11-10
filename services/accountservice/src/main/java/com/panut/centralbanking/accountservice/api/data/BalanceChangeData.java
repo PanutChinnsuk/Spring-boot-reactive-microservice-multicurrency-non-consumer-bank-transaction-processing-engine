@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.panut.centralbanking.accountservice.api.data.context.OverdraftChangeContext;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
+import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -54,6 +55,18 @@ public class BalanceChangeData {
         this.balanceImpact = balanceImpact;
         this.createdAt = createdAt;
         this.transactionId = transactionId;
+    }
+
+
+    @JsonIgnore
+    public BalanceChangeData withOverdraftChangeContext(final OverdraftChangeContext ctx) {
+        if (this.overdraftChangeContext != null)
+            throw new SystemMisused("BalanceChangeData OverdraftChangeContext can " +
+                    "only be set once.");
+
+        this.overdraftChangeContext = ctx;
+
+        return this;
     }
 
 

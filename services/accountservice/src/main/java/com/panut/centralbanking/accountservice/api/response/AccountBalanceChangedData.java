@@ -44,4 +44,14 @@ public class AccountBalanceChangedData {
         this.afterOverdrafted = accountBalance.getOverdrafted();
         return this;
     }
+
+    @JsonIgnore
+    public AccountBalanceChangedData combineAfter(final AccountBalanceChangedData data) {
+        this.afterBalance = this.afterBalance.add(data.getAfterBalance());
+        this.afterReserve = this.afterReserve.add(data.getAfterReserve());
+        this.afterLedger = this.afterLedger.add(data.getAfterLedger());
+        this.afterOverdrafted = this.afterOverdrafted.add(data.getAfterOverdrafted());
+
+        return this;
+    }
 }

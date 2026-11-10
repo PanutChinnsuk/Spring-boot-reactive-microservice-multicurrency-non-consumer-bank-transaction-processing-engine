@@ -9,6 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -33,7 +34,7 @@ public interface AccountBalanceTestRepository
             """)
     Mono<Void> setDefaultOverdraft(@Param("defaultTo")BigDecimal defaultTo,
                                    @Param("ledgerAmount")BigDecimal ledgerAmount,
-                                 @Param("ids") List<String> ids);
+                                 @Param("ids") Collection<String> ids);
 
 
 

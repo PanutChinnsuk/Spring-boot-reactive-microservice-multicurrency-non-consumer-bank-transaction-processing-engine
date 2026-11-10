@@ -234,6 +234,13 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                         result.possibleOverdrafts()))
                                 .then(overdraftConnectionFactory.batchUpdate(
                                         result.accountOverdrafts()
+                                                .stream().sorted(
+                                                        Comparator.comparing(
+                                                                a ->
+                                                                        a.getId()
+                                                        )
+                                                )
+                                                .toList()
                                 ))
                                 .thenReturn(result))
                 .map(result -> new CommonResult(

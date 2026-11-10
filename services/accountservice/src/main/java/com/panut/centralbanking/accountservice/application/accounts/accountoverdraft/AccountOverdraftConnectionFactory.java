@@ -107,36 +107,36 @@ public class AccountOverdraftConnectionFactory {
             if (accountOverdrafts.isEmpty())
                 return Flux.empty();
 
-
-
             return databaseClient.inConnectionMany(conn -> {
                 Statement statement = conn.createStatement("""
                         UPDATE account_overdrafts SET 
                             paid = ?paid,
                             status = ?status,
                             version = ?newVersion
-                        WHERE id = :?id
-                        AND version = ?currentVersion
+                        WHERE id = ?id AND
+                        version = ?currentVersion
                         """);
 
                 log.info("batch update balance overdraft records");
 
                 for (int i = 0; i < accountOverdrafts.size(); i++) {
                     AccountOverdraft overdraft = accountOverdrafts.get(i);
+
                     statement.bind("paid", overdraft.getPaid())
                             .bind("status", overdraft.getAccountOverdraftStatus())
-                            .bind("Version", overdraft.getNextVersion())
+                            .bind("newVersion", overdraft.getNextVersion())
                             .bind("id", overdraft.getId())
-                            .bind("version", overdraft.getVersion());
+                            .bind("currentVersion", overdraft.getVersion());
 
-                    log.info("overdraft account id {} added to update statement",
-                            overdraft.getAccountId());
+                    log.info("overdraft account id {}, id {} added to update statement",
+                            overdraft.getAccountId(), overdraft.getId());
 
                     if (ListIndex.isNotLast(i, accountOverdrafts.size()))
                         statement.add();
                 }
 
-                return Flux.from(statement.execute()).doOnNext(a ->
+                return Flux.from(statement.execute())
+                        .doOnNext(a ->
                         log.info("AccountOverdraftConnectionFactory batch update statement execute"));
             });
         }).then();

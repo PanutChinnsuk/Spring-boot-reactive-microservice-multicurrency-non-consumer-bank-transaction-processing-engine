@@ -8,6 +8,7 @@ import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountOverdraftRepository;
+import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountBalanceTestRepository;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountOverdraftTestRepository;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
@@ -36,6 +37,9 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
 
     @Autowired
     private AccountBalanceTestRepository accountBalanceTestRepository;
+
+    @Autowired
+    private AccountBalanceMatcher accountBalanceMatcher;
 
     private String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     private BigDecimal amount = BigDecimal.valueOf(77.65);
@@ -80,18 +84,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
                 List.of(accountId)).block();
     }
 
-    private void checkAccountBalance(AccountBalanceChangedData result) {
-        AccountBalance accountBalance = accountBalanceTestRepository
-                .findById(accountId).block();
 
-        Assertions.assertEquals(accountBalance.getBalance(),
-                result.getAfterBalance());
-        Assertions.assertEquals(accountBalance.getLedger(),
-                result.getAfterLedger());
-        Assertions.assertEquals(accountBalance.getOverdrafted(),
-                result.getAfterOverdrafted());
-
-    }
 
     @Test
     @Order(1)
@@ -102,6 +95,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
                 balanceChangeService.bulk(data, true)
                         .block()
                         .getOptionalBody();
+        Assertions.assertEquals(1, resultList.size());
         var result = resultList.getFirst();
 
         BigDecimal beforebalance = result.getBeforeBalance();
@@ -120,7 +114,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
 
         previousResult = result;
 
-        checkAccountBalance(result);
+        accountBalanceMatcher.checkAccountBalance(result, accountId);
     }
 
 
@@ -139,6 +133,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
                 balanceChangeService.bulk(clearing, true)
                         .block()
                         .getOptionalBody();
+        Assertions.assertEquals(1, resultList.size());
         var result = resultList.getFirst();
 
         Assertions.assertEquals(previousResult.getAfterLedger().add(clearingAmount),
@@ -147,7 +142,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
                 result.getAfterOverdrafted(),
                 "old overdrafted check new overdrafted");
 
-        checkAccountBalance(result);
+        accountBalanceMatcher.checkAccountBalance(result, accountId);
     }
 
     @Test
@@ -160,9 +155,6 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
                 List.of(accountId))
                 .block();
 
-
-
-
         BigDecimal clearingAmount = overdrafting.add(overpaying);
 
         var clearing = deductOverdraft(clearingAmount);
@@ -171,6 +163,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
                 balanceChangeService.bulk(clearing, true)
                         .block()
                         .getOptionalBody();
+        Assertions.assertEquals(1, resultList.size());
         var result = resultList.getFirst();
 
         Assertions.assertEquals(result.getAfterLedger(),
@@ -178,7 +171,7 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
         Assertions.assertEquals(BigDecimal.ZERO.setScale(digits),
                 result.getAfterOverdrafted());
 
-        checkAccountBalance(result);
+        accountBalanceMatcher.checkAccountBalance(result, accountId);
     }
 
 }

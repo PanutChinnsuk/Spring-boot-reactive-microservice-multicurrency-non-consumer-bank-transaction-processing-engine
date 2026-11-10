@@ -222,7 +222,7 @@ public class AccountBalance extends VersionedUUIDStringEntity {
             }else {
                 amount = clearing.subtract(clearing);
                 overdraft.paid(clearing);
-                log.info("clearing is lesser or equal to total unppid");
+                log.info("clearing is lesser or equal to total unpaid");
             }
 
             BigDecimal totalPaid = overdraft.getPaid().subtract(beforePaid);
