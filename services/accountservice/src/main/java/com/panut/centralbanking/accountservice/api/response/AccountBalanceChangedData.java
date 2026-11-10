@@ -1,12 +1,14 @@
 package com.panut.centralbanking.accountservice.api.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -24,6 +26,8 @@ public class AccountBalanceChangedData {
     private BigDecimal afterLedger;
     private BigDecimal afterOverdrafted;
 
+    private List<AccountOverdraftCreateData> overdraftedFromTransaction;
+
 
     @JsonIgnore
     public AccountBalanceChangedData before(final AccountBalance accountBalance) {
@@ -37,11 +41,13 @@ public class AccountBalanceChangedData {
 
 
     @JsonIgnore
-    public AccountBalanceChangedData after(final AccountBalance accountBalance) {
+    public AccountBalanceChangedData after(final AccountBalance accountBalance,
+                                           final List<AccountOverdraftCreateData> overdraftedFromTransaction) {
         this.afterBalance = accountBalance.getBalance();
         this.afterReserve = accountBalance.getReserve();
         this.afterLedger = accountBalance.getLedger();
         this.afterOverdrafted = accountBalance.getOverdrafted();
+        this.overdraftedFromTransaction = overdraftedFromTransaction;
         return this;
     }
 

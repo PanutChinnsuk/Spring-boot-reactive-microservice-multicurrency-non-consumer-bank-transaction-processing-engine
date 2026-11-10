@@ -176,7 +176,7 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
         var ctx = change.getOverdraftChangeContext();
         List<String> accountOverdraftIds = ctx.getAccountOverdraftIds();
-        log.info("deductOverdrafted accountOverdraftIds size, {}",
+        log.info("deductOverdrafted accountOverdraftIds elements, {}",
                 accountOverdraftIds);
 
 
@@ -199,10 +199,11 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
 
             if (overdraft == null) {
-                amount = clearing.subtract(clearing);
-                deductOverdraftedSimple(clearing);
                 log.info("deductOverdrafted overdraft record is null, clearing amount: {}",
                         amount);
+                amount = clearing.subtract(clearing);
+                deductOverdraftedSimple(clearing);
+
                 continue;
             }
 
@@ -235,8 +236,8 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
 
         BigDecimal overpaid = amount;
-        log.info("overpaid: {}", overpaid);
         if (overpaid.signum() > 0) {
+            log.info("overpaid: {}", overpaid);
             log.info("overpaid is greater than 0, refunded without calling deductOverdraftedSimple");
             addSimple(overpaid, BalanceChangeType.BALANCE);
         }
@@ -273,9 +274,6 @@ public class AccountBalance extends VersionedUUIDStringEntity {
             String overdraftId = accountOverdraftIds.get(accountOverdraftIndex);
             var overdraft = overdraftMap.get(overdraftId);
             BigDecimal adding = amount;
-            BigDecimal beforeAdding = overdraft.getPaid();
-
-            log.info("before adding: {}", beforeAdding);
             log.info("addOverdrafted amount: {}, on index: {}",
                     adding, accountOverdraftIndex);
 
@@ -294,10 +292,10 @@ public class AccountBalance extends VersionedUUIDStringEntity {
                 continue;
             }
 
-
+            BigDecimal beforeAdding = overdraft.getPaid();
             BigDecimal totalPaid = overdraft.getPaid();
             log.info("total paid: {}", totalPaid);
-
+            log.info("before adding: {}", beforeAdding);
 
             if (adding.compareTo(totalPaid) > 0) {
                 amount = adding.subtract(totalPaid);
@@ -320,8 +318,9 @@ public class AccountBalance extends VersionedUUIDStringEntity {
 
 
         BigDecimal leftover = amount;
-        log.info("leftover: {}", leftover);
+
         if (leftover.signum() > 0) {
+            log.info("leftover: {}", leftover);
             log.info("leftover is greater than 0, initing a new overdrafted");
 
            return AccountOverdraftCreateData.createDefault(

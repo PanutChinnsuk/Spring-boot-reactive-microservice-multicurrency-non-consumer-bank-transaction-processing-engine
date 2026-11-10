@@ -208,7 +208,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
 
                         if (requiredResult) {
-                            changeResult.after(accountBalance);
+                            changeResult.after(accountBalance, pendingOverdrafts);
                             optionalResult.add(changeResult);
                             log.debug("Added balance change result.");
                         }

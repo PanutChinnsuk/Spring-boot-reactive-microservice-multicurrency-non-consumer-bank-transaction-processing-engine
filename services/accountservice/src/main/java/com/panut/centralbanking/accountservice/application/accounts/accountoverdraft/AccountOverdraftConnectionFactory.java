@@ -38,6 +38,7 @@ public class AccountOverdraftConnectionFactory {
                             id,
                             account_id,
                             amount,
+                            paid,
                             status,
                             transaction_id,
                             version
@@ -46,6 +47,7 @@ public class AccountOverdraftConnectionFactory {
                             ?id,
                             ?accountId,
                             ?amount,
+                            ?paid,
                             ?status,
                             ?transactionId,
                             ?version
@@ -77,6 +79,7 @@ public class AccountOverdraftConnectionFactory {
 
                        statement.bind("id", overdraft.getId())
                                .bind("accountId", overdraft.getAccountId())
+                               .bind("paid", overdraft.getPaid())
                                .bind("amount", overdraft.getAmount())
                                .bind("status", overdraft.getAccountOverdraftStatus())
                                .bind("version", overdraft.getDefaultVersionValue());
@@ -95,8 +98,10 @@ public class AccountOverdraftConnectionFactory {
                }
 
                return Flux.from(statement.execute())
+                       .flatMap(result
+                               -> Mono.from(result.getRowsUpdated()))
                        .doOnNext(a ->
-                               log.info("AccountOverdraftConnectionFactory batch insert statement execute"));
+                               log.info("AccountOverdraftConnectionFactory batch insert statement execute, {}", a));
            });
         }).then();
     }
@@ -136,8 +141,11 @@ public class AccountOverdraftConnectionFactory {
                 }
 
                 return Flux.from(statement.execute())
+                        .flatMap(result
+                                -> Mono.from(result.getRowsUpdated()))
                         .doOnNext(a ->
-                        log.info("AccountOverdraftConnectionFactory batch update statement execute"));
+                        log.info("AccountOverdraftConnectionFactory batch update statement execute, {}",
+                                a));
             });
         }).then();
 

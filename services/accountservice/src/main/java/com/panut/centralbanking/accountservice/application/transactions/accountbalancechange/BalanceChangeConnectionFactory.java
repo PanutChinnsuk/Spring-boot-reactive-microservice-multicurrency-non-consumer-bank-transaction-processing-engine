@@ -75,8 +75,11 @@ public class BalanceChangeConnectionFactory {
 
 
                             return Flux.from(statement.execute())
+                                    .flatMap(result
+                                            -> Mono.from(result.getRowsUpdated()))
                                     .doOnNext(a ->
-                                            log.info("BalanceChangeConnectionFactory statement execute"));
+                                            log.info("BalanceChangeConnectionFactory statement execute {}",
+                                                    a));
                         }).then().thenReturn(records)
                     );
 
