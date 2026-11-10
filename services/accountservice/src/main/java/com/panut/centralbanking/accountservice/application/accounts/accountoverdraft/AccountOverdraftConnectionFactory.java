@@ -103,36 +103,44 @@ public class AccountOverdraftConnectionFactory {
 
 
     public Mono<Void> batchUpdate(final List<AccountOverdraft> accountOverdrafts) {
-        return databaseClient.inConnectionMany(conn -> {
-            Statement statement = conn.createStatement("""
-                    UPDATE account_overdrafts SET 
-                        paid = ?paid,
-                        status = ?status,
-                        version = ?newVersion
-                    WHERE id = :?id
-                    AND version = ?currentVersion
-                    """);
+        return Flux.defer(() -> {
+            if (accountOverdrafts.isEmpty())
+                return Flux.empty();
 
-            log.info("batch update balance overdraft records");
 
-            for (int i = 0; i < accountOverdrafts.size(); i++) {
-                AccountOverdraft overdraft = accountOverdrafts.get(i);
-                statement.bind("paid", overdraft.getPaid())
-                        .bind("status", overdraft.getAccountOverdraftStatus())
-                        .bind("Version", overdraft.getNextVersion())
-                        .bind("id", overdraft.getId())
-                        .bind("version", overdraft.getVersion());
 
-                log.info("overdraft account id {} added to update statement",
-                        overdraft.getAccountId());
+            return databaseClient.inConnectionMany(conn -> {
+                Statement statement = conn.createStatement("""
+                        UPDATE account_overdrafts SET 
+                            paid = ?paid,
+                            status = ?status,
+                            version = ?newVersion
+                        WHERE id = :?id
+                        AND version = ?currentVersion
+                        """);
 
-                if (ListIndex.isNotLast(i, accountOverdrafts.size()))
-                    statement.add();
-            }
+                log.info("batch update balance overdraft records");
 
-            return Flux.from(statement.execute()).doOnNext(a ->
-                    log.info("AccountOverdraftConnectionFactory batch update statement execute"));
+                for (int i = 0; i < accountOverdrafts.size(); i++) {
+                    AccountOverdraft overdraft = accountOverdrafts.get(i);
+                    statement.bind("paid", overdraft.getPaid())
+                            .bind("status", overdraft.getAccountOverdraftStatus())
+                            .bind("Version", overdraft.getNextVersion())
+                            .bind("id", overdraft.getId())
+                            .bind("version", overdraft.getVersion());
+
+                    log.info("overdraft account id {} added to update statement",
+                            overdraft.getAccountId());
+
+                    if (ListIndex.isNotLast(i, accountOverdrafts.size()))
+                        statement.add();
+                }
+
+                return Flux.from(statement.execute()).doOnNext(a ->
+                        log.info("AccountOverdraftConnectionFactory batch update statement execute"));
+            });
         }).then();
+
     }
 }
 

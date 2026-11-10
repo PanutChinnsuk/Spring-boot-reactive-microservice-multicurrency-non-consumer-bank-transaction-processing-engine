@@ -232,6 +232,9 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                         connectionFactory.batchUpdate(result.accountBalances())
                                 .then(overdraftConnectionFactory.batchInsert(
                                         result.possibleOverdrafts()))
+                                .then(overdraftConnectionFactory.batchUpdate(
+                                        result.accountOverdrafts()
+                                ))
                                 .thenReturn(result))
                 .map(result -> new CommonResult(
                         "Successfully applied balance changes",
