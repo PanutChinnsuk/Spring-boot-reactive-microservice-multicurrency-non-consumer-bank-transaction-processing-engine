@@ -37,7 +37,7 @@ public class AccountBalanceQuery {
               .map(list -> {
 
                   return list.stream().
-                          collect(Collectors.toMap(AccountBalance::getId,
+                          collect(Collectors.toMap(AccountBalance::getAccountId,
                                   Function.identity()));
               });
     }

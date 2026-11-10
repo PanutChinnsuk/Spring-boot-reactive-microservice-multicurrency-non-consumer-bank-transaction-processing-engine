@@ -1,8 +1,8 @@
 package com.panut.centralbanking.accountservice.application.accounts.accountoverdraft;
 
 import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
-import com.panut.centralbanking.accountservice.application.ListIndex;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
+import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +71,7 @@ public class AccountOverdraftConnectionFactory {
 
                for (int i = 0; i < overdrafts.size(); i++) {
                    AccountOverdraft overdraft = overdrafts.get(i);
-                   log.info("overdraft account id {} added to statement",
+                   log.info("overdraft account id {} added to insert statement",
                            overdraft.getAccountId());
 
 
@@ -96,8 +96,42 @@ public class AccountOverdraftConnectionFactory {
 
                return Flux.from(statement.execute())
                        .doOnNext(a ->
-                               log.info("AccountOverdraftConnectionFactory statement execute"));
+                               log.info("AccountOverdraftConnectionFactory batch insert statement execute"));
            });
+        }).then();
+    }
+
+
+    public Mono<Void> batchUpdate(final List<AccountOverdraft> accountOverdrafts) {
+        return databaseClient.inConnectionMany(conn -> {
+            Statement statement = conn.createStatement("""
+                    UPDATE account_overdrafts SET 
+                        paid = ?paid,
+                        status = ?status,
+                        version = ?newVersion
+                    WHERE id = :?id
+                    AND version = ?currentVersion
+                    """);
+
+            log.info("batch update balance overdraft records");
+
+            for (int i = 0; i < accountOverdrafts.size(); i++) {
+                AccountOverdraft overdraft = accountOverdrafts.get(i);
+                statement.bind("paid", overdraft.getPaid())
+                        .bind("status", overdraft.getAccountOverdraftStatus())
+                        .bind("Version", overdraft.getNextVersion())
+                        .bind("id", overdraft.getId())
+                        .bind("version", overdraft.getVersion());
+
+                log.info("overdraft account id {} added to update statement",
+                        overdraft.getAccountId());
+
+                if (ListIndex.isNotLast(i, accountOverdrafts.size()))
+                    statement.add();
+            }
+
+            return Flux.from(statement.execute()).doOnNext(a ->
+                    log.info("AccountOverdraftConnectionFactory batch update statement execute"));
         }).then();
     }
 }

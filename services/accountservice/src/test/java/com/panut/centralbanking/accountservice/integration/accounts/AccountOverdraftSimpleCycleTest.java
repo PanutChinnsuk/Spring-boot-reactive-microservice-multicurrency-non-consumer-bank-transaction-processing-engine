@@ -20,7 +20,7 @@ import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AccountOverdraftCycleTest implements IntegrationDevTest {
+public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
     @Autowired
     private AccountBalanceCleanUpRepository cleanRepo;
 

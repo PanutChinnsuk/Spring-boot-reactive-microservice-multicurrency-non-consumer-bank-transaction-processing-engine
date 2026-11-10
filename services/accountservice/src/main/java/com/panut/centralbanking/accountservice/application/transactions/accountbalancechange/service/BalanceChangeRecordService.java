@@ -26,27 +26,9 @@ public class BalanceChangeRecordService {
     }
 
 
-    public Mono<Map<String,List<AccountBalanceChange>>> create(final List<BalanceChangeData> datas) {
+    public Mono<List<AccountBalanceChange>> create(final List<AccountBalanceChange> records) {
         return Mono.defer(() -> {
-                    return connectionFactory.batchInsert(datas);
-                })
-                .map(list -> {
-                    log.info("mapping unsorted account balance change records " +
-                            "into map<accountId, List<AccountBalanceChange>>");
-                    Map<String, List<AccountBalanceChange>> map = new HashMap<>();
-
-                    list.forEach(record -> {
-                        List<AccountBalanceChange> currentList = map
-                                .computeIfAbsent(record.getAccountId(),
-                                        id -> new ArrayList<>());
-
-                        currentList.add(record);
-
-                    });
-                    log.info("after mapped unsorted, map size: {}",
-                            map.size());
-
-                    return map;
+                    return connectionFactory.batchInsert(records);
                 })
                 .doOnSuccess(a -> log.info("Created " +
                         "account balance adding records."))

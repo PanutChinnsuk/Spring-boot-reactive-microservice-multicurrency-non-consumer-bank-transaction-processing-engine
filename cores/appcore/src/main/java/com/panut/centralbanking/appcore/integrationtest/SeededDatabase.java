@@ -15,4 +15,7 @@ public class SeededDatabase {
     public static final String ID_PENDING_TRANSACTION_1 = "TEST";
     public static final String ID_PENDING_TRANSACTION_2 = "TEST2";
     public static final String ID_EMPTY_PENDING_AUTHORIZE_TRANSACTION_1 = "TEST_EMPTY";
+
+    public static final String ID_ACCOUNT_OVERDRAFT_RECORD_WITH_NO_TRANSACTION_1 = "TEST";
+    public static final String ID_ACCOUNT_OVERDRAFT_RECORD_WITH_NO_TRANSACTION_2 = "TEST2";
 }

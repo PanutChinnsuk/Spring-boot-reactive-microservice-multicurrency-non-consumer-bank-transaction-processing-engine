@@ -12,6 +12,10 @@ public class VersionedUUIDStringEntity extends UUIDBasedStringEntity {
         return version;
     }
 
+    public Long getNextVersion() {
+        return version + 1;
+    }
+
     public Long getDefaultVersionValue() {
         return 0L;
     }

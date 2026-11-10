@@ -1,8 +1,7 @@
 package com.panut.centralbanking.accountservice.application.transactions.accountbalancechange;
 
-import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
-import com.panut.centralbanking.accountservice.application.ListIndex;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
+import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-record Chain(List<AccountBalanceChange> records) {}
+
 
 @Component
 @Slf4j
@@ -27,21 +26,10 @@ public class BalanceChangeConnectionFactory {
         this.connectionFactory = connectionFactory;
     }
 
-    public Mono<List<AccountBalanceChange>> batchInsert(final List<BalanceChangeData> datas) {
-        return Mono.just(datas
-                .stream().map(change ->
-                        AccountBalanceChange.builder()
-                                .accountId(change.getAccountId())
-                                .changedAt(change.getCreatedAt())
-                                .amount(change.getAmount())
-                                .balanceImpact(change.getBalanceImpact())
-                                .balanceChangeType(change.getBalanceChangeType())
-                                .transactionId(change.getTransactionId())
-                                .build()
-                                .withOverdraftChangeContext(change.getOverdraftChangeContext())).toList())
-                        .map(records ->
-                                new Chain(records))
-                        .flatMap(chain ->  databaseClient.inConnectionMany(conn -> {
+    public Mono<List<AccountBalanceChange>> batchInsert(final List<AccountBalanceChange> record) {
+        return Mono.just(record)
+                         .flatMap(records ->
+                                 databaseClient.inConnectionMany(conn -> {
                             Statement statement = conn.createStatement("""
                                         INSERT INTO account_balance_changes (
                                             id, account_id,
@@ -61,16 +49,6 @@ public class BalanceChangeConnectionFactory {
                                         """);
                             log.info("batch insert balance change data records");
 
-                            List<AccountBalanceChange> records = datas
-                                    .stream().map(change ->
-                                            AccountBalanceChange.builder()
-                                                    .accountId(change.getAccountId())
-                                                    .changedAt(change.getCreatedAt())
-                                                    .amount(change.getAmount())
-                                                    .balanceImpact(change.getBalanceImpact())
-                                                    .balanceChangeType(change.getBalanceChangeType())
-                                                    .transactionId(change.getTransactionId())
-                                                    .build()).toList();
                             log.info("turn plain balance change data into records");
 
                             for (int i = 0; i < records.size(); i++) {
@@ -99,7 +77,7 @@ public class BalanceChangeConnectionFactory {
                             return Flux.from(statement.execute())
                                     .doOnNext(a ->
                                             log.info("BalanceChangeConnectionFactory statement execute"));
-                        }).then().thenReturn(chain.records())
+                        }).then().thenReturn(records)
                     );
 
     }

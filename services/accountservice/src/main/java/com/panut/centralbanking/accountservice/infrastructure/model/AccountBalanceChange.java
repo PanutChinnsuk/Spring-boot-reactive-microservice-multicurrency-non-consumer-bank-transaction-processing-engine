@@ -61,7 +61,8 @@ public class AccountBalanceChange extends UUIDBasedStringEntity {
 
 
     public boolean hasOverdraftChangeContext() {
-        return this.overdraftChangeContext != null;
+        return this.overdraftChangeContext != null &&
+                !this.overdraftChangeContext.getAccountOverdraftIds().isEmpty();
     }
 
 

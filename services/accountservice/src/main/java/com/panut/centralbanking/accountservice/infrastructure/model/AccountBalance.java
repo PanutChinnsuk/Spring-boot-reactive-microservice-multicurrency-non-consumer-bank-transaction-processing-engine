@@ -39,8 +39,13 @@ public class AccountBalance extends VersionedUUIDStringEntity {
                           BigDecimal balance) {
         this.balance = balance;
         this.reserve = BigDecimal.ZERO;
+        this.overdrafted = BigDecimal.ZERO;
         this.ledger = balance.add(reserve);
         setInsert(accountId);
+    }
+
+    public String getAccountId() {
+        return getId();
     }
 
     public BigDecimal getAvailableFromType(final BalanceChangeType type) {
@@ -127,202 +132,206 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         return possibleOverdrafts;
     }
 
-    public void deductOverdrafted(final List<AccountBalanceChange> fromWithOverdraftContext,
+    public List<AccountOverdraftCreateData> orchestWithOverdraftContext(final List<AccountBalanceChange> fromWithOverdraftContext,
+                                  final Map<String, AccountOverdraft> overdraftMap,
+                                  final String accountId) {
+        List<AccountOverdraftCreateData> possibleRollbackOverdrafts =
+                new ArrayList<>();
+
+        fromWithOverdraftContext.forEach(record -> {
+            if (record.getBalanceImpact().add()) {
+                var possibleRollback = addOverdrafted(record, overdraftMap, accountId);
+
+                if (possibleRollback != null) {
+                    possibleRollbackOverdrafts.add(possibleRollback);
+                }
+            }
+
+
+            if (record.getBalanceImpact().deduct())
+                deductOverdrafted(record, overdraftMap, accountId);
+        });
+
+        return possibleRollbackOverdrafts;
+
+    }
+
+    public void deductOverdrafted(final AccountBalanceChange change,
                                final Map<String, AccountOverdraft> overdraftMap,
                                final String accountId) {
-        for (int balanceChangeIndex = 0;
-             balanceChangeIndex < fromWithOverdraftContext.size();
-             balanceChangeIndex++) {
 
-            var change = fromWithOverdraftContext.get(balanceChangeIndex);
-
-
-            AtomicReference<BigDecimal> amount = new AtomicReference<>(change.getAmount());
-            log.info("deductOverdrafted amount: {}",
-                    amount.get());
+        BigDecimal amount = change.getAmount();
+        log.info("deductOverdrafted amount: {}",
+                amount);
 
 
-            if (!change.hasOverdraftChangeContext()) {
-                log.info("deductOverdrafted has no context");
+        if (!change.hasOverdraftChangeContext()) {
+            log.info("deductOverdrafted has no context");
 
-                deductOverdraftedSimple(change.getAmount());
+            deductOverdraftedSimple(change.getAmount());
+            return;
+        }
+        log.info("deductOverdrafted has context");
+
+
+        var ctx = change.getOverdraftChangeContext();
+        List<String> accountOverdraftIds = ctx.getAccountOverdraftIds();
+        log.info("deductOverdrafted accountOverdraftIds size, {}",
+                accountOverdraftIds);
+
+
+        for (int accountOverdraftIndex = 0;
+             accountOverdraftIndex < accountOverdraftIds.size();
+             accountOverdraftIndex++) {
+
+            String overdraftId = accountOverdraftIds.get(accountOverdraftIndex);
+            var overdraft = overdraftMap.get(overdraftId);
+            BigDecimal clearing = amount;
+
+            log.info("deductOverdrafted amount: {}, on index: {}",
+                    clearing, accountOverdraftIndex);
+
+            if (clearing.signum() <= 0) {
+                log.info("deductOverdrafted amount is less " +
+                        "or equal zero, skipping the rest");
                 continue;
             }
-            log.info("deductOverdrafted has context");
 
 
-            var ctx = change.getOverdraftChangeContext();
-            List<String> accountOverdraftIds = ctx.getAccountOverdraftIds();
-            log.info("deductOverdrafted accountOverdraftIds size, {}",
-                    accountOverdraftIds);
-
-
-            for (int accountOverdraftIndex = 0;
-                 accountOverdraftIndex < accountOverdraftIds.size();
-                 accountOverdraftIndex++) {
-
-                String overdraftId = accountOverdraftIds.get(accountOverdraftIndex);
-                var overdraft = overdraftMap.get(overdraftId);
-                BigDecimal clearing = amount.get();
-
-                log.info("deductOverdrafted amount: {}, on index: {}",
-                        clearing, accountOverdraftIndex);
-
-                if (clearing.signum() <= 0) {
-                    log.info("deductOverdrafted amount is less " +
-                            "or equal zero, skipping the rest");
-                    continue;
-                }
-
-
-                if (overdraft == null) {
-                    amount.set(clearing.subtract(clearing));
-                    deductOverdraftedSimple(clearing);
-                    log.info("deductOverdrafted overdraft record is null, clearing amount: {}",
-                            amount.get());
-                    continue;
-                }
-
-
-                BigDecimal totalUnpaid = overdraft.getAmount()
-                        .subtract(overdraft.getPaid());
-                BigDecimal beforePaid = overdraft.getPaid();
-
-                log.info("total unpaid: {}", totalUnpaid);
-                log.info("before paid: {}", beforePaid);
-
-                if (clearing.compareTo(totalUnpaid) > 0) {
-                    amount.set(clearing.subtract(totalUnpaid));
-                    overdraft.paid(totalUnpaid);
-                    log.info("clearing is greater than total unpaid");
-
-                }else {
-                    amount.set(clearing.subtract(clearing));
-                    overdraft.paid(clearing);
-                    log.info("clearing is lesser or equal to total unppid");
-                }
-
-                BigDecimal totalPaid = overdraft.getPaid().subtract(beforePaid);
-                deductOverdraftedSimple(totalPaid);
-
-                log.info("total paid: {}", totalPaid);
-                log.info("after paid: {}", overdraft.getPaid());
-
+            if (overdraft == null) {
+                amount = clearing.subtract(clearing);
+                deductOverdraftedSimple(clearing);
+                log.info("deductOverdrafted overdraft record is null, clearing amount: {}",
+                        amount);
+                continue;
             }
 
 
-            BigDecimal overpaid = amount.get();
-            log.info("overpaid: {}", overpaid);
-            if (overpaid.signum() > 0) {
-                log.info("overpaid is greater than 0, refunded without calling deductOverdraftedSimple");
-                addSimple(overpaid, BalanceChangeType.BALANCE);
+            BigDecimal totalUnpaid = overdraft.getAmount()
+                    .subtract(overdraft.getPaid());
+            BigDecimal beforePaid = overdraft.getPaid();
+
+            log.info("total unpaid: {}", totalUnpaid);
+            log.info("before paid: {}", beforePaid);
+
+            if (clearing.compareTo(totalUnpaid) > 0) {
+                amount = clearing.subtract(totalUnpaid);
+                overdraft.paid(totalUnpaid);
+                log.info("clearing is greater than total unpaid");
+
+            }else {
+                amount = clearing.subtract(clearing);
+                overdraft.paid(clearing);
+                log.info("clearing is lesser or equal to total unppid");
             }
 
+            BigDecimal totalPaid = overdraft.getPaid().subtract(beforePaid);
+            deductOverdraftedSimple(totalPaid);
 
+            log.info("total paid: {}", totalPaid);
+            log.info("after paid: {}", overdraft.getPaid());
+
+        }
+
+
+        BigDecimal overpaid = amount;
+        log.info("overpaid: {}", overpaid);
+        if (overpaid.signum() > 0) {
+            log.info("overpaid is greater than 0, refunded without calling deductOverdraftedSimple");
+            addSimple(overpaid, BalanceChangeType.BALANCE);
         }
 
 
     }
 
-    public List<AccountOverdraftCreateData> addOverdrafted(final List<AccountBalanceChange> fromWithOverdraftContext,
+    public AccountOverdraftCreateData addOverdrafted(final AccountBalanceChange change,
                                 final Map<String, AccountOverdraft> overdraftMap,
                                 final String accountId) {
-        List<AccountOverdraftCreateData> possibleOverdrafts = new ArrayList<>();
 
-        for (int balanceChangeIndex = 0;
-             balanceChangeIndex < fromWithOverdraftContext.size();
-             balanceChangeIndex++) {
+        BigDecimal amount = change.getAmount();
+        log.info("addOverdrafted amount: {}", amount);
 
-            var change = fromWithOverdraftContext.get(balanceChangeIndex);
-            AtomicReference<BigDecimal> amount = new AtomicReference<>(change.getAmount());
-            log.info("addOverdrafted amount: {}",
-                    amount.get());
+        if (!change.hasOverdraftChangeContext()) {
+            log.info("addOverdrafted has no context");
 
-            if (!change.hasOverdraftChangeContext()) {
-                log.info("addOverdrafted has no context");
+            addOverdraftedSimple(change.getAmount());
+            return null;
+        }
+        log.info("addOverdrafted has context");
 
-                addOverdraftedSimple(change.getAmount());
+
+        var ctx = change.getOverdraftChangeContext();
+        List<String> accountOverdraftIds = ctx.getAccountOverdraftIds();
+        log.info("addOverdrafted accountOverdraftIds size, {}",
+                accountOverdraftIds);
+
+
+        for (int accountOverdraftIndex = 0;
+             accountOverdraftIndex < accountOverdraftIds.size();
+             accountOverdraftIndex++) {
+
+            String overdraftId = accountOverdraftIds.get(accountOverdraftIndex);
+            var overdraft = overdraftMap.get(overdraftId);
+            BigDecimal adding = amount;
+            BigDecimal beforeAdding = overdraft.getPaid();
+
+            log.info("before adding: {}", beforeAdding);
+            log.info("addOverdrafted amount: {}, on index: {}",
+                    adding, accountOverdraftIndex);
+
+            if (adding.signum() <= 0) {
+                log.info("adding amount is less " +
+                        "or equal zero, skipping the rest");
                 continue;
             }
-            log.info("addOverdrafted has context");
 
 
-            var ctx = change.getOverdraftChangeContext();
-            List<String> accountOverdraftIds = ctx.getAccountOverdraftIds();
-            log.info("addOverdrafted accountOverdraftIds size, {}",
-                    accountOverdraftIds);
-
-
-            for (int accountOverdraftIndex = 0;
-                 accountOverdraftIndex < accountOverdraftIds.size();
-                 accountOverdraftIndex++) {
-
-                String overdraftId = accountOverdraftIds.get(accountOverdraftIndex);
-                var overdraft = overdraftMap.get(overdraftId);
-                BigDecimal adding = amount.get();
-                BigDecimal beforeAdding = overdraft.getPaid();
-
-                log.info("before adding: {}", beforeAdding);
-                log.info("addOverdrafted amount: {}, on index: {}",
-                        adding, accountOverdraftIndex);
-
-                if (adding.signum() <= 0) {
-                    log.info("adding amount is less " +
-                            "or equal zero, skipping the rest");
-                    continue;
-                }
-
-
-                if (overdraft == null) {
-                    amount.set(adding.subtract(adding));
-                    addOverdraftedSimple(adding);
-                    log.info("addOverdrafted overdraft record is null, adding amount: {}",
-                            amount.get());
-                    continue;
-                }
-
-
-                BigDecimal totalPaid = overdraft.getPaid();
-                log.info("total paid: {}", totalPaid);
-
-
-                if (adding.compareTo(totalPaid) > 0) {
-                    amount.set(adding.subtract(totalPaid));
-                    overdraft.unpaid(totalPaid);
-                    log.info("adding is greater than total paid");
-
-                }else {
-                    amount.set(adding.subtract(adding));
-                    overdraft.unpaid(adding);
-                    log.info("adding is lesser or equal to total paid");
-                }
-
-                BigDecimal totalAdded = beforeAdding.subtract(overdraft.getPaid());
-                addOverdraftedSimple(totalAdded);
-
-                log.info("total added: {}", totalAdded);
-                log.info("after added: {}", overdraft.getPaid());
-
+            if (overdraft == null) {
+                amount = adding.subtract(adding);
+                addOverdraftedSimple(adding);
+                log.info("addOverdrafted overdraft record is null, adding amount: {}",
+                        amount);
+                continue;
             }
 
 
-            BigDecimal leftover = amount.get();
-            log.info("leftover: {}", leftover);
-            if (leftover.signum() > 0) {
-                log.info("leftover is greater than 0, initing a new overdrafted");
+            BigDecimal totalPaid = overdraft.getPaid();
+            log.info("total paid: {}", totalPaid);
 
-                possibleOverdrafts.add(AccountOverdraftCreateData.createDefault(
-                        accountId,
-                        leftover,
-                        change.getTransactionId()
-                ));
+
+            if (adding.compareTo(totalPaid) > 0) {
+                amount = adding.subtract(totalPaid);
+                overdraft.unpaid(totalPaid);
+                log.info("adding is greater than total paid");
+
+            }else {
+                amount = adding.subtract(adding);
+                overdraft.unpaid(adding);
+                log.info("adding is lesser or equal to total paid");
             }
+
+            BigDecimal totalAdded = beforeAdding.subtract(overdraft.getPaid());
+            addOverdraftedSimple(totalAdded);
+
+            log.info("total added: {}", totalAdded);
+            log.info("after added: {}", overdraft.getPaid());
 
         }
 
-        log.info("possibleOverdrafts list size. {}", possibleOverdrafts.size());
 
-        return possibleOverdrafts;
+        BigDecimal leftover = amount;
+        log.info("leftover: {}", leftover);
+        if (leftover.signum() > 0) {
+            log.info("leftover is greater than 0, initing a new overdrafted");
+
+           return AccountOverdraftCreateData.createDefault(
+                   accountId,
+                   leftover,
+                   change.getTransactionId()
+           );
+        }
+
+        return null;
     }
 
 

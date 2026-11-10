@@ -1,7 +1,7 @@
 package com.panut.centralbanking.accountservice.application.accounts.accountbalance;
 
-import com.panut.centralbanking.accountservice.application.ListIndex;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
+import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +44,14 @@ public class AccountBalanceConnectionFactory {
                    for (int i = 0; i < accountBalances.size(); i++) {
                        AccountBalance accountBalance = accountBalances.get(i);
 
+                       log.info("Account balance account id {} added to statement",
+                               accountBalance.getAccountId());
+
                        statement.bind("balance", accountBalance.getBalance())
                                .bind("reserve", accountBalance.getReserve())
                                .bind("ledger", accountBalance.getLedger())
                                .bind("overdrafted", accountBalance.getOverdrafted())
-                               .bind("newVersion", accountBalance.getVersion() + 1)
+                               .bind("newVersion", accountBalance.getNextVersion())
                                .bind("id", accountBalance.getId())
                                .bind("currentVersion", accountBalance.getVersion());
 

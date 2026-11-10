@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application;
+package com.panut.centralbanking.appcore.util;
 
 public class ListIndex {
 
