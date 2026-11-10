@@ -11,6 +11,7 @@ import com.panut.centralbanking.accountservice.infrastructure.repository.Account
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountBalanceTestRepository;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountOverdraftTestRepository;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,7 +69,8 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
     @AfterAll
     public void cleanUp() {
         cleanRepo.setBack(accountId);
-        overdraftTestRepository.deleteByAccountId(accountId).block();
+        overdraftTestRepository.deleteByAccountId(accountId,
+                SeededDatabaseIdFlag.TEST).block();
 
     }
 
