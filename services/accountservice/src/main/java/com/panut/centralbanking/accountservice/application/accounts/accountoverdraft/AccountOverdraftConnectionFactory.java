@@ -2,6 +2,7 @@ package com.panut.centralbanking.accountservice.application.accounts.accountover
 
 import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
+import com.panut.centralbanking.appR2dbccore.query.SqlAppender;
 import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
@@ -106,6 +107,87 @@ public class AccountOverdraftConnectionFactory {
         }).then();
     }
 
+    public Mono<Void> batchInsertMultirow(final List<AccountOverdraftCreateData> datas) {
+        return Flux.defer(() -> {
+            if (datas.isEmpty())
+                return Flux.empty();
+
+
+            return databaseClient.inConnection(conn -> {
+                List<AccountOverdraft> overdrafts =
+                        datas.stream()
+                                .map(data -> AccountOverdraft
+                                        .builder()
+                                        .transactionId(data.getTransactionId())
+                                        .accountId(data.getAccountId())
+                                        .amount(data.getAmount())
+                                        .overdraftedAt(data.getOverdraftedAt())
+                                        .build())
+                                .toList();
+                log.info("turn create datas into balance overdraft records");
+
+
+
+                StringBuilder sql = new StringBuilder("""
+                       INSERT INTO account_overdrafts (
+                            id,
+                            account_id,
+                            amount,
+                            paid,
+                            status,
+                            version,
+                            transaction_id
+                       )    
+                       VALUES 
+                       """);
+                String toAppend = "(?,?,?,?,?,?,?)";
+
+                log.info("batch insert balance overdraft records");
+
+                DatabaseClient.GenericExecuteSpec statement =
+                        databaseClient.sql(
+                                SqlAppender.multiRowInsert(overdrafts.size(),
+                                        sql,
+                                        toAppend)
+                        );
+
+
+                int bindIndex = 0;
+                for (int i = 0; i < overdrafts.size(); i++) {
+                    var overdraft = overdrafts.get(i);
+
+                    log.info("current statement overdraft id, {}", overdraft.getId());
+
+                    statement = statement.bind(bindIndex++, overdraft.getId())
+                            .bind(bindIndex++, overdraft.getAccountId())
+                            .bind(bindIndex++, overdraft.getAmount())
+                            .bind(bindIndex++, overdraft.getPaid())
+                            .bind(bindIndex++, overdraft.getAccountOverdraftStatus())
+                            .bind(bindIndex++, overdraft.getDefaultVersionValue());
+
+                    String transactionId = overdraft.getTransactionId();
+
+                    if (transactionId == null) {
+                        statement = statement.bindNull(bindIndex++, String.class);
+                    }else {
+                        statement = statement.bind(bindIndex++, toAppend);
+                    }
+
+
+                }
+
+
+
+
+
+
+                return statement.fetch().rowsUpdated()
+                        .doOnNext(a ->
+                                log.info("AccountOverdraftConnectionFactory batchInsertMultiRow, row: {}", a));
+            });
+        }).then();
+    }
+
 
     public Mono<Void> batchUpdate(final List<AccountOverdraft> accountOverdrafts) {
         return Flux.defer(() -> {
@@ -118,8 +200,7 @@ public class AccountOverdraftConnectionFactory {
                             paid = ?paid,
                             status = ?status,
                             version = ?newVersion
-                        WHERE id = ?id AND
-                        version = ?currentVersion
+                        WHERE id = ?id
                         """);
 
                 log.info("batch update balance overdraft records");
@@ -130,8 +211,7 @@ public class AccountOverdraftConnectionFactory {
                     statement.bind("paid", overdraft.getPaid())
                             .bind("status", overdraft.getAccountOverdraftStatus())
                             .bind("newVersion", overdraft.getNextVersion())
-                            .bind("id", overdraft.getId())
-                            .bind("currentVersion", overdraft.getVersion());
+                            .bind("id", overdraft.getId());
 
                     log.info("overdraft account id {}, id {} added to update statement",
                             overdraft.getAccountId(), overdraft.getId());

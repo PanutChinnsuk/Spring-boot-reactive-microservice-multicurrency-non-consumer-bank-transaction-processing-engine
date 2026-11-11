@@ -1,6 +1,8 @@
 package com.panut.centralbanking.accountservice.application.accounts.accountbalance;
 
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
+import com.panut.centralbanking.appR2dbccore.query.SqlAppender;
+import com.panut.centralbanking.appR2dbccore.query.SqlAppenderResult;
 import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
@@ -37,7 +39,6 @@ public class AccountBalanceConnectionFactory {
                            overdrafted = ?overdrafted,
                            version = ?newVersion
                        WHERE id = ?id
-                       AND version = ?currentVersion
                        """);
 
 
@@ -52,8 +53,7 @@ public class AccountBalanceConnectionFactory {
                                .bind("ledger", accountBalance.getLedger())
                                .bind("overdrafted", accountBalance.getOverdrafted())
                                .bind("newVersion", accountBalance.getNextVersion())
-                               .bind("id", accountBalance.getId())
-                               .bind("currentVersion", accountBalance.getVersion());
+                               .bind("id", accountBalance.getId());
 
                        if (ListIndex.isNotLast(i, accountBalances.size()))
                            statement.add();
@@ -73,6 +73,165 @@ public class AccountBalanceConnectionFactory {
                .then();
 
 
+    }
+
+
+    public Mono<Void> batchUpdateMultirow(final List<AccountBalance> accountBalances) {
+        return databaseClient.inConnection(conn -> {
+            int size = accountBalances.size();
+                    var head = new StringBuilder("""
+                       UPDATE account_balances 
+                       SET 
+                       """);
+
+                    var balance = new StringBuilder("""
+                            balance = CASE id
+                            """);
+                    var reserve = new StringBuilder("""
+                            reserve = CASE id
+                            """);
+                    var ledger = new StringBuilder("""
+                            ledger = CASE id
+                            """);
+                    var overdraft = new StringBuilder("""
+                            overdrafted = CASE id
+                            """);
+                    var version = new StringBuilder("""
+                            version = CASE id
+                            """);
+
+                    var afterBalance = SqlAppender.Update
+                            .appendCondition(size, head,
+                                    balance,
+                                    "balance",
+                                    true);
+
+                    var afterReserve = SqlAppender.Update
+                            .appendCondition(size, afterBalance,
+                                    reserve,
+                                    "reserve",
+                                    true);
+
+                    var afterLedger = SqlAppender.Update
+                            .appendCondition(size, afterReserve,
+                                    ledger,
+                                    "ledger",
+                                    true);
+
+                    var afterOverdraft = SqlAppender.Update
+                            .appendCondition(size, afterLedger,
+                                    overdraft,
+                                    "overdrafted",
+                                    true);
+
+                    var afterVersion = SqlAppender.Update
+                            .appendCondition(size, afterOverdraft,
+                                    version,
+                                    "version",
+                                    false);
+
+
+                    var ended = SqlAppender.Update
+                            .endWithWHERE_FIELD_IN(size,
+                                    afterVersion, "id");
+
+
+
+                    DatabaseClient.GenericExecuteSpec statement =
+                            databaseClient.sql(ended);
+
+                    var statementResult = initConditionMultirowUpdate(statement, accountBalances);
+
+                    int bindingIndex = statementResult.incrementedBindingIndex();
+                    statement = statementResult.modifiedExecuteSpec();
+
+
+                    var endedResult = SqlAppender
+                            .Update
+                            .endBinding(bindingIndex,
+                                    statement,
+                                    accountBalances,
+                                    AccountBalance::getId);
+                    statement = endedResult.modifiedExecuteSpec();
+
+
+                    return statement.fetch().rowsUpdated()
+                            .doOnNext(a ->
+                                    log.info("AccountBalanceConnectionFactory batchUpdateMultirow, row: {}",
+                                            a));
+                })
+                .then();
+
+
+    }
+
+    private SqlAppenderResult initConditionMultirowUpdate(final DatabaseClient.GenericExecuteSpec any,
+                                                          final List<AccountBalance> accountBalances) {
+        int bindingIndex = 0;
+        var thisStatement = any;
+
+        var balance = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId,
+                        AccountBalance::getBalance);
+        bindingIndex = balance.incrementedBindingIndex();
+        thisStatement = balance.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR BALANCE");
+
+        var reserve = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId,
+                        AccountBalance::getReserve);
+        bindingIndex = reserve.incrementedBindingIndex();
+        thisStatement = reserve.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR RESERVE");
+
+        var ledger = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId,
+                        AccountBalance::getLedger);
+        bindingIndex = ledger.incrementedBindingIndex();
+        thisStatement = ledger.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR LEDGER");
+
+        var overdrafted = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId,
+                        AccountBalance::getOverdrafted);
+        bindingIndex = overdrafted.incrementedBindingIndex();
+        thisStatement = overdrafted.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR OVERDRAFTED");
+
+        var version = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId,
+                        AccountBalance::getNextVersion);
+        bindingIndex = version.incrementedBindingIndex();
+        thisStatement = version.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR VERSION");
+
+
+        return new SqlAppenderResult(bindingIndex, thisStatement);
     }
 
 }

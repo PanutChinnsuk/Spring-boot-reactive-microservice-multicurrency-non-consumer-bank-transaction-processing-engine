@@ -229,8 +229,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                 })
                 .doOnNext(a -> log.info("Applied (unsaved) balance changes."))
                 .flatMap(result ->
-                        connectionFactory.batchUpdate(result.accountBalances())
-                                .then(overdraftConnectionFactory.batchInsert(
+                        connectionFactory.batchUpdateMultirow(result.accountBalances())
+                                .then(overdraftConnectionFactory.batchInsertMultirow(
                                         result.possibleOverdrafts()))
                                 .then(overdraftConnectionFactory.batchUpdate(
                                         result.accountOverdrafts()

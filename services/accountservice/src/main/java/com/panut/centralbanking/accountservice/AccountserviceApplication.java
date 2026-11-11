@@ -31,6 +31,31 @@ public class AccountserviceApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
+			var sql = new StringBuilder("""
+                       UPDATE account_balances 
+                       SET 
+                       """);
+
+
+
+			int size = 10;
+			var balance = new StringBuilder("""
+                            balance = CASE id
+                            """);
+
+			for (int i = 0; i < size; i++) {
+				balance.append("WHEN ? THEN ? \n");
+
+				if (!ListIndex.isNotLast(i, size)) {
+					balance.append("END");
+				}
+			}
+			sql.append(balance);
+
+
+
+			System.out.println(sql.toString());
+
 
 
 

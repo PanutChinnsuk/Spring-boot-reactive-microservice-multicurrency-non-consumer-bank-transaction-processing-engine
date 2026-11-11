@@ -1,7 +1,16 @@
 package com.panut.centralbanking.appR2dbccore.query;
 
+import com.panut.centralbanking.appR2dbccore.data.SingleReturnFunction;
 import com.panut.centralbanking.appcore.util.ListIndex;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.r2dbc.core.DatabaseClient;
+
+import java.util.List;
+import java.util.function.Function;
+
+
+
 
 @Slf4j
 public class SqlAppender {
@@ -37,4 +46,103 @@ public class SqlAppender {
 
         return building.toString();
     }
+
+    public static class Update {
+
+        public static <T,C,V,V2> SqlAppenderResult bindStatement(final int currentBindingIndex,
+                                                   DatabaseClient.GenericExecuteSpec statement,
+                                              final List<T> entityList,
+                                                final Function<T,V> bindConditionValueFunction,
+                                                final Function<T,V2> bindValueFunction) {
+
+            log.info("starting bindStatement");
+
+            int bindingIndex = currentBindingIndex;
+            for (int i = 0; i < entityList.size(); i++) {
+                T entity = entityList.get(i);
+                V conditionValue = bindConditionValueFunction.apply(entity);
+                V2 bindValue = bindValueFunction.apply(entity);
+
+                log.info("current binding index {}, conditon {}, value {}",
+                        bindingIndex, conditionValue, bindValue);
+
+                statement = statement.bind(bindingIndex++, conditionValue);
+                statement = statement.bind(bindingIndex++, bindValue);
+            }
+
+
+            return new SqlAppenderResult(bindingIndex, statement);
+        }
+
+        public static <T,C,V> SqlAppenderResult endBinding(final int currentBindingIndex,
+                                                   DatabaseClient.GenericExecuteSpec statement,
+                                                   final List<T> entityList,
+                                                   final Function<T,V> bindValueFunction) {
+
+            log.info("starting bindStatement");
+
+            int bindingIndex = currentBindingIndex;
+            for (int i = 0; i < entityList.size(); i++) {
+                T entity = entityList.get(i);
+                V bindValue = bindValueFunction.apply(entity);
+
+                log.info("current binding index {}, value {}",
+                        bindingIndex, bindValue);
+
+                statement = statement.bind(bindingIndex++, bindValue);
+            }
+
+
+            return new SqlAppenderResult(bindingIndex, statement);
+        }
+
+        public static StringBuilder appendCondition(int elementSize,
+                                                        final StringBuilder fromSql,
+                                                        final StringBuilder updatingField,
+                                                        final String defaultToField,
+                                                        final boolean addingNextField) {
+            var sql = fromSql;
+            var field = updatingField;
+
+            for (int i = 0; i < elementSize; i++) {
+                field.append("WHEN ? THEN ? \n");
+
+                if (!ListIndex.isNotLast(i, elementSize)) {
+                    String end = addingNextField
+                            ? " END, \n"
+                            : " END \n";
+
+                    field.append("ELSE " + defaultToField + end);
+                }
+            }
+
+            StringBuilder after = sql.append(field);
+            log.info("appendCondition -> {}", after.toString());
+            return after;
+        }
+
+        public static String endWithWHERE_FIELD_IN(int elementSize,
+                                                    final StringBuilder fromSql,
+                                                    final String field) {
+            var sql = fromSql;
+            sql.append("\n WHERE " + field + " IN (");
+
+            for (int i = 0; i < elementSize; i++) {
+
+
+                if (ListIndex.isNotLast(i, elementSize)) {
+                    sql.append("?,");
+                }else {
+                    sql.append("?)");
+                }
+            }
+
+
+            String finalized = sql.toString();
+            log.info("endWithWHERE_FIELD_IN -> {}", finalized);
+            return finalized;
+        }
+    }
+
+
 }
