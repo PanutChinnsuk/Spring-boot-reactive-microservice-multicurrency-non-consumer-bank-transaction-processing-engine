@@ -33,8 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-record Result(List<AccountBalance> accountBalances,
-              List<AccountOverdraft> accountOverdrafts,
+record Result(Map<String, AccountBalance> accountBalances,
+              Chain chain,
               List<AccountBalanceChangedData> optional,
               List<AccountOverdraftCreateData> possibleOverdrafts) {}
 
@@ -45,6 +45,7 @@ class Chain {
     private Map<String, AccountOverdraft> overdraftMap;
     private Map<String, List<AccountBalanceChange>> withOverdraftContext = new HashMap<>();
     private Map<String, List<AccountBalanceChange>> plain = new HashMap<>();
+    private Map<String, List<String>> eventIdsPerAccountId = new HashMap<>();
     private List<String> accountOverdraftIdsFromContexts = new ArrayList<>();
     private Set<String> accountIds = new HashSet<>();
 
@@ -71,8 +72,7 @@ class Chain {
 
 
 
-    public Mono<Chain> put
-            (final List<AccountBalanceChange> all) {
+    public Mono<Chain> put(final List<AccountBalanceChange> all) {
         return Mono.defer(() -> {
             log.info("mapping unsorted account balance change records " +
                     "into map<accountId, List<AccountBalanceChange>> maps");
@@ -97,12 +97,17 @@ class Chain {
                             record);
                     log.info("to plain");
                 }
+                MapListSorter.sortMapList(eventIdsPerAccountId,
+                        key,
+                        record.getEventId());
             });
 
             log.info("after mapped unsorted, withOverdraftContext size: {}",
                     withOverdraftContext.size());
             log.info("after mapped unsorted, plain size: {}",
                     plain.size());
+            log.info("after mapped unsorted, eventIdsPerAccountId size: {}",
+                    eventIdsPerAccountId.size());
 
             return Mono.just(this);
         });
@@ -166,6 +171,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                     List<AccountBalanceChangedData> optionalResult = new ArrayList<>();
                     List<AccountOverdraftCreateData> pendingOverdrafts = new ArrayList<>();
 
+
                     accountBalances.keySet().forEach(accountId -> {
                         AccountBalanceChangedData changeResult = null;
                         AccountBalance accountBalance = accountBalances
@@ -219,30 +225,60 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
 
 
-                    return new Result(accountBalances.values().
-                            stream().toList(),
-                            chain.getOverdraftMap().values()
-                                    .stream().toList(),
+                    return new Result(accountBalances,
+                            chain,
                             optionalResult,
                             pendingOverdrafts);
 
                 })
-                .doOnNext(a -> log.info("Applied (unsaved) balance changes."))
+                .doOnNext(a -> log.info("Applying balance changes."))
                 .flatMap(result ->
-                        connectionFactory.batchUpdateMultirow(result.accountBalances())
+                        connectionFactory.batchUpdateMultirow(result.accountBalances()
+                                        .values().stream().toList())
+                                .doOnNext(a -> log.info("batch update account balance"))
                                 .then(overdraftConnectionFactory.batchInsertMultirow(
                                         result.possibleOverdrafts()))
+                                .doOnNext(a -> log.info("batch insert possible overdrafts"))
                                 .then(overdraftConnectionFactory.batchUpdate(
-                                        result.accountOverdrafts()
-                                                .stream().sorted(
-                                                        Comparator.comparing(
-                                                                a ->
-                                                                        a.getId()
-                                                        )
-                                                )
-                                                .toList()
+                                        result.chain().getOverdraftMap().values()
+                                                .stream().toList()
                                 ))
+                                .doOnNext(a -> log.info("batch update possible overdraft changes"))
                                 .thenReturn(result))
+                .flatMap(result -> accountBalanceQuery
+                        .getTransactionAccountBalances(result.chain()
+                                .getAccountIds())
+                        .map(postUpdated -> {
+                            log.info("making sure account balance is updated");
+                            var fromChain = result.chain();
+                            List<String> clearedEventIds = new ArrayList<>();
+                            Map<String, List<String>> myEvents =
+                                    fromChain.getEventIdsPerAccountId();
+                            Map<String, AccountBalance> changedButPreUpdate =
+                                    result.accountBalances();
+
+                            changedButPreUpdate.forEach((key, old) -> {
+                                AccountBalance updated = postUpdated.get(key);
+                                List<String> events = myEvents.get(key);
+
+                                if (updated != null
+                                        && events != null
+                                        && !events.isEmpty()) {
+                                    if (old.comparedNew(updated)) {
+                                        clearedEventIds
+                                                .addAll(events);
+                                    }
+                                }
+                            });
+
+                            log.info("Total events cleared: {}",
+                                    clearedEventIds.size());
+
+
+                            return result;
+                        })
+
+                )
                 .map(result -> new CommonResult(
                         "Successfully applied balance changes",
                         result.optional()
@@ -286,6 +322,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                 .transactionId(data.getTransactionId())
                                 .build()
                                 .withOverdraftChangeContext(data.getOverdraftChangeContext())
+                                .withEventId(data.getEventId())
                 ).toList();
     }
 

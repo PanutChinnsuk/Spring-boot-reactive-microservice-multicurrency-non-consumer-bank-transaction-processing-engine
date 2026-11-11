@@ -28,4 +28,11 @@ public interface AccountBalanceRepository
             """)
     Flux<AccountBalance> findTransactionAccountBalances
             (@Param("accountIds") Collection<String> accountIds);
+
+    @Query("""
+            SELECT ab.* FROM account_balances ab
+            WHERE ab.id IN (:accountIds)
+            """)
+    Flux<AccountBalance> getTransactionAccountBalances
+            (@Param("accountIds") Collection<String> accountIds);
 }

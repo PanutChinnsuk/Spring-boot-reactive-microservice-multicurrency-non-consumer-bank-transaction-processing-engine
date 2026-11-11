@@ -3,6 +3,8 @@ package com.panut.centralbanking.appcore.integrationtest;
 public class SeededDatabase {
     public static final int DATABASE_DECIMAL_DIGITS = 4;
 
+    public static final String ID_ACCOUNT_BALANCE_CHANGE_EVENT_PLACEHOLDER = "TEST";
+
     public static final String ID_INVALID_1 = "T1";
     public static final String ID_INVALID_2 = "T2";
 

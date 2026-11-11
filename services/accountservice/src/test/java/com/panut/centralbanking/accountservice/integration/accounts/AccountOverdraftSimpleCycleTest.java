@@ -46,11 +46,14 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
     private BigDecimal availableBalance = BigDecimal.valueOf(42.05);
     private AccountBalanceChangedData previousResult;
     private int digits = SeededDatabase.DATABASE_DECIMAL_DIGITS;
+    private String balanceChangeEventId =
+            SeededDatabase.ID_ACCOUNT_BALANCE_CHANGE_EVENT_PLACEHOLDER;
 
 
     private List<BalanceChangeData> addOverdraft(BigDecimal amount) {
         return List.of(
-                new BalanceChangeData(accountId,
+                new BalanceChangeData(balanceChangeEventId,
+                        accountId,
                         amount,
                         BalanceChangeType.BALANCE,
                         BalanceImpact.DEDUCT,
@@ -61,7 +64,8 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
 
     private List<BalanceChangeData> deductOverdraft(BigDecimal amount) {
         return List.of(
-                new BalanceChangeData(accountId,
+                new BalanceChangeData(balanceChangeEventId,
+                        accountId,
                         amount,
                         BalanceChangeType.OVERDRAFTED,
                         BalanceImpact.DEDUCT,

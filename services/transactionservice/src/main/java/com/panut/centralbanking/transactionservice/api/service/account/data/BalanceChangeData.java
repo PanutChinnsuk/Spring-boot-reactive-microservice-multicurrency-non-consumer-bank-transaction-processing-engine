@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BalanceChangeData {
+    private String eventId;
     private String accountId;
     private BigDecimal amount;
     private BalanceChangeType balanceChangeType;
@@ -29,7 +30,8 @@ public class BalanceChangeData {
 
     @JsonIgnore
     public static BalanceChangeData eventToRequest(final BalanceChangeEvent event) {
-        return new BalanceChangeData(event.getAccountId(),
+        return new BalanceChangeData(event.getId(),
+                event.getAccountId(),
                 event.getAmount(),
                 event.getBalanceChangeType(),
                 event.getBalanceImpact(),

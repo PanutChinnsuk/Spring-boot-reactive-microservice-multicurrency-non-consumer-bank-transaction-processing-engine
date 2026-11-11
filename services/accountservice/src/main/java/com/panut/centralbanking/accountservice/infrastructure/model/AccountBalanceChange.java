@@ -59,10 +59,17 @@ public class AccountBalanceChange extends UUIDBasedStringEntity {
     @Transient
     private OverdraftChangeContext overdraftChangeContext;
 
+    @Transient
+    private String eventId;
+
 
     public boolean hasOverdraftChangeContext() {
         return this.overdraftChangeContext != null &&
                 !this.overdraftChangeContext.getAccountOverdraftIds().isEmpty();
+    }
+
+    public boolean hasEventId() {
+        return this.eventId != null;
     }
 
 
@@ -72,6 +79,17 @@ public class AccountBalanceChange extends UUIDBasedStringEntity {
                     "can only be passed once.");
 
         this.overdraftChangeContext = ctx;
+
+
+        return this;
+    }
+
+    public AccountBalanceChange withEventId(final String eventId) {
+        if (this.eventId != null)
+            throw new SystemMisused("AccountBalanceChange eventId " +
+                    "can only be passed once.");
+
+        this.eventId = eventId;
 
 
         return this;

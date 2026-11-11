@@ -44,6 +44,31 @@ public class AccountBalance extends VersionedUUIDStringEntity {
         setInsert(accountId);
     }
 
+    public boolean compare(final AccountBalance another) {
+        boolean balanceMatched = this.balance
+                .equals(another.getBalance());
+        boolean reserveMatched = this.reserve
+                .equals(another.getReserve());
+        boolean overdraftedMatched = this.overdrafted
+                .equals(another.getOverdrafted());
+        boolean ledgerMatched = this.ledger
+                .equals(another.getLedger());
+
+        return balanceMatched &&
+                reserveMatched &&
+                overdraftedMatched &&
+                ledgerMatched;
+    }
+
+    public boolean comparedNew(final AccountBalance another) {
+        boolean versionMatched = this.getNextVersion()
+                .equals(another.getVersion());
+
+
+        return compare(another) && versionMatched;
+
+    }
+
     public String getAccountId() {
         return getId();
     }

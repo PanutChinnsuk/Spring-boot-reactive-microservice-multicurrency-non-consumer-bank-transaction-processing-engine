@@ -21,6 +21,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BalanceChangeData {
     @NotBlank
+    private String eventId;
+
+    @NotBlank
     private String accountId;
 
     @NotNull
@@ -43,12 +46,14 @@ public class BalanceChangeData {
     private OverdraftChangeContext overdraftChangeContext;
 
 
-    public BalanceChangeData(String accountId,
+    public BalanceChangeData(String eventId,
+                             String accountId,
                              BigDecimal amount,
                              BalanceChangeType balanceChangeType,
                              BalanceImpact balanceImpact,
                              LocalDateTime createdAt,
                              String transactionId) {
+        this.eventId = eventId;
         this.accountId = accountId;
         this.amount = amount;
         this.balanceChangeType = balanceChangeType;

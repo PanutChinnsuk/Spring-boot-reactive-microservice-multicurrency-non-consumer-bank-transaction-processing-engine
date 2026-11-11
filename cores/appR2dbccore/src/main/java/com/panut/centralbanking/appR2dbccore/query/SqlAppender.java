@@ -50,10 +50,11 @@ public class SqlAppender {
     public static class Update {
 
         public static <T,C,V,V2> SqlAppenderResult bindStatement(final int currentBindingIndex,
-                                                   DatabaseClient.GenericExecuteSpec statement,
+                                                   final DatabaseClient.GenericExecuteSpec any,
                                               final List<T> entityList,
                                                 final Function<T,V> bindConditionValueFunction,
                                                 final Function<T,V2> bindValueFunction) {
+            DatabaseClient.GenericExecuteSpec statement = any;
 
             log.info("starting bindStatement");
 
@@ -75,10 +76,10 @@ public class SqlAppender {
         }
 
         public static <T,C,V> SqlAppenderResult endBinding(final int currentBindingIndex,
-                                                   DatabaseClient.GenericExecuteSpec statement,
+                                                   final DatabaseClient.GenericExecuteSpec any,
                                                    final List<T> entityList,
                                                    final Function<T,V> bindValueFunction) {
-
+            DatabaseClient.GenericExecuteSpec statement = any;
             log.info("starting bindStatement");
 
             int bindingIndex = currentBindingIndex;
@@ -121,7 +122,7 @@ public class SqlAppender {
             return after;
         }
 
-        public static String endWithWHERE_FIELD_IN(int elementSize,
+        public static StringBuilder endWithWHERE_FIELD_IN(int elementSize,
                                                     final StringBuilder fromSql,
                                                     final String field) {
             var sql = fromSql;
@@ -133,15 +134,17 @@ public class SqlAppender {
                 if (ListIndex.isNotLast(i, elementSize)) {
                     sql.append("?,");
                 }else {
-                    sql.append("?)");
+                    sql.append("?) \n");
                 }
             }
 
 
-            String finalized = sql.toString();
-            log.info("endWithWHERE_FIELD_IN -> {}", finalized);
-            return finalized;
+
+            log.info("endWithWHERE_FIELD_IN -> {}", sql.toString());
+            return sql;
         }
+
+
     }
 
 

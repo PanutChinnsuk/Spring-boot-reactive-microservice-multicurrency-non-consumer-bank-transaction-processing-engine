@@ -4,6 +4,7 @@ import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalan
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import com.panut.centralbanking.appcore.exceptions.NotFound;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
@@ -32,13 +33,25 @@ public class AccountBalanceQuery {
 
 
     public Mono<Map<String, AccountBalance>> findTransactionAccountBalances(final Collection<String> accountIds) {
-      return accountBalanceRepository.findTransactionAccountBalances(accountIds)
-              .collectList()
-              .map(list -> {
+      return queryTransactionAccountBalances(accountIds,
+              accountBalanceRepository::findTransactionAccountBalances);
+    }
 
-                  return list.stream().
-                          collect(Collectors.toMap(AccountBalance::getAccountId,
-                                  Function.identity()));
-              });
+    public Mono<Map<String, AccountBalance>> getTransactionAccountBalances(final Collection<String> accountIds) {
+        return queryTransactionAccountBalances(accountIds,
+                accountBalanceRepository::getTransactionAccountBalances);
+    }
+
+
+    private Mono<Map<String, AccountBalance>> queryTransactionAccountBalances
+            (final Collection<String> accountIds,
+             final Function<Collection<String>, Flux<AccountBalance>> queryFunc) {
+        return queryFunc.apply(accountIds)
+                .collectList()
+                .map(list -> {
+                    return list.stream().
+                            collect(Collectors.toMap(AccountBalance::getAccountId,
+                                    Function.identity()));
+                });
     }
 }

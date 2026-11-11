@@ -13,7 +13,7 @@ public interface BalanceChangeEventRepository
 
 
     @Query("""
-            SELECT e.account_id, e.amount, e.balance_change_type, e.balance_impact,
+            SELECT e.id AS event_id, e.account_id, e.amount, e.balance_change_type, e.balance_impact,
             e.created_at, e.transaction_id
             FROM transaction_balance_change_events e
             WHERE e.status = :eventStatus AND

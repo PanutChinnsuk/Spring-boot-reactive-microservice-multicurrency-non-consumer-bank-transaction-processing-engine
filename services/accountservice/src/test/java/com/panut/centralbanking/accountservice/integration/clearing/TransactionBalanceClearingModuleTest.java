@@ -47,17 +47,21 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
     @MockitoSpyBean
     private BalanceChangeServiceImpl balanceChangeService;
 
-    String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    private String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    private String balanceChangeEventId =
+            SeededDatabase.ID_ACCOUNT_BALANCE_CHANGE_EVENT_PLACEHOLDER;
 
     private Flux<BalanceChangeData> balanceChangeDataFlux(BigDecimal amount) {
         return Flux.just(
-                new BalanceChangeData(accountId,
+                new BalanceChangeData(balanceChangeEventId,
+                        accountId,
                         amount,
                         BalanceChangeType.BALANCE,
                         BalanceImpact.DEDUCT,
                         LocalDateTime.now(),
                         null),
-                new BalanceChangeData(accountId,
+                new BalanceChangeData(balanceChangeEventId,
+                        accountId,
                         amount,
                         BalanceChangeType.RESERVE,
                         BalanceImpact.ADD,
