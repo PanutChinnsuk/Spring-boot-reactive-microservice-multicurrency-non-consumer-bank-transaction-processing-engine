@@ -38,7 +38,8 @@ public class AccountBalanceConnectionFactory {
                            ledger = ?ledger,
                            overdrafted = ?overdrafted,
                            version = ?newVersion
-                       WHERE id = ?id
+                       WHERE id = ?id AND
+                       version = ?currentVersion
                        """);
 
 
@@ -53,7 +54,8 @@ public class AccountBalanceConnectionFactory {
                                .bind("ledger", accountBalance.getLedger())
                                .bind("overdrafted", accountBalance.getOverdrafted())
                                .bind("newVersion", accountBalance.getNextVersion())
-                               .bind("id", accountBalance.getId());
+                               .bind("id", accountBalance.getId())
+                               .bind("currentVersion", accountBalance.getVersion());
 
                        if (ListIndex.isNotLast(i, accountBalances.size()))
                            statement.add();
@@ -85,20 +87,23 @@ public class AccountBalanceConnectionFactory {
                        """);
 
                     var balance = new StringBuilder("""
-                            balance = CASE id
+                            balance = CASE id 
                             """);
                     var reserve = new StringBuilder("""
-                            reserve = CASE id
+                            reserve = CASE id 
                             """);
                     var ledger = new StringBuilder("""
-                            ledger = CASE id
+                            ledger = CASE id 
                             """);
                     var overdraft = new StringBuilder("""
-                            overdrafted = CASE id
+                            overdrafted = CASE id 
                             """);
                     var version = new StringBuilder("""
-                            version = CASE id
+                            version = CASE id 
                             """);
+                    var versionEndConditon = new StringBuilder("""
+                            AND version = CASE id
+                       """);
 
                     var afterBalance = SqlAppender.Update
                             .appendCondition(size, head,
@@ -131,28 +136,24 @@ public class AccountBalanceConnectionFactory {
                                     false);
 
 
-                    var ended = SqlAppender.Update
+                    var afterEnded = SqlAppender.Update
                             .endWithWHERE_FIELD_IN(size,
                                     afterVersion, "id");
+
+                    var afterCurrentVersion = SqlAppender.Update
+                            .appendCondition(size, afterEnded,
+                                    versionEndConditon,
+                                    "version",
+                                    false);
 
 
 
                     DatabaseClient.GenericExecuteSpec statement =
-                            databaseClient.sql(ended);
+                            databaseClient.sql(afterCurrentVersion.toString());
 
                     var statementResult = initConditionMultirowUpdate(statement, accountBalances);
-
-                    int bindingIndex = statementResult.incrementedBindingIndex();
                     statement = statementResult.modifiedExecuteSpec();
 
-
-                    var endedResult = SqlAppender
-                            .Update
-                            .endBinding(bindingIndex,
-                                    statement,
-                                    accountBalances,
-                                    AccountBalance::getId);
-                    statement = endedResult.modifiedExecuteSpec();
 
 
                     return statement.fetch().rowsUpdated()
@@ -229,6 +230,29 @@ public class AccountBalanceConnectionFactory {
         thisStatement = version.modifiedExecuteSpec();
 
         log.info("AFTER ADD MULTIROW CONDITION FOR VERSION");
+
+        var endedResult = SqlAppender
+                .Update
+                .endBinding(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId);
+        bindingIndex = endedResult.incrementedBindingIndex();
+        thisStatement = endedResult.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW UPDATE (WHERE) CONDITION FOR IN (ids)");
+
+        var versionEndCondition = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountBalances,
+                        AccountBalance::getId,
+                        AccountBalance::getVersion);
+        bindingIndex = versionEndCondition.incrementedBindingIndex();
+        thisStatement = versionEndCondition.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW UPDATE (WHERE) CONDITION VERSION IS CURRENT VERSION");
 
 
         return new SqlAppenderResult(bindingIndex, thisStatement);

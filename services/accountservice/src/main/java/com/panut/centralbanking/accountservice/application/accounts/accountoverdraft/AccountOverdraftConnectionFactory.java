@@ -200,7 +200,8 @@ public class AccountOverdraftConnectionFactory {
                             paid = ?paid,
                             status = ?status,
                             version = ?newVersion
-                        WHERE id = ?id
+                        WHERE id = ?id AND
+                        version = ?currentVersion
                         """);
 
                 log.info("batch update balance overdraft records");
@@ -211,7 +212,8 @@ public class AccountOverdraftConnectionFactory {
                     statement.bind("paid", overdraft.getPaid())
                             .bind("status", overdraft.getAccountOverdraftStatus())
                             .bind("newVersion", overdraft.getNextVersion())
-                            .bind("id", overdraft.getId());
+                            .bind("id", overdraft.getId())
+                            .bind("currentVersion", overdraft.getVersion());
 
                     log.info("overdraft account id {}, id {} added to update statement",
                             overdraft.getAccountId(), overdraft.getId());
