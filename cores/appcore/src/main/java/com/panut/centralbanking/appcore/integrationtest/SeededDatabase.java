@@ -3,6 +3,9 @@ package com.panut.centralbanking.appcore.integrationtest;
 public class SeededDatabase {
     public static final int DATABASE_DECIMAL_DIGITS = 4;
 
+    public static final String ID_INVALID_1 = "T1";
+    public static final String ID_INVALID_2 = "T2";
+
     public static final String ID_FX_RATE_USD_THB = "TEST";
     public static final String ID_CUSTOMER_1 = "TEST";
     public static final String ID_NORMAL_ACCOUNT_1 = "TEST";

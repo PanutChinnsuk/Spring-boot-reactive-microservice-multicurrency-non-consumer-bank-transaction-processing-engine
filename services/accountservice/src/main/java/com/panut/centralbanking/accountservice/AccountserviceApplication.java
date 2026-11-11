@@ -1,6 +1,7 @@
 package com.panut.centralbanking.accountservice;
 
 import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
+import com.panut.centralbanking.appcore.util.ListIndex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

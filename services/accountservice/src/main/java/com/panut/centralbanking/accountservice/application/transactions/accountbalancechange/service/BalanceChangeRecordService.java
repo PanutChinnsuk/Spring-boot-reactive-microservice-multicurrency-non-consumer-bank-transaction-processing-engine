@@ -28,7 +28,7 @@ public class BalanceChangeRecordService {
 
     public Mono<List<AccountBalanceChange>> create(final List<AccountBalanceChange> records) {
         return Mono.defer(() -> {
-                    return connectionFactory.batchInsert(records);
+                    return connectionFactory.batchInsertMultirow(records);
                 })
                 .doOnSuccess(a -> log.info("Created " +
                         "account balance adding records."))
