@@ -10,6 +10,8 @@ import com.panut.centralbanking.accountservice.application.accounts.accountbalan
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.AccountOverdraftConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.query.AccountOverdraftQuery;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.service.AccountOverdraftService;
+import com.panut.centralbanking.accountservice.application.events.balancechange.ProcessedBalanceChangeEventConnectionFactory;
+import com.panut.centralbanking.accountservice.application.events.balancechange.query.ProcessedBalanceChangeEventQuery;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
@@ -78,6 +80,7 @@ class Chain {
                     "into map<accountId, List<AccountBalanceChange>> maps");
 
             all.forEach(record -> {
+                var eventId = record.getEventId();
                 String key = record.getAccountId();
 
                 accountIds.add(key);
@@ -99,7 +102,7 @@ class Chain {
                 }
                 MapListSorter.sortMapList(eventIdsPerAccountId,
                         key,
-                        record.getEventId());
+                        eventId);
             });
 
             log.info("after mapped unsorted, withOverdraftContext size: {}",
@@ -140,23 +143,30 @@ class Chain {
 @Slf4j
 @Transactional(propagation = Propagation.REQUIRED)
 public class BalanceChangeServiceImpl implements BalanceChangeService {
-
     private final AccountBalanceQuery accountBalanceQuery;
     private final BalanceChangeRecordService recordService;
     private final AccountBalanceConnectionFactory connectionFactory;
     private final AccountOverdraftConnectionFactory overdraftConnectionFactory;
     private final AccountOverdraftQuery accountOverdraftQuery;
+    private final ProcessedBalanceChangeEventConnectionFactory
+    processedBalanceChangeEventConnectionFactory;
+    private final ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery;
+
 
     public BalanceChangeServiceImpl(AccountBalanceQuery accountBalanceQuery,
                                     BalanceChangeRecordService recordService,
                                     AccountBalanceConnectionFactory connectionFactory,
                                     AccountOverdraftConnectionFactory overdraftConnectionFactory,
-                                    AccountOverdraftQuery accountOverdraftQuery) {
+                                    AccountOverdraftQuery accountOverdraftQuery,
+                                    ProcessedBalanceChangeEventConnectionFactory processedBalanceChangeEventConnectionFactory,
+                                    ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery) {
         this.accountBalanceQuery = accountBalanceQuery;
         this.recordService = recordService;
         this.connectionFactory = connectionFactory;
         this.overdraftConnectionFactory = overdraftConnectionFactory;
         this.accountOverdraftQuery = accountOverdraftQuery;
+        this.processedBalanceChangeEventConnectionFactory = processedBalanceChangeEventConnectionFactory;
+        this.processedBalanceChangeEventQuery = processedBalanceChangeEventQuery;
     }
 
 
@@ -275,10 +285,16 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                     clearedEventIds.size());
 
 
-                            return result;
+                            return clearedEventIds;
                         })
+                        .doOnNext(a -> log.info("Adding processed balance change events."))
+                        .flatMap(clearedEventIds ->
+                                processedBalanceChangeEventConnectionFactory
+                                        .batchInsertMultirow(clearedEventIds))
+                        .thenReturn(result)
 
                 )
+
                 .map(result -> new CommonResult(
                         "Successfully applied balance changes",
                         result.optional()
@@ -295,22 +311,74 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     @Override
     public Mono<CommonResult> bulk(final List<BalanceChangeData> datas,
                                    final boolean requiredResult) {
-        return recordService.create(datasToRecords(datas))
-                .flatMap(addedRecords ->
-                        new Chain().put(addedRecords)
-                )
-                .flatMap(chain -> accountOverdraftQuery
-                        .findAccountOverdrafts(chain.getAccountOverdraftIdsFromContexts())
-                        .flatMap(chain::overdraftMap)
-                )
-                .flatMap(chain -> map(chain, requiredResult))
-                .doOnSuccess(a -> log.info("Successfully " +
-                        "applied balance change."))
-                .doOnError(error -> log.error("Failed to apply change to account balance, {}"
-                        , error.getLocalizedMessage()));
+        return excludeAlreadyProcessedEventIds(datas)
+                .flatMap(safeDatas -> {
+                    if (safeDatas.isEmpty()) {
+                        log.info("safeDatas is empty, skipping the entire bulk method");
+                        return Mono.empty();
+                    }
+
+
+                    return recordService.create(datasToRecords(datas))
+                            .flatMap(addedRecords ->
+                                    new Chain().put(addedRecords)
+                            )
+                            .flatMap(chain -> accountOverdraftQuery
+                                    .findAccountOverdrafts(chain.getAccountOverdraftIdsFromContexts())
+                                    .flatMap(chain::overdraftMap)
+                            )
+                            .flatMap(chain -> map(chain, requiredResult))
+                            .doOnSuccess(a -> log.info("Successfully " +
+                                    "applied balance change."))
+                            .doOnError(error -> log.error("Failed to apply change to account balance, {}"
+                                    , error.getLocalizedMessage()));
+                });
+
+
     }
 
-    private List<AccountBalanceChange> datasToRecords(final List<BalanceChangeData> datas) {
+    private Mono<List<BalanceChangeData>> excludeAlreadyProcessedEventIds(
+            final List<BalanceChangeData> datas) {
+        return Mono.defer(() -> {
+            List<String> eventIds = datas
+                    .stream()
+                    .map(BalanceChangeData::getEventId).toList();
+
+            return Mono.just(eventIds);
+        })
+                .flatMap(eventIds -> processedBalanceChangeEventQuery
+                        .getAlreadyProcessedEventIds(eventIds)
+                        .doOnNext(a ->
+                                log.info("after get already processed event ids"))
+                )
+                .map(processed -> {
+                    List<BalanceChangeData> checkedList = new ArrayList<>(datas);
+
+                    log.info("checkedList size: {}, before excluding already processed event ids",
+                            checkedList.size());
+                    for (int i = 0; i < checkedList.size(); i++) {
+                        var event = checkedList.get(i);
+                        var eventId = event.getEventId();
+
+                        if (processed.contains(eventId)) {
+                            log.info("event id, {} is already processed, removing from the list.",
+                                    event);
+                            checkedList.remove(i);
+                            --i;
+                        }
+
+                    }
+
+                    log.info("checkedList size: {}, after excluding already processed event ids",
+                            checkedList.size());
+
+                    return checkedList;
+                });
+
+    }
+
+
+        private List<AccountBalanceChange> datasToRecords(final List<BalanceChangeData> datas) {
         return datas.stream()
                 .map(data ->
                         AccountBalanceChange.builder()

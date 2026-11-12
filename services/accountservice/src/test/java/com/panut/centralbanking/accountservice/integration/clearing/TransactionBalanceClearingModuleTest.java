@@ -14,6 +14,7 @@ import com.panut.centralbanking.accountservice.infrastructure.repository.Account
 import com.panut.centralbanking.accountservice.integration.accounts.AccountBalanceCleanUpRepository;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.config.Task;
@@ -48,19 +49,18 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
     private BalanceChangeServiceImpl balanceChangeService;
 
     private String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
-    private String balanceChangeEventId =
-            SeededDatabase.ID_ACCOUNT_BALANCE_CHANGE_EVENT_PLACEHOLDER;
+
 
     private Flux<BalanceChangeData> balanceChangeDataFlux(BigDecimal amount) {
         return Flux.just(
-                new BalanceChangeData(balanceChangeEventId,
+                new BalanceChangeData(SeededDatabaseIdFlag.getTestRandomUUIDString(),
                         accountId,
                         amount,
                         BalanceChangeType.BALANCE,
                         BalanceImpact.DEDUCT,
                         LocalDateTime.now(),
                         null),
-                new BalanceChangeData(balanceChangeEventId,
+                new BalanceChangeData(SeededDatabaseIdFlag.getTestRandomUUIDString(),
                         accountId,
                         amount,
                         BalanceChangeType.RESERVE,

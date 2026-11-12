@@ -14,12 +14,14 @@ import com.panut.centralbanking.accountservice.infrastructure.repository.Account
 import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
@@ -41,6 +43,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
     private String account1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     private String account2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
 
+
     private List<String> accountIds = new ArrayList<>();
 
     private BalanceChangeData balanceChangeData(String accountId,
@@ -51,6 +54,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         data.setBalanceChangeType(BalanceChangeType.BALANCE);
         data.setAmount(amount);
         data.setBalanceImpact(balanceImpact);
+        data.setEventId(SeededDatabaseIdFlag.getTestRandomUUIDString());
 
         return data;
     }

@@ -37,8 +37,21 @@ public class TransactionBalanceClearingSchedulerModuleV1 {
                 .collectList()
                 .doOnNext(a -> log.info("{} : bulkPending to list",
                         name))
-                .map(this::process)
-                .doOnNext(a -> log.info("{} : after processed", name))
-                .then();
+                .flatMap(list -> {
+                    if (list.isEmpty()) {
+                        log.info("event list from transaction service to clear bulk in " +
+                                "TransactionBalanceClearingScheduleModulbeV1 is empty, " +
+                                "returning empty mono.");
+                        return Mono.empty();
+                    }
+
+
+
+                    return Mono.just(process(list))
+                            .doOnNext(a -> log.info("{} : after processed", name))
+                            .then();
+                });
+
+
     }
 }

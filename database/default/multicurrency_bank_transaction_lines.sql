@@ -36,7 +36,7 @@ CREATE TABLE `transaction_lines` (
   KEY `fk_transaction_lines_account_id_idx` (`account_id`),
   KEY `fk_transaction_lines_ledger_account_id_idx` (`ledger_account_id`),
   CONSTRAINT `fk_transaction_lines_account_id` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`),
-  CONSTRAINT `fk_transaction_lines_ledger_account_id` FOREIGN KEY (`ledger_account_id`) REFERENCES `ledger_accounts` (`id`),
+  CONSTRAINT `fk_transaction_lines_ledger_account_id` FOREIGN KEY (`ledger_account_id`) REFERENCES `transaction_ledger_accounts` (`id`),
   CONSTRAINT `fk_transaction_lines_transaction_id` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -60,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-10 19:06:00
+-- Dump completed on 2026-11-13  3:33:56

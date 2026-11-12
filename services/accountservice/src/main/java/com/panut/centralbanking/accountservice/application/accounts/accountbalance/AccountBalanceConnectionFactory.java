@@ -151,7 +151,7 @@ public class AccountBalanceConnectionFactory {
                     DatabaseClient.GenericExecuteSpec statement =
                             databaseClient.sql(afterCurrentVersion.toString());
 
-                    var statementResult = initConditionMultirowUpdate(statement, accountBalances);
+                    var statementResult = bindMultirowUpdateValue(statement, accountBalances);
                     statement = statementResult.modifiedExecuteSpec();
 
 
@@ -166,7 +166,7 @@ public class AccountBalanceConnectionFactory {
 
     }
 
-    private SqlAppenderResult initConditionMultirowUpdate(final DatabaseClient.GenericExecuteSpec any,
+    private SqlAppenderResult bindMultirowUpdateValue(final DatabaseClient.GenericExecuteSpec any,
                                                           final List<AccountBalance> accountBalances) {
         int bindingIndex = 0;
         var thisStatement = any;

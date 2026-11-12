@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("ledger_accounts")
+@Table("transaction_ledger_accounts")
 @Getter
 @NoArgsConstructor
 public class LedgerAccount extends UUIDBasedStringEntity {

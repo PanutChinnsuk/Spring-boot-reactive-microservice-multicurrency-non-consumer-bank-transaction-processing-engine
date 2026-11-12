@@ -1,8 +1,10 @@
 package com.panut.centralbanking.accountservice.application.accounts.accountoverdraft;
 
 import com.panut.centralbanking.accountservice.api.data.AccountOverdraftCreateData;
+import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.appR2dbccore.query.SqlAppender;
+import com.panut.centralbanking.appR2dbccore.query.SqlAppenderResult;
 import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
@@ -231,6 +233,140 @@ public class AccountOverdraftConnectionFactory {
             });
         }).then();
 
+    }
+
+    public Mono<Void> batchUpdateMultirow(final List<AccountOverdraft> accountOverdrafts) {
+        return databaseClient.inConnection(conn -> {
+            if (accountOverdrafts.isEmpty())
+                return Mono.empty();
+
+            int size = accountOverdrafts.size();
+            var head = new StringBuilder("""
+                        UPDATE account_overdrafts 
+                        SET 
+                        """);
+
+            var paid = new StringBuilder("""
+                        paid = CASE id
+                        """);
+
+            var status = new StringBuilder("""
+                        status = CASE id
+                        """);
+
+            var version = new StringBuilder("""
+                        version = CASE id
+                        """);
+
+            var endVersionCondition = new StringBuilder("""
+                        AND version = CASE id
+                        """);
+
+            var afterPaid = SqlAppender
+                    .Update
+                    .appendCondition(size, head,
+                            paid, "paid", true);
+
+            var afterStatus = SqlAppender
+                    .Update
+                    .appendCondition(size, afterPaid,
+                            status, "paid", true);
+
+            var afterVersion = SqlAppender
+                    .Update
+                    .appendCondition(size, afterStatus,
+                            version, "version", false);
+
+            var afterEnded = SqlAppender
+                    .Update
+                    .endWithWHERE_FIELD_IN(size, afterVersion, "id");
+
+            var afterEndVersionCondition = SqlAppender
+                    .Update
+                    .appendCondition(size, afterEnded, endVersionCondition,
+                            "version", false);
+
+            DatabaseClient.GenericExecuteSpec statement =
+                    databaseClient.sql(afterEndVersionCondition.toString());
+
+            var result = bindMultirowUpdateValue(statement, accountOverdrafts);
+            statement = result.modifiedExecuteSpec();
+
+            return statement.fetch().rowsUpdated()
+                    .doOnNext(a ->
+                            log.info("AccountOverdraftConnectionFactory batch update multirow, row: {}",
+                                    a));
+        }).then();
+
+    }
+
+    public SqlAppenderResult bindMultirowUpdateValue(final DatabaseClient.GenericExecuteSpec any,
+                                                     final List<AccountOverdraft> accountOverdrafts) {
+        int bindingIndex = 0;
+        var thisStatement = any;
+
+        var balance = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountOverdrafts,
+                        AccountOverdraft::getId,
+                        AccountOverdraft::getPaid);
+        bindingIndex = balance.incrementedBindingIndex();
+        thisStatement = balance.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR PAID");
+
+        var status = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountOverdrafts,
+                        AccountOverdraft::getId,
+                        AccountOverdraft::getAccountOverdraftStatus);
+        bindingIndex = balance.incrementedBindingIndex();
+        thisStatement = balance.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR STATUS");
+
+        var version = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountOverdrafts,
+                        AccountOverdraft::getId,
+                        AccountOverdraft::getNextVersion);
+        bindingIndex = balance.incrementedBindingIndex();
+        thisStatement = balance.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW CONDITION FOR VERSION");
+
+        var endedResukt = SqlAppender
+                .Update
+                .endBinding(bindingIndex,
+                        thisStatement,
+                        accountOverdrafts,
+                        AccountOverdraft::getId);
+        bindingIndex = balance.incrementedBindingIndex();
+        thisStatement = balance.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW UPDATE (WHERE) CONDITION FOR IN (ids)");
+
+        var versionEndCondition = SqlAppender
+                .Update
+                .bindStatement(bindingIndex,
+                        thisStatement,
+                        accountOverdrafts,
+                        AccountOverdraft::getId,
+                        AccountOverdraft::getVersion);
+        bindingIndex = versionEndCondition.incrementedBindingIndex();
+        thisStatement = versionEndCondition.modifiedExecuteSpec();
+
+        log.info("AFTER ADD MULTIROW UPDATE (WHERE) CONDITION VERSION IS CURRENT VERSION");
+
+
+
+        return new SqlAppenderResult(bindingIndex, thisStatement);
     }
 }
 

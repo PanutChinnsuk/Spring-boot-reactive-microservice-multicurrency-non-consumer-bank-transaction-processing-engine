@@ -16,32 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `ledger_accounts`
+-- Table structure for table `account_processed_balance_change_events`
 --
 
-DROP TABLE IF EXISTS `ledger_accounts`;
+DROP TABLE IF EXISTS `account_processed_balance_change_events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `ledger_accounts` (
-  `id` varchar(255) NOT NULL,
-  `ledger_type` varchar(255) NOT NULL,
-  `code` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE `account_processed_balance_change_events` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `code_UNIQUE` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `ledger_accounts`
+-- Dumping data for table `account_processed_balance_change_events`
 --
 
-LOCK TABLES `ledger_accounts` WRITE;
-/*!40000 ALTER TABLE `ledger_accounts` DISABLE KEYS */;
-INSERT INTO `ledger_accounts` VALUES ('Default2','LIABILITY','FX_TRANSFER','FX_TRANSFER','2026-10-18 07:25:29'),('Default3','EXPENSE','EXPENSE_TRANSFER','EXPENSE_TRANSFER','2026-10-18 07:25:29'),('Default4','ASSET','ASSET_TRANSFER','ASSET_TRANSFER','2026-10-18 07:25:29'),('DefaultIdWhatever','LIABILITY','COMMON_TRANSFER','COMMON_TRANSFER','2026-10-18 07:25:29'),('TEST','LIABILITY','TEST','TEST','2026-10-18 07:25:29');
-/*!40000 ALTER TABLE `ledger_accounts` ENABLE KEYS */;
+LOCK TABLES `account_processed_balance_change_events` WRITE;
+/*!40000 ALTER TABLE `account_processed_balance_change_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `account_processed_balance_change_events` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-10 19:06:00
+-- Dump completed on 2026-11-13  3:33:54

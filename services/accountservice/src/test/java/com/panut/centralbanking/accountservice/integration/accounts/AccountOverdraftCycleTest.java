@@ -78,8 +78,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
 
     private Set<String> accountIds = Set.of(overdraftAccountOwnerId);
 
-    private String balanceChangeEventId =
-            SeededDatabase.ID_ACCOUNT_BALANCE_CHANGE_EVENT_PLACEHOLDER;
+
 
     private void reset(Set<String> ids,
                        BigDecimal toDefault,
@@ -103,7 +102,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
     private List<BalanceChangeData> clearingData(BigDecimal amount,
                                                 BalanceImpact balanceImpact) {
         return List.of(
-            new BalanceChangeData(balanceChangeEventId,
+            new BalanceChangeData(SeededDatabaseIdFlag.getTestRandomUUIDString(),
                     overdraftAccountOwnerId,
                     amount,
                     BalanceChangeType.OVERDRAFTED,
@@ -120,7 +119,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
     private List<BalanceChangeData> clearingDataWithNoValidOverdraftIds(BigDecimal amount,
                                                  BalanceImpact balanceImpact) {
         return List.of(
-                new BalanceChangeData(balanceChangeEventId,
+                new BalanceChangeData(SeededDatabaseIdFlag.getTestRandomUUIDString(),
                         overdraftAccountOwnerId,
                         amount,
                         BalanceChangeType.OVERDRAFTED,
