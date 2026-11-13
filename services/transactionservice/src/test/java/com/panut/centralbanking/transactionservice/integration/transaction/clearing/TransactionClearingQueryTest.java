@@ -11,15 +11,20 @@ import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Sinks;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionClearingQueryTest implements IntegrationDevTest {
     @Autowired
     private TransactionClearingQuery query;
@@ -32,6 +37,17 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
 
     @Autowired
     private TransactionClearingProperty property;
+
+    private List<String> ids = new ArrayList<>();
+
+    @AfterAll
+    public void cleanUp() {
+        if (ids.isEmpty())
+            return;
+
+        testRepository.setAllBlacklistExpirty(ids,
+                LocalDateTime.now().minusDays(1)).block();
+    }
 
     @Test
     public void shouldSort() {
@@ -63,25 +79,37 @@ public class TransactionClearingQueryTest implements IntegrationDevTest {
     }
 
     @Test
-    public void shouldGetAndMappedDTO() {
+    public void shouldGetAndMappedDTOAndIncrement() {
         String id1 = SeededDatabase.ID_PENDING_TRANSACTION_1;
         String id2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
         var eventStatus = BalanceChangeEventStatus.PENDING;
 
+
+
         testRepository.setAllStatus(Set.of(id1, id2),
                 eventStatus).block();
 
-        List<BalanceChangeData> datas = repository.findAllForClearing(eventStatus,
-                property.getSizeLimit(), SeededDatabaseIdFlag
-                        .NONE).collectList().block();
+
+        LocalDateTime incremented = property.getNewBlacklistExpiry();
+        List<BalanceChangeData> datas = query.getBulk(eventStatus, 100,
+                incremented, SeededDatabaseIdFlag.NONE).collectList().block();
 
         datas.forEach(event -> {
-            Assertions.assertNotNull(event.getAccountId(), "account id");
+            Assertions.assertNotNull(event.getEventId(), "event id");
+            ids.add(event.getEventId());
+        });
+
+
+        datas.forEach(event -> {
             Assertions.assertNotNull(event.getAmount(), "amount");
             Assertions.assertNotNull(event.getBalanceImpact(), "balance impact");
             Assertions.assertNotNull(event.getBalanceChangeType(), "balance change type");
             Assertions.assertNotNull(event.getCreatedAt(), "created at");
             Assertions.assertNotNull(event.getTransactionId(), "transaction id");
+
+            Assertions.assertNotNull(event.getBlacklistExpiry());
+            Assertions.assertTrue(event.getBlacklistExpiry()
+                    .isAfter(LocalDateTime.now()));
         });
 
         int t1Size = testRepository.findByTransactionId(id1).collectList().block().size();

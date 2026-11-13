@@ -8,6 +8,8 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Set;
 
 public interface BalanceChangeEventTestRepository
@@ -25,6 +27,13 @@ public interface BalanceChangeEventTestRepository
             """)
     Mono<Void> setAllStatus(@Param("transactionIds")Set<String> ids,
                              @Param("eventStatus")BalanceChangeEventStatus eventStatus);
+
+    @Query("""
+            UPDATE transaction_balance_change_events e SET e.blacklist_expires_at = :now
+            WHERE e.id IN (:eventIds)
+            """)
+    Mono<Void> setAllBlacklistExpirty(@Param("eventIds")Collection<String> eventIds,
+                                      @Param("now")LocalDateTime now);
 
 
 }

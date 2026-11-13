@@ -97,10 +97,48 @@ public class TransactionClearingQuery {
 
 
     public Flux<BalanceChangeData> getBulk(final BalanceChangeEventStatus eventStatus,
-                                           final int sizeLimit) {
-        return eventRepository.findAllForClearing(eventStatus, sizeLimit,
+                                           final int sizeLimit,
+                                           final LocalDateTime incrementedBlacklistExpiry) {
+        return getBulkAndIncrementExpiry(eventStatus, incrementedBlacklistExpiry, sizeLimit,
                 SeededDatabaseIdFlag.TEST);
     }
+
+    public Flux<BalanceChangeData> getBulk(final BalanceChangeEventStatus eventStatus,
+                                           final int sizeLimit,
+                                           final LocalDateTime incrementedBlacklistExpiry,
+                                           final String blacklistFlag) {
+        return getBulkAndIncrementExpiry(eventStatus, incrementedBlacklistExpiry, sizeLimit,
+                blacklistFlag);
+    }
+
+    private Flux<BalanceChangeData> getBulkAndIncrementExpiry(final BalanceChangeEventStatus eventStatus,
+                                                              final LocalDateTime incrementedBlacklistExpiry,
+                                                              final int sizeLimit,
+                                                              final String blacklistFlag) {
+        return eventRepository.findAllIdsForClearing(eventStatus, sizeLimit,
+                        blacklistFlag, LocalDateTime.now())
+                .collectList()
+                .flatMap(ids -> {
+                    log.info("event ids from getBulk before increment is empty? {}",
+                            ids.isEmpty());
+                    if (ids.isEmpty())
+                        return Mono.just(ids);
+
+
+                    return eventRepository
+                            .incrementBlacklistExpiry(ids, incrementedBlacklistExpiry)
+                            .thenReturn(ids);
+                })
+                .flatMapMany(ids -> {
+                    log.info("event ids from getBulk after increment is empty? {}",
+                            ids.isEmpty());
+                    if (ids.isEmpty())
+                        return Flux.empty();
+
+                    return eventRepository.findAllForClearing(eventStatus, ids);
+                });
+    }
+
 
 
 }

@@ -17,7 +17,7 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
 
 
     @Query("""
-            SELECT l.id FROM ledger_accounts l
+            SELECT l.id FROM transaction_ledger_accounts l
             ORDER BY l.created_at DESC LIMIT 1 FOR UPDATE
             """)
     Mono<String> getIdExists();
@@ -25,14 +25,14 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
     Mono<Boolean> existsByCode(String code);
 
     @Query("""
-            SELECT l.id FROM ledger_accounts l 
+            SELECT l.id FROM transaction_ledger_accounts l 
             WHERE l.code = :code LIMIT 1
             """)
     Mono<String> getIdByCode(@Param("code") String code);
 
 
     @Query("""
-            SELECT l.id, l.code FROM ledger_accounts l
+            SELECT l.id, l.code FROM transaction_ledger_accounts l
             WHERE l.code IN (:codes) AND
             l.ledger_type IN (:ledgerTypes)
             """)
@@ -42,7 +42,7 @@ public interface LedgerAccountRepository extends ReactiveCrudRepository<LedgerAc
 
 
     @Query("""
-            SELECT l.id, l.ledger_type FROM ledger_accounts l
+            SELECT l.id, l.ledger_type FROM transaction_ledger_accounts l
             INNER JOIN transaction_lines tl
             ON tl.ledger_account_id = l.id AND
             tl.transaction_id = :transactionId

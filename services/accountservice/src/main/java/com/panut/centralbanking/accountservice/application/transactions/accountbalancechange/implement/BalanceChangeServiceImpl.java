@@ -360,9 +360,10 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                         var event = checkedList.get(i);
                         var eventId = event.getEventId();
 
-                        if (processed.contains(eventId)) {
-                            log.info("event id, {} is already processed, removing from the list.",
-                                    event);
+                        if (eventId == null ||
+                                processed.contains(eventId)) {
+                            log.info("event id, {} is already processed ? {} and event id exist ? {}, removing from the list.",
+                                    event, eventId != null, event != null);
                             checkedList.remove(i);
                             --i;
                         }

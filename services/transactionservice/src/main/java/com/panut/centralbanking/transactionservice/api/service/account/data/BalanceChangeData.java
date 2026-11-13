@@ -26,6 +26,7 @@ public class BalanceChangeData {
     private BalanceImpact balanceImpact;
     private LocalDateTime createdAt;
     private String transactionId;
+    private LocalDateTime blacklistExpiry;
 
 
     @JsonIgnore
@@ -36,7 +37,9 @@ public class BalanceChangeData {
                 event.getBalanceChangeType(),
                 event.getBalanceImpact(),
                 event.getCreatedAt(),
-                event.getTransactionId());
+                event.getTransactionId(),
+                event.getBlacklistExpiresAt());
     }
+
 
 }

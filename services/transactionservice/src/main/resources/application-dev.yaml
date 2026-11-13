@@ -17,6 +17,7 @@ app:
   events:
     transactions:
       clearing:
+        blacklistMinutes: 1
         scheduleMinutes: 1
         scheduleMilliOffset: 10000
         sizeLimit: 100

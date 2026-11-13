@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -37,6 +38,9 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
 
     @Column("created_at")
     private LocalDateTime createdAt;
+
+    @Column("blacklist_expires_at")
+    private LocalDateTime blacklistExpiresAt;
 
 
     public BalanceChangeEvent balanceChangeEvent(String accountId,
@@ -67,6 +71,7 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
                 transactionId);
         setInsert();
     }
+
 
 
 }
