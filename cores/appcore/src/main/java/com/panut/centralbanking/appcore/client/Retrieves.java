@@ -54,8 +54,6 @@ public class Retrieves {
 
 
 
-
-
     public static final <T>Mono<CommonResult<T>> doRequest(final WebClient webClient,
                                                            final String fullPath,
                                                            final Object body,
@@ -73,6 +71,21 @@ public class Retrieves {
                             onError, name);
                     return Mono.just(result);
                 });
+    }
+
+
+    public static final <T>Mono<T> doRequestGenericParameterizedTypeReference(final WebClient webClient,
+                                                           final String fullPath,
+                                                           final Object body,
+                                                           final Class<? extends RuntimeException> onError,
+                                                           final String name,
+                                                           final ParameterizedTypeReference<T> reference) {
+        return webClient
+                .post()
+                .uri(fullPath)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(reference);
     }
 
     public static final Mono<CommonResult> doRequest(final WebClient webClient,

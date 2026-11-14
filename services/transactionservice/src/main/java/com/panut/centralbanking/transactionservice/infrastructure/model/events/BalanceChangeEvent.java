@@ -42,6 +42,9 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
     @Column("blacklist_expires_at")
     private LocalDateTime blacklistExpiresAt;
 
+    @Column("applying_expires_at")
+    private LocalDateTime applyingExpiresAt;
+
 
     public BalanceChangeEvent balanceChangeEvent(String accountId,
                               BigDecimal amount,

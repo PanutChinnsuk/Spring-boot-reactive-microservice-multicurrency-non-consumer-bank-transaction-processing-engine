@@ -32,6 +32,7 @@ CREATE TABLE `transaction_balance_change_events` (
   `transaction_id` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `blacklist_expires_at` timestamp NULL DEFAULT NULL,
+  `applying_expires_at` timestamp NULL DEFAULT NULL,
   `version` bigint NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idtransaction_balance_change_events_UNIQUE` (`id`),
@@ -48,7 +49,7 @@ CREATE TABLE `transaction_balance_change_events` (
 
 LOCK TABLES `transaction_balance_change_events` WRITE;
 /*!40000 ALTER TABLE `transaction_balance_change_events` DISABLE KEYS */;
-INSERT INTO `transaction_balance_change_events` VALUES ('TEST1','TEST',1.0000,'DEDUCT','BALANCE','PENDING','TEST','2026-10-18 15:19:33','2026-11-12 18:55:37',0),('TEST2','TEST2',1.0000,'ADD','BALANCE','PENDING','TEST','2026-10-18 15:19:33','2026-11-12 18:55:37',0),('TEST3','TEST',1.0000,'DEDUCT','BALANCE','PENDING','TEST2','2026-10-18 15:19:33','2026-11-12 18:55:37',0),('TEST4','TEST2',1.0000,'ADD','BALANCE','PENDING','TEST2','2026-10-18 15:19:33','2026-11-12 18:55:37',0);
+INSERT INTO `transaction_balance_change_events` VALUES ('TEST1','TEST',1.0000,'DEDUCT','BALANCE','PENDING','TEST','2026-10-18 15:19:33','2026-11-12 18:55:37','2026-11-14 20:14:02',0),('TEST2','TEST2',1.0000,'ADD','BALANCE','PENDING','TEST','2026-10-18 15:19:33','2026-11-12 18:55:37','2026-11-14 20:14:02',0),('TEST3','TEST',1.0000,'DEDUCT','BALANCE','PENDING','TEST2','2026-10-18 15:19:33','2026-11-12 18:55:37','2026-11-14 20:14:02',0),('TEST4','TEST2',1.0000,'ADD','BALANCE','PENDING','TEST2','2026-10-18 15:19:33','2026-11-12 18:55:37','2026-11-14 20:14:02',0);
 /*!40000 ALTER TABLE `transaction_balance_change_events` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -61,4 +62,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-14  1:56:07
+-- Dump completed on 2026-11-15  3:12:28

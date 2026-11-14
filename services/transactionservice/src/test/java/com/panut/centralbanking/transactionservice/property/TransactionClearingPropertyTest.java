@@ -15,8 +15,10 @@ public class TransactionClearingPropertyTest implements IntegrationDevTest {
     @Test
     public void shouldApply() {
         Assertions.assertTrue(property.getBlacklistMinutes() > 0);
+        Assertions.assertTrue(property.getApplyingBlacklistMinutes() > 0);
         Assertions.assertTrue(property.getScheduleMinutes() > 0);
         Assertions.assertTrue(property.getScheduleMilliOffset() > 0);
         Assertions.assertTrue(property.getSizeLimit() > 0);
+        Assertions.assertTrue(property.getApplyingSizeLimit() > 0);
     }
 }

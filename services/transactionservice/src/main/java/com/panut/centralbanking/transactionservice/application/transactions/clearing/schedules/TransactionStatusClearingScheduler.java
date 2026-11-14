@@ -11,6 +11,8 @@ import com.panut.centralbanking.transactionservice.infrastructure.repository.Tra
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
@@ -18,6 +20,7 @@ import java.util.List;
 
 @Component
 @Slf4j
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class TransactionStatusClearingScheduler {
     private final TransactionStatusClearingModuleV1 v1Module;
 
@@ -28,24 +31,30 @@ public class TransactionStatusClearingScheduler {
 
     @Scheduled(fixedDelayString = "#{(60000 * @transactionClearingProperty.getScheduleMinutes) + " +
             "@transactionClearingProperty.getScheduleMilliOffset}")
-    public void clearPendingAuthorize() {
+    public Mono<Void> clearPendingAuthorize() {
         v1Module.clear(TransactionStatus.PENDING_AUTHORIZED,
                 SeededDatabaseIdFlag.TEST).subscribe();
+
+        return Mono.empty();
 
 
     }
 
     @Scheduled(fixedDelayString = "#{(120000 * @transactionClearingProperty.getScheduleMinutes) + " +
             "@transactionClearingProperty.getScheduleMilliOffset}")
-    public void clearPendingPosted() {
+    public Mono<Void>  clearPendingPosted() {
         v1Module.clear(TransactionStatus.PENDING_POSTED,
                 SeededDatabaseIdFlag.TEST).subscribe();
+
+        return Mono.empty();
     }
 
     @Scheduled(fixedDelayString = "#{(180000 * @transactionClearingProperty.getScheduleMinutes) + " +
             "@transactionClearingProperty.getScheduleMilliOffset}")
-    public void clearPendingReverse() {
+    public Mono<Void>  clearPendingReverse() {
         v1Module.clear(TransactionStatus.PENDING_REVERSED,
                 SeededDatabaseIdFlag.TEST).subscribe();
+
+        return Mono.empty();
     }
 }

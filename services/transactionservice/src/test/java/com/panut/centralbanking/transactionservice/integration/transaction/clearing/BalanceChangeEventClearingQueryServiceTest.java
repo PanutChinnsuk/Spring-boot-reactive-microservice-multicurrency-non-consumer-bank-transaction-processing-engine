@@ -5,7 +5,7 @@ import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
 import com.panut.centralbanking.transactionservice.application.property.TransactionClearingProperty;
-import com.panut.centralbanking.transactionservice.application.transactions.clearing.query.TransactionClearingQuery;
+import com.panut.centralbanking.transactionservice.application.transactions.clearing.service.BalanceChangeEventClearingQueryService;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TransactionClearingQueryTest implements IntegrationDevTest {
+public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDevTest {
     @Autowired
-    private TransactionClearingQuery query;
+    private BalanceChangeEventClearingQueryService query;
 
     @Autowired
     private BalanceChangeEventRepository repository;

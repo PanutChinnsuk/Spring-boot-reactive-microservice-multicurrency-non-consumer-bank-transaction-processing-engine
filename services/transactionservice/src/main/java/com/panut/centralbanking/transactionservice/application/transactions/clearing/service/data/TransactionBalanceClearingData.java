@@ -1,10 +1,6 @@
-package com.panut.centralbanking.transactionservice.application.transactions.clearing.query.data;
+package com.panut.centralbanking.transactionservice.application.transactions.clearing.service.data;
 
-import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import reactor.core.publisher.Flux;
 
 

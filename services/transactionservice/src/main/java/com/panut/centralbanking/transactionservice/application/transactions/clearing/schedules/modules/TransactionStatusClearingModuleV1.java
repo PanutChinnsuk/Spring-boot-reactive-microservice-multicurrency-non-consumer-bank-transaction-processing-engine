@@ -6,6 +6,8 @@ import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 

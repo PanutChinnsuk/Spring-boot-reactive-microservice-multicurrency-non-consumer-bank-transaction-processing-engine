@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.clearing.query;
+package com.panut.centralbanking.transactionservice.application.transactions.clearing.service;
 
 
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
@@ -19,17 +19,18 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 @Slf4j
-public class TransactionClearingQuery {
+public class BalanceChangeEventClearingQueryService {
     private final TransactionRepository transactionRepository;
     private final BalanceChangeEventRepository eventRepository;
     private final DatabaseClient databaseClient;
 
-    public TransactionClearingQuery(TransactionRepository transactionRepository,
-                                    BalanceChangeEventRepository eventRepository,
-                                    DatabaseClient databaseClient) {
+    public BalanceChangeEventClearingQueryService(TransactionRepository transactionRepository,
+                                                  BalanceChangeEventRepository eventRepository,
+                                                  DatabaseClient databaseClient) {
         this.transactionRepository = transactionRepository;
         this.eventRepository = eventRepository;
         this.databaseClient = databaseClient;
@@ -111,6 +112,21 @@ public class TransactionClearingQuery {
                 blacklistFlag);
     }
 
+    public Mono<List<String>> apply(final BalanceChangeEventStatus eventStatus,
+                                    final int applyingSizeLimit,
+                                    final LocalDateTime incrementedApplyingExpiry) {
+        return getApplyingAndIncrementExpiry(eventStatus, incrementedApplyingExpiry, applyingSizeLimit,
+                SeededDatabaseIdFlag.TEST);
+    }
+
+    public Mono<List<String>> apply(final BalanceChangeEventStatus eventStatus,
+                                    final int applyingSizeLimit,
+                                    final LocalDateTime incrementedApplyingExpiry,
+                                    final String blacklistFlag) {
+        return getApplyingAndIncrementExpiry(eventStatus, incrementedApplyingExpiry, applyingSizeLimit,
+                blacklistFlag);
+    }
+
     private Flux<BalanceChangeData> getBulkAndIncrementExpiry(final BalanceChangeEventStatus eventStatus,
                                                               final LocalDateTime incrementedBlacklistExpiry,
                                                               final int sizeLimit,
@@ -119,7 +135,7 @@ public class TransactionClearingQuery {
                         blacklistFlag, LocalDateTime.now())
                 .collectList()
                 .flatMap(ids -> {
-                    log.info("event ids from getBulk before increment is empty? {}",
+                    log.info("event ids from getBulkAndIncrementExpiry before increment is empty? {}",
                             ids.isEmpty());
                     if (ids.isEmpty())
                         return Mono.just(ids);
@@ -138,6 +154,32 @@ public class TransactionClearingQuery {
                     return eventRepository.findAllForClearing(eventStatus, ids);
                 });
     }
+
+
+    private Mono<List<String>> getApplyingAndIncrementExpiry(final BalanceChangeEventStatus eventStatus,
+                                               final LocalDateTime incrementedApplyingExpiry,
+                                               final int sizeLimit,
+                                               final String blacklistFlag) {
+        return eventRepository.findAllIdsForApplying(eventStatus, sizeLimit,
+                        blacklistFlag, LocalDateTime.now())
+                .collectList()
+                .flatMap(ids -> {
+                    log.info("event ids from getApplyingAndIncrementExpiry before increment is empty? {}",
+                            ids.isEmpty());
+                    if (ids.isEmpty())
+                        return Mono.empty();
+
+
+                    eventRepository
+                            .incrementApplyingExpiry(ids, incrementedApplyingExpiry)
+                            .doOnNext(a -> log.info("incremented applying blacklist expiry"))
+                            .subscribe();
+
+                    return Mono.just(ids);
+                });
+
+    }
+
 
 
 

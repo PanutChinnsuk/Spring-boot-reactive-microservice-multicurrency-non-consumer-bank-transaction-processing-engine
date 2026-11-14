@@ -1,6 +1,5 @@
 package com.panut.centralbanking.transactionservice.application.transactions.clearing;
 
-import com.panut.centralbanking.transactionservice.application.transactions.clearing.query.data.TransactionBalanceClearingData;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import lombok.Data;
 import lombok.Getter;
@@ -9,9 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Getter

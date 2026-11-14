@@ -31,7 +31,20 @@ public interface BalanceChangeEventRepository
                                                @Param("excludedIdFlag") String excludedIdFlag,
                                        @Param("currentTimestamp") LocalDateTime currentTimestamp);
 
-
+    @Query("""
+            SELECT e.id
+            FROM transaction_balance_change_events e
+            WHERE e.status = :eventStatus AND
+            e.id NOT LIKE :excludedIdFlag AND
+            (e.applying_expires_at IS NULL OR e.applying_expires_at < :currentTimestamp)
+            ORDER BY e.created_at ASC, e.transaction_id ASC
+            LIMIT :sizeLimit FOR UPDATE
+            """)
+    Flux<String> findAllIdsForApplying(@Param("eventStatus")
+                                       BalanceChangeEventStatus eventStatus,
+                                       @Param("sizeLimit") int sizeLimit,
+                                       @Param("excludedIdFlag") String excludedIdFlag,
+                                       @Param("currentTimestamp") LocalDateTime currentTimestamp);
 
     @Query("""
             SELECT e.id AS event_id, e.account_id, e.amount, e.balance_change_type, e.balance_impact,
@@ -53,6 +66,24 @@ public interface BalanceChangeEventRepository
             """)
     Mono<Void> incrementBlacklistExpiry(@Param("eventIds")Collection<String> eventIds,
                                         @Param("incremented")LocalDateTime incremented);
+
+    @Modifying
+    @Query("""
+            UPDATE transaction_balance_change_events e 
+            SET e.applying_expires_at = :incremented 
+            WHERE e.id IN (:eventIds) 
+            """)
+    Mono<Void> incrementApplyingExpiry(@Param("eventIds")Collection<String> eventIds,
+                                        @Param("incremented")LocalDateTime incremented);
+
+    @Modifying
+    @Query("""
+            UPDATE transaction_balance_change_events e 
+            SET e.status = :newStatus 
+            WHERE e.id IN (:eventIds) 
+            """)
+    Mono<Void> bulkStatusUpdate(@Param("eventIds")Collection<String> eventIds,
+                                       @Param("newStatus") BalanceChangeEventStatus newStatus);
 
 
 

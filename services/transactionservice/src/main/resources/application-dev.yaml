@@ -18,9 +18,11 @@ app:
     transactions:
       clearing:
         blacklistMinutes: 1
+        applyingBlacklistMinutes: 2
         scheduleMinutes: 1
         scheduleMilliOffset: 10000
         sizeLimit: 100
+        applyingSizeLimit: 300
 
   security:
     core:

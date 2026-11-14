@@ -18,7 +18,9 @@ public class ProcessedBalanceChangeEventQuery {
 
 
     public Mono<Set<String>> getAlreadyProcessedEventIds(final List<String> eventIds) {
-        return repository.findProcessed(eventIds)
+        return repository.getProcessed(eventIds)
                 .collect(Collectors.toSet());
     }
+
+
 }
