@@ -4,12 +4,16 @@ import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
+import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
+import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
+import com.panut.centralbanking.transactionservice.application.events.balancechange.BalanceChangeEventRepositoryManager;
 import com.panut.centralbanking.transactionservice.application.property.TransactionClearingProperty;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.service.BalanceChangeEventClearingQueryService;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
+import com.panut.centralbanking.transactionservice.integration.transaction.clearing.manager.TestEventManager;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -18,11 +22,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Sinks;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -38,18 +40,22 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
     @Autowired
     private TransactionClearingProperty property;
 
+    @Autowired
+    private TestEventManager manager;
+
 
     private String transactionId1 = SeededDatabase.ID_PENDING_TRANSACTION_1;
     private String transactionId2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
     private List<String> eventIds = new ArrayList<>();
+    private List<String> toDelete = new ArrayList<>();
 
     @AfterAll
     public void cleanUp() {
-        if (eventIds.isEmpty())
-            return;
-
-        testRepository.setAllBlacklistExpirty(eventIds,
+        if (!eventIds.isEmpty())
+            testRepository.setAllBlacklistExpirty(eventIds,
                 LocalDateTime.now().minusDays(1)).block();
+
+        manager.clear();
     }
 
     @Test
@@ -122,7 +128,8 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
 
     @Test
     public void shouldIncrementApplyingExpiry() {
-        var pre = testRepository.findByTransactionId(transactionId1).collectList().block();
+        String thisId = manager.create(transactionId1);
+
 
         var ids = query.apply(BalanceChangeEventStatus.PENDING, 100,
                 property.getNewApplyingBlacklistExpiry(),
@@ -130,22 +137,17 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
 
 
 
-        var post = testRepository.findByTransactionId(transactionId1).collectList().block()
-                .stream().collect(Collectors.toMap(
-                        BalanceChangeEvent::getId,
-                        Function.identity()
-                ));
+        var post = testRepository.findById(thisId).block();
 
 
         eventIds.addAll(ids);
 
 
 
-        pre.forEach(e -> {
-            var preValue = e.getApplyingExpiresAt();
-            var postValue = post.get(e.getId()).getApplyingExpiresAt();
-            Assertions.assertTrue(preValue
-                    .isBefore(postValue));
-        });
+        var postValue = post.getApplyingExpiresAt();
+        Assertions.assertTrue(LocalDateTime.now()
+                .isBefore(postValue));
+
+
     }
 }

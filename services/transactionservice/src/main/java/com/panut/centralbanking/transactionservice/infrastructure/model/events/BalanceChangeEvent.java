@@ -66,14 +66,22 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
                               BigDecimal amount,
                               BalanceImpact balanceImpact,
                               BalanceChangeType balanceChangeType,
-                              String transactionId) {
+                              String transactionId,
+                              String id) {
         balanceChangeEvent(accountId,
                 amount,
                 balanceImpact,
                 balanceChangeType,
                 transactionId);
-        setInsert();
+        if (id == null) {
+            setInsert();
+        }else {
+            setInsert(id);
+        }
+
+
     }
+
 
 
 

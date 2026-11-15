@@ -30,7 +30,7 @@ public class TransactionStatusClearingScheduler {
 
 
     @Scheduled(fixedDelayString = "#{(60000 * @transactionClearingProperty.getScheduleMinutes) + " +
-            "@transactionClearingProperty.getScheduleMilliOffset}")
+            "@transactionClearingProperty.getScheduleMilliOffset}", initialDelay = 20000L)
     public Mono<Void> clearPendingAuthorize() {
         v1Module.clear(TransactionStatus.PENDING_AUTHORIZED,
                 SeededDatabaseIdFlag.TEST).subscribe();
@@ -41,7 +41,7 @@ public class TransactionStatusClearingScheduler {
     }
 
     @Scheduled(fixedDelayString = "#{(120000 * @transactionClearingProperty.getScheduleMinutes) + " +
-            "@transactionClearingProperty.getScheduleMilliOffset}")
+            "@transactionClearingProperty.getScheduleMilliOffset}", initialDelay = 40000L)
     public Mono<Void>  clearPendingPosted() {
         v1Module.clear(TransactionStatus.PENDING_POSTED,
                 SeededDatabaseIdFlag.TEST).subscribe();
@@ -50,7 +50,7 @@ public class TransactionStatusClearingScheduler {
     }
 
     @Scheduled(fixedDelayString = "#{(180000 * @transactionClearingProperty.getScheduleMinutes) + " +
-            "@transactionClearingProperty.getScheduleMilliOffset}")
+            "@transactionClearingProperty.getScheduleMilliOffset}", initialDelay = 60000L)
     public Mono<Void>  clearPendingReverse() {
         v1Module.clear(TransactionStatus.PENDING_REVERSED,
                 SeededDatabaseIdFlag.TEST).subscribe();

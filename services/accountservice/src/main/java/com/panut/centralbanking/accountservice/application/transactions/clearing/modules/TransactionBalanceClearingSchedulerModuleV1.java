@@ -25,11 +25,11 @@ public class TransactionBalanceClearingSchedulerModuleV1 {
 
     private String name = "TransactionBalanceClearingScheduler";
 
-    public Disposable process(final List<BalanceChangeData> datas) {
+    public Mono<Void> process(final List<BalanceChangeData> datas) {
         log.info("{} : pre process", name);
         return balanceChangeService.bulk(datas, false)
                 .doOnNext(a -> log.info("{} : post process", name))
-                .subscribe();
+                .then();
     }
 
     public Mono<Void> clearPending() {
@@ -46,10 +46,10 @@ public class TransactionBalanceClearingSchedulerModuleV1 {
                     }
 
 
-
-                    return Mono.just(process(list))
-                            .doOnNext(a -> log.info("{} : after processed", name))
-                            .then();
+                    log.info("before calling process");
+                    return process(list)
+                            .doOnNext(a ->
+                                    log.info("{} : after processed", name));
                 });
 
 

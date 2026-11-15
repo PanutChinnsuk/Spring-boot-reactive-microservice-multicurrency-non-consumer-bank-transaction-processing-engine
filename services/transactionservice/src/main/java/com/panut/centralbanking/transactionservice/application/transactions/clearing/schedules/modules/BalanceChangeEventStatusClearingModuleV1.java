@@ -39,28 +39,25 @@ public class BalanceChangeEventStatusClearingModuleV1 {
 
 
 
-    private Disposable clear(final List<String> pendingIds) {
-        return Mono.defer(() -> {
-            log.info("before calling serviceController.getAppliableBalanceEvents");
-            return serviceController.getAppliableBalanceEvents(
-                            new GetProcessedBalanceEventIdsRequest(pendingIds))
-                    .doOnNext(a ->
-                            log.info("Cleared balance change event ids size: {}", a.size()))
-                    .map(clearedIds -> {
-                        if (clearedIds == null || clearedIds.isEmpty()) {
-                            log.info("cleared ids is null ? {}, is empty ? {}",
-                                    clearedIds == null, clearedIds.isEmpty());
-                            return Mono.empty().subscribe();
-                        }
-                        log.info("clearedIds is valid, bulk updating status.");
+    private Mono<Void> clear(final List<String> pendingIds) {
+        log.info("before calling serviceController.getAppliableBalanceEvents");
+        return serviceController.getAppliableBalanceEvents(
+                        new GetProcessedBalanceEventIdsRequest(pendingIds))
+                .doOnNext(a ->
+                        log.info("Cleared balance change event ids size: {}", a.size()))
+                .flatMap(clearedIds -> {
+                    if (clearedIds == null || clearedIds.isEmpty()) {
+                        log.info("cleared ids is null ? {}, is empty ? {}",
+                                clearedIds == null, clearedIds.isEmpty());
+                        return Mono.empty();
+                    }
+                    log.info("clearedIds is valid, bulk updating status.");
 
-                        return repository.bulkStatusUpdate(clearedIds,
-                                        BalanceChangeEventStatus.COMPLETED)
-                                .subscribe();
-                    });
-        }) .doOnSuccess(a ->
-                        log.info("Bulk set balance change event status to completed."))
-                .subscribe();
+                    return repository.bulkStatusUpdate(clearedIds,
+                                    BalanceChangeEventStatus.COMPLETED)
+                            .doOnSuccess(a ->
+                                    log.info("Bulk set balance change event status to completed."));
+                });
 
 
     }
@@ -73,9 +70,7 @@ public class BalanceChangeEventStatusClearingModuleV1 {
                         property.getNewApplyingBlacklistExpiry(),
                         SeededDatabaseIdFlag.TEST)
                 .doOnNext(a -> log.info("BalanceChangeEventStatusClearingModuleV1 after queryService"))
-                .map(list -> {
-                    return clear(list);
-                })
+                .flatMap(list -> clear(list))
                 .then();
 
 

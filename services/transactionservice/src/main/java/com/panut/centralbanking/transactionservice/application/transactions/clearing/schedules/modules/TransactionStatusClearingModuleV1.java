@@ -30,7 +30,7 @@ public class TransactionStatusClearingModuleV1 {
             BalanceChangeEventStatus.PENDING;
 
 
-    private Disposable update(final TransactionStatus upNextStatus,
+    private Mono<Void> update(final TransactionStatus upNextStatus,
                               final TransactionStatus currentStatus,
                               final List<String> transactionIds) {
         return Mono.defer(() -> {
@@ -42,7 +42,7 @@ public class TransactionStatusClearingModuleV1 {
                             transactionIds);
                 })
                 .doOnNext(a -> log.info("Cleared {} transactions", currentStatus))
-                .subscribe();
+                .then();
     }
 
     public Mono<Void> clear(final TransactionStatus pending,
@@ -55,7 +55,8 @@ public class TransactionStatusClearingModuleV1 {
                 .collectList()
                 .doOnNext(a -> log.info("TRANSACTION IDS CLEARED LIST SIZE {}",
                         a.size()))
-                .map(ids -> update(pending.getUpnextStatus(), pending, ids))
+                .flatMap(ids ->
+                        update(pending.getUpnextStatus(), pending, ids))
                 .then();
 
 

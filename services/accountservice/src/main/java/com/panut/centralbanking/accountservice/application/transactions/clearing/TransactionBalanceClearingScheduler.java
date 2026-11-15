@@ -18,7 +18,8 @@ public class TransactionBalanceClearingScheduler {
 
     @Scheduled(fixedDelayString = "#{(60000 * " +
             "@transactionClearingProperty.getScheduleMinutes) + " +
-            "@transactionClearingProperty.getScheduleMilliOffset}")
+            "@transactionClearingProperty.getScheduleMilliOffset}",
+    initialDelay = 60000L)
     public void clearPending() {
        v1Module.clearPending().subscribe();
     }

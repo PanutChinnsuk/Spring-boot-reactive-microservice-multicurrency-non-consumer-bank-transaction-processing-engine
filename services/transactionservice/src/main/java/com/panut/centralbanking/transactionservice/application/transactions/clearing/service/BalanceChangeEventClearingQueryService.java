@@ -170,12 +170,12 @@ public class BalanceChangeEventClearingQueryService {
                         return Mono.empty();
 
                     log.info("updating");
-                    eventRepository
+
+
+                    return eventRepository
                             .incrementApplyingExpiry(ids, incrementedApplyingExpiry)
                             .doOnNext(a -> log.info("incremented applying blacklist expiry"))
-                            .subscribe();
-
-                    return Mono.just(ids);
+                            .thenReturn(ids);
                 });
 
     }

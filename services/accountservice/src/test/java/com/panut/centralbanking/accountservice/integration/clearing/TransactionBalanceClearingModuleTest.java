@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Mockito.*;
 
-@Disabled("low stake NOT VERY mandatory")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionBalanceClearingModuleTest implements IntegrationDevTest {
     @MockitoSpyBean
@@ -77,7 +76,7 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
     }
 
     @Test
-    public void shouldProcess() throws InterruptedException {
+    public void shouldProcess() {
         BigDecimal amount = BigDecimal.ONE
                 .setScale(SeededDatabase.DATABASE_DECIMAL_DIGITS);
         Flux<BalanceChangeData> flux = balanceChangeDataFlux(amount);
@@ -86,9 +85,6 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
                 .when(transactionController)
                 .getBulkPending();
 
-        doReturn(balanceChangeService.bulk(flux.collectList().block(),
-                true).subscribe())
-                .when(v1Module).process(anyList());
 
         var preProcess = repository.findById(accountId).block();
         BigDecimal preBalance = preProcess.getBalance();
@@ -96,8 +92,8 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
 
         var clear = v1Module.clearPending().block();
 
-
-        Thread.sleep(4000);
+        verify(balanceChangeService).bulk(anyList(),
+                anyBoolean());
 
         var postProcess = repository.findById(accountId).block();
         BigDecimal postBalance = postProcess.getBalance();

@@ -20,7 +20,7 @@ public class BalanceChangeEventStatusClearingScheduler {
 
 
     @Scheduled(fixedDelayString = "#{(60000 * @transactionClearingProperty.getScheduleMinutes) + " +
-           "@transactionClearingProperty.getScheduleMilliOffset}")
+           "@transactionClearingProperty.getScheduleMilliOffset}", initialDelay = 50000L)
     public Mono<Void> clearPendings() {
         v1Module.clearPendings().subscribe();
 
