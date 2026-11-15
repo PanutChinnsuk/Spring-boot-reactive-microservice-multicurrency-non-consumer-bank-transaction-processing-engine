@@ -10,7 +10,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Set;
 
 public interface BalanceChangeEventTestRepository
         extends ReactiveCrudRepository<BalanceChangeEvent, String> {
@@ -25,8 +24,16 @@ public interface BalanceChangeEventTestRepository
             UPDATE transaction_balance_change_events e SET e.status = :eventStatus
             WHERE e.transaction_id IN (:transactionIds)
             """)
-    Mono<Void> setAllStatus(@Param("transactionIds")Set<String> ids,
-                             @Param("eventStatus")BalanceChangeEventStatus eventStatus);
+    Mono<Void> setAllStatusWithTransactionIds(@Param("transactionIds")Collection<String> ids,
+                                              @Param("eventStatus")BalanceChangeEventStatus eventStatus);
+
+    @Query("""
+            UPDATE transaction_balance_change_events e SET e.status = :eventStatus
+            WHERE e.id IN (:ids)
+            """)
+    Mono<Void> setAllStatusWithEventIds(@Param("ids")Collection<String> ids,
+                            @Param("eventStatus")BalanceChangeEventStatus eventStatus);
+
 
     @Query("""
             UPDATE transaction_balance_change_events e SET e.blacklist_expires_at = :now,

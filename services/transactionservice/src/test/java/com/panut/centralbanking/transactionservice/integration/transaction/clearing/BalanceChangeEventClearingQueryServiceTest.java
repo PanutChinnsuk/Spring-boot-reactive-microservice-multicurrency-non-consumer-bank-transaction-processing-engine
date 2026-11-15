@@ -31,8 +31,6 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
     @Autowired
     private BalanceChangeEventClearingQueryService query;
 
-    @Autowired
-    private BalanceChangeEventRepository repository;
 
     @Autowired
     private BalanceChangeEventTestRepository testRepository;
@@ -90,7 +88,7 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
 
 
 
-        testRepository.setAllStatus(Set.of(transactionId1, transactionId2),
+        testRepository.setAllStatusWithTransactionIds(Set.of(transactionId1, transactionId2),
                 eventStatus).block();
 
 

@@ -56,11 +56,11 @@ public class BalanceChangeEventStatusClearingModuleV1 {
 
                         return repository.bulkStatusUpdate(clearedIds,
                                         BalanceChangeEventStatus.COMPLETED)
-                                .doOnNext(a ->
-                                        log.info("Bulk set balance change event status to completed."))
                                 .subscribe();
                     });
-        }).subscribe();
+        }) .doOnSuccess(a ->
+                        log.info("Bulk set balance change event status to completed."))
+                .subscribe();
 
 
     }
