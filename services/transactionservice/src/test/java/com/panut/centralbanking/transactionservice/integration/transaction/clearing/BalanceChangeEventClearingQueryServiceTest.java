@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDevTest {
@@ -38,14 +40,17 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
     @Autowired
     private TransactionClearingProperty property;
 
-    private List<String> ids = new ArrayList<>();
+
+    private String transactionId1 = SeededDatabase.ID_PENDING_TRANSACTION_1;
+    private String transactionId2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
+    private List<String> eventIds = new ArrayList<>();
 
     @AfterAll
     public void cleanUp() {
-        if (ids.isEmpty())
+        if (eventIds.isEmpty())
             return;
 
-        testRepository.setAllBlacklistExpirty(ids,
+        testRepository.setAllBlacklistExpirty(eventIds,
                 LocalDateTime.now().minusDays(1)).block();
     }
 
@@ -80,13 +85,12 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
 
     @Test
     public void shouldGetAndMappedDTOAndIncrement() {
-        String id1 = SeededDatabase.ID_PENDING_TRANSACTION_1;
-        String id2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
+
         var eventStatus = BalanceChangeEventStatus.PENDING;
 
 
 
-        testRepository.setAllStatus(Set.of(id1, id2),
+        testRepository.setAllStatus(Set.of(transactionId1, transactionId2),
                 eventStatus).block();
 
 
@@ -96,9 +100,9 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
 
         datas.forEach(event -> {
             Assertions.assertNotNull(event.getEventId(), "event id");
-            ids.add(event.getEventId());
-        });
 
+            eventIds.add(event.getEventId());
+        });
 
         datas.forEach(event -> {
             Assertions.assertNotNull(event.getAmount(), "amount");
@@ -112,9 +116,38 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
                     .isAfter(LocalDateTime.now()));
         });
 
-        int t1Size = testRepository.findByTransactionId(id1).collectList().block().size();
-        int t2Size = testRepository.findByTransactionId(id2).collectList().block().size();
+        int t1Size = testRepository.findByTransactionId(transactionId1).collectList().block().size();
+        int t2Size = testRepository.findByTransactionId(transactionId2).collectList().block().size();
 
         Assertions.assertEquals(datas.size(), t1Size + t2Size);
+    }
+
+    @Test
+    public void shouldIncrementApplyingExpiry() {
+        var pre = testRepository.findByTransactionId(transactionId1).collectList().block();
+
+        var ids = query.apply(BalanceChangeEventStatus.PENDING, 100,
+                property.getNewApplyingBlacklistExpiry(),
+                SeededDatabaseIdFlag.NONE).block();
+
+
+
+        var post = testRepository.findByTransactionId(transactionId1).collectList().block()
+                .stream().collect(Collectors.toMap(
+                        BalanceChangeEvent::getId,
+                        Function.identity()
+                ));
+
+
+        eventIds.addAll(ids);
+
+
+
+        pre.forEach(e -> {
+            var preValue = e.getApplyingExpiresAt();
+            var postValue = post.get(e.getId()).getApplyingExpiresAt();
+            Assertions.assertTrue(preValue
+                    .isBefore(postValue));
+        });
     }
 }

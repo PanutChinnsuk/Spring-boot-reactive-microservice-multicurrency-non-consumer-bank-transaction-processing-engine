@@ -169,7 +169,7 @@ public class BalanceChangeEventClearingQueryService {
                     if (ids.isEmpty())
                         return Mono.empty();
 
-
+                    log.info("updating");
                     eventRepository
                             .incrementApplyingExpiry(ids, incrementedApplyingExpiry)
                             .doOnNext(a -> log.info("incremented applying blacklist expiry"))

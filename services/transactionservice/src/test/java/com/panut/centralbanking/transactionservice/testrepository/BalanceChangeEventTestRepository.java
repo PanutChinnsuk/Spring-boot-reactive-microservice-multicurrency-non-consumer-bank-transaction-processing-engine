@@ -29,7 +29,8 @@ public interface BalanceChangeEventTestRepository
                              @Param("eventStatus")BalanceChangeEventStatus eventStatus);
 
     @Query("""
-            UPDATE transaction_balance_change_events e SET e.blacklist_expires_at = :now
+            UPDATE transaction_balance_change_events e SET e.blacklist_expires_at = :now,
+            e.applying_expires_at = :now
             WHERE e.id IN (:eventIds)
             """)
     Mono<Void> setAllBlacklistExpirty(@Param("eventIds")Collection<String> eventIds,

@@ -71,7 +71,7 @@ public class BalanceChangeEventStatusClearingModuleV1 {
         return queryService.apply(BalanceChangeEventStatus.PENDING,
                         property.getApplyingSizeLimit(),
                         property.getNewApplyingBlacklistExpiry(),
-                        SeededDatabaseIdFlag.NONE)
+                        SeededDatabaseIdFlag.TEST)
                 .doOnNext(a -> log.info("BalanceChangeEventStatusClearingModuleV1 after queryService"))
                 .map(list -> {
                     return clear(list);
