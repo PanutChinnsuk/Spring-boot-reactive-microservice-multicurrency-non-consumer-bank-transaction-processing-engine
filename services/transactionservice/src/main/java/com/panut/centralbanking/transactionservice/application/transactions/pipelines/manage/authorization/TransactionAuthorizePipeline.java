@@ -65,7 +65,7 @@ public class TransactionAuthorizePipeline {
     public Mono<TransactionManagePipelineResult> authorize(final String transactionId) {
         return repository.fullTransaction(transactionId, REQUIRED_TRANSACTION_STATUS)
                 .doOnNext(a -> log.info("after get full transaction data chain"))
-                .flatMap(chain -> clear(chain))
+                .flatMap(this::clear)
                 .doOnNext(a -> log.info("after clear"))
                 .map(TransactionManageChain::getTransaction)
                 .flatMap(transaction -> manager
