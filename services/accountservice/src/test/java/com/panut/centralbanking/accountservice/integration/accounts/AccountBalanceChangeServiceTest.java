@@ -190,7 +190,18 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
 
 
+    @Test
+    public void shouldProcessOnlyOnce() {
+        List<BalanceChangeData> data = List.of(balanceChangeData(account1,
+                BigDecimal.ONE,
+                BalanceImpact.ADD)
+        );
 
+        var firstResult = balanceChangeService.bulk(data, true).block();
+        Assertions.assertNotNull(firstResult.getOptionalBody());
+        var secondResult = balanceChangeService.bulk(data, true).block();
+        Assertions.assertNull(secondResult);
+    }
 
 
 
