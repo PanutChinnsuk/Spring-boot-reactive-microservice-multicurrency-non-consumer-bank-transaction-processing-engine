@@ -18,10 +18,11 @@ public class TransactionManageTestRepositoryCleanup {
     private BalanceChangeEventTestRepository balanceChangeEventTestRepository;
 
 
-    public void setDefault(String transactionId) {
+    public void setDefault(String transactionId,
+                           TransactionStatus transactionStatus) {
         transactionRepository.save(
                 transactionRepository.findById(transactionId)
-                        .block().changeStatus(TransactionStatus.PENDING)
+                        .block().changeStatus(transactionStatus)
         ).block();
     }
 

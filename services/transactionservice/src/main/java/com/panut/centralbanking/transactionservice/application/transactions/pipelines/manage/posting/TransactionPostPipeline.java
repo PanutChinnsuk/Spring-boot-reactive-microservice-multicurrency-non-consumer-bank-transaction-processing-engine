@@ -8,10 +8,12 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.TransactionRepositoryManager;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
+@Slf4j
 public class TransactionPostPipeline {
     private final TransactionManagePipelineRepository repository;
     private final TransactionRepositoryManager manager;
@@ -68,9 +70,19 @@ public class TransactionPostPipeline {
 
     public Mono<TransactionManagePipelineResult> post(final String transactionId) {
         return repository.fullTransaction(transactionId, REQUIRED_TRANSACTION_STATUS)
+                .doOnNext(a -> log.info("after get full transaction data chain"))
                 .flatMap(this::clear)
+                .doOnNext(a -> log.info("after clear"))
                 .map(TransactionManageChain::getTransaction)
+                .flatMap(transaction -> manager
+                        .save(transaction.upNextTransactionStatus()))
+                .doOnNext(a -> log.info("update current transaction with upnext status"))
                 .map(transaction -> new TransactionManagePipelineResult()
-                        .transaction(transaction));
+                        .transaction(transaction))
+                .doOnSuccess(a -> log.info("Successfully pending posted " +
+                        "transaction."))
+                .doOnError(error ->
+                        log.error("Failed to pending posted] transaction, {}",
+                                error.getLocalizedMessage()));
     }
 }
