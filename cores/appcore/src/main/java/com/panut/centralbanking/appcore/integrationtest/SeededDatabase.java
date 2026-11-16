@@ -35,4 +35,8 @@ public class SeededDatabase {
     public static final String ID_PENDING_ACCOUNT_BALANCE_CHANGE_EVENT_3 = "TEST3";
     public static final String ID_PENDING_ACCOUNT_BALANCE_CHANGE_EVENT_4 = "TEST4";
 
+    public static final String ID_EMPTY_OVERDRAFT_PAYMENT_TYPE_TRANSACTION_1 = "TEST_EMPTY_OVERDRAFT";
+    public static final String ID_EMPTY_ACCOUNT_OVERDRAFT_1 = "TEST_EMPTY";
+    public static final String ID_EMPTY_ACCOUNT_OVERDRAFT_2 = "TEST_EMPTY2";
+
 }
