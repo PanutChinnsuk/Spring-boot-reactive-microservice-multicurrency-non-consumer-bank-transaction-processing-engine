@@ -46,7 +46,7 @@ logging:
   level:
     org:
       springframework:
-        r2dbc: DEBUG
+        r2dbc: ERROR
 
     com:
       panut:
@@ -54,4 +54,4 @@ logging:
           appsecuritycore:
             servicesecurity:
               signaturegenerator:
-                ServiceSignature: DEBUG
+                ServiceSignature: ERROR

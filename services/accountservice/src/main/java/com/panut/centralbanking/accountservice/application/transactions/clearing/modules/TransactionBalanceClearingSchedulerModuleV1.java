@@ -25,7 +25,7 @@ public class TransactionBalanceClearingSchedulerModuleV1 {
 
     private String name = "TransactionBalanceClearingScheduler";
 
-    public Mono<Void> process(final List<BalanceChangeData> datas) {
+    private Mono<Void> process(final List<BalanceChangeData> datas) {
         log.info("{} : pre process", name);
         return balanceChangeService.bulk(datas, false)
                 .doOnNext(a -> log.info("{} : post process", name))
