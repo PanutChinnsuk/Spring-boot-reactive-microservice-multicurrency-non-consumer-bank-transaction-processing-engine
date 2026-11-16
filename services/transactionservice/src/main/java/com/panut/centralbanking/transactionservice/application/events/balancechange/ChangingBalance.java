@@ -41,6 +41,12 @@ public class ChangingBalance {
                 BalanceChangeType.RESERVE);
     }
 
+    public static ChangingBalance overdraftedDeduct() {
+        return new ChangingBalance(BalanceImpact.DEDUCT,
+                BalanceChangeType.OVERDRAFTED);
+    }
+
+
     public static ChangingBalance balanceAdd() {
         return new ChangingBalance(BalanceImpact.ADD,
                 BalanceChangeType.BALANCE);
@@ -50,4 +56,10 @@ public class ChangingBalance {
         return new ChangingBalance(BalanceImpact.ADD,
                 BalanceChangeType.RESERVE);
     }
+
+    public static ChangingBalance overdraftedAdd() {
+        return new ChangingBalance(BalanceImpact.ADD,
+                BalanceChangeType.OVERDRAFTED);
+    }
+
 }

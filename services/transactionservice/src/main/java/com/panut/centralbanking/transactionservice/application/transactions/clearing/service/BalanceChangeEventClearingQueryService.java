@@ -6,6 +6,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.data.Bala
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.TransactionBalanceClearingChain;
+import com.panut.centralbanking.transactionservice.application.transactions.contents.overdraft.TransactionOverdraftContentQuery;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
@@ -26,13 +27,16 @@ import java.util.List;
 public class BalanceChangeEventClearingQueryService {
     private final TransactionRepository transactionRepository;
     private final BalanceChangeEventRepository eventRepository;
+    private final TransactionOverdraftContentQuery overdraftContentQuery;
     private final DatabaseClient databaseClient;
 
     public BalanceChangeEventClearingQueryService(TransactionRepository transactionRepository,
                                                   BalanceChangeEventRepository eventRepository,
+                                                  TransactionOverdraftContentQuery overdraftContentQuery,
                                                   DatabaseClient databaseClient) {
         this.transactionRepository = transactionRepository;
         this.eventRepository = eventRepository;
+        this.overdraftContentQuery = overdraftContentQuery;
         this.databaseClient = databaseClient;
     }
 
@@ -151,7 +155,18 @@ public class BalanceChangeEventClearingQueryService {
                     if (ids.isEmpty())
                         return Flux.empty();
 
-                    return eventRepository.findAllForClearing(eventStatus, ids);
+                    return overdraftContentQuery.getOverdraftIdsMap(ids)
+                            .flatMapMany(overdraftContents -> {
+                                return eventRepository.findAllForClearing(eventStatus, ids)
+                                        .map(event -> {
+                                            if (event.getBalanceChangeType().requiredTransactionOverdraftContent())
+                                                event.withOverdraftChangeContext(
+                                                        overdraftContents.get(event.getTransactionId())
+                                                );
+
+                                            return event;
+                                        });
+                            });
                 });
     }
 

@@ -8,9 +8,13 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.TransactionRepositoryManager;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.util.function.Function;
+
 
 @Component
 @Slf4j
@@ -33,32 +37,59 @@ public class TransactionPostPipeline {
     private final TransactionStatus REQUIRED_TRANSACTION_STATUS = TransactionStatus.AUTHORIZED;
 
 
+    private void direct(final boolean isAssetExpense,
+                        final boolean isDebit,
+                        final boolean isCredit,
+                        final TransactionLine line,
+                        final TransactionManageChain chain) {
+        if (isAssetExpense) {
+            if (isCredit)
+                chain.addBalanceChangeEvent(eventService.create(line,
+                        ChangingBalance.reserveDeduct()));
+            if (isDebit)
+                chain.addBalanceChangeEvent(eventService.create(line,
+                        ChangingBalance.balanceAdd()));
+
+        }else {
+            if (isCredit)
+                chain.addBalanceChangeEvent(eventService.create(line,
+                        ChangingBalance.balanceAdd()));
+            if (isDebit)
+                chain.addBalanceChangeEvent(eventService.create(line,
+                        ChangingBalance.reserveDeduct()));
+        }
+    }
+
 
     private Mono<TransactionManageChain> clear(final TransactionManageChain chain) {
         return chain.getTransactionLines()
                 .map(line -> {
+                    var transactionType = chain.getTransaction().getTransactionType();
                     LedgerType ledgerType = chain.getLedgerTypeOfLine(line);
-                    boolean isCredit = line.getDirection().isCredit();
-                    boolean isDebit = line.getDirection().isDebit();
                     boolean isAssetExpense = ledgerType.isAssetExpense();
 
+                    var direction = line.getDirection();
+                    boolean isDebit = direction.isDebit();
+                    boolean isCredit = direction.isCredit();
+                    boolean isDebitOverdraft = direction.isDebitOverdraft();
+                    boolean isCreditOverdraft = direction.isCreditOverdraft();
+
+                    ChangingBalance changingBalance = ChangingBalance.none();
+
                     if (isAssetExpense) {
-                        if (isCredit)
-                            chain.addBalanceChangeEvent(eventService.create(line,
-                                    ChangingBalance.reserveDeduct()));
-                        if (isDebit)
-                            chain.addBalanceChangeEvent(eventService.create(line,
-                                    ChangingBalance.balanceAdd()));
+                        if (isCredit) changingBalance = ChangingBalance.reserveDeduct();
+                        if (isDebit) changingBalance = ChangingBalance.balanceAdd();
+                        if (isCreditOverdraft) changingBalance = ChangingBalance.overdraftedDeduct();
+                        if (isDebitOverdraft) changingBalance = ChangingBalance.overdraftedAdd();
 
                     }else {
-                        if (isCredit)
-                            chain.addBalanceChangeEvent(eventService.create(line,
-                                    ChangingBalance.balanceAdd()));
-                        if (isDebit)
-                            chain.addBalanceChangeEvent(eventService.create(line,
-                                    ChangingBalance.reserveDeduct()));
+                        if (isCredit) changingBalance = ChangingBalance.balanceAdd();
+                        if (isDebit) changingBalance = ChangingBalance.reserveDeduct();
+                        if (isCreditOverdraft) changingBalance = ChangingBalance.overdraftedAdd();
+                        if (isDebitOverdraft) changingBalance = ChangingBalance.overdraftedDeduct();
                     }
 
+                    chain.addBalanceChangeEvent(eventService.create(line, changingBalance));
 
                     return line;
                 })

@@ -25,6 +25,10 @@ public enum TransactionType {
         return this == CLEARING;
     }
 
+    public boolean isOverdraftPayment() {
+        return this == OVERDRAFT_PAYMENT;
+    }
+
     public boolean isInternal() {
         return this == INTERNAL;
     }

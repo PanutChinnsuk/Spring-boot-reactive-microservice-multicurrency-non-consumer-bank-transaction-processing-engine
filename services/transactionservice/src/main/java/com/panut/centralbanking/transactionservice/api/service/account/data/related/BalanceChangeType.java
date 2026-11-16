@@ -3,5 +3,10 @@ package com.panut.centralbanking.transactionservice.api.service.account.data.rel
 public enum BalanceChangeType {
     BALANCE,
     RESERVE,
-    OVERDRAFTED
+    OVERDRAFTED;
+
+
+    public boolean requiredTransactionOverdraftContent() {
+        return this == OVERDRAFTED;
+    }
 }

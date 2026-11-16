@@ -2,6 +2,7 @@ package com.panut.centralbanking.transactionservice.api.service.account.data;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.panut.centralbanking.transactionservice.api.service.account.data.context.OverdraftChangeContext;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -28,6 +30,8 @@ public class BalanceChangeData {
     private String transactionId;
     private LocalDateTime blacklistExpiry;
 
+    private OverdraftChangeContext overdraftChangeContext;
+
 
     @JsonIgnore
     public static BalanceChangeData eventToRequest(final BalanceChangeEvent event) {
@@ -38,8 +42,24 @@ public class BalanceChangeData {
                 event.getBalanceImpact(),
                 event.getCreatedAt(),
                 event.getTransactionId(),
-                event.getBlacklistExpiresAt());
+                event.getBlacklistExpiresAt(),
+                null);
     }
+
+    @JsonIgnore
+    public BalanceChangeData withOverdraftChangeContext(final OverdraftChangeContext ctx) {
+        this.overdraftChangeContext = ctx;
+
+        return this;
+    }
+
+    @JsonIgnore
+    public BalanceChangeData withOverdraftChangeContext(final List<String> overdraftIds) {
+        this.overdraftChangeContext = new OverdraftChangeContext(overdraftIds);
+
+        return this;
+    }
+
 
 
 }
