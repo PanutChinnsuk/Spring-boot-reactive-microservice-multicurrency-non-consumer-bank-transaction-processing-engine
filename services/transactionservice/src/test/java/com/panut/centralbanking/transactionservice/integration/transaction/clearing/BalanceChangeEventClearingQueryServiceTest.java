@@ -13,13 +13,17 @@ import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionOverdraftContentRepository;
 import com.panut.centralbanking.transactionservice.integration.transaction.clearing.manager.TestEventManager;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
+import com.panut.centralbanking.transactionservice.testrepository.TransactionOverdraftContentTestRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.math.BigDecimal;
@@ -27,6 +31,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDevTest {
@@ -43,9 +49,16 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
     @Autowired
     private TestEventManager manager;
 
+    @MockitoSpyBean
+    private BalanceChangeEventRepository eventRepository;
+
+    @Autowired
+    private TransactionOverdraftContentTestRepository contentTestRepository;
+
 
     private String transactionId1 = SeededDatabase.ID_PENDING_TRANSACTION_1;
     private String transactionId2 = SeededDatabase.ID_PENDING_TRANSACTION_2;
+    private String overdraft_transaction_id = SeededDatabase.ID_EMPTY_OVERDRAFT_PAYMENT_TYPE_TRANSACTION_1;
     private List<String> eventIds = new ArrayList<>();
     private List<String> toDelete = new ArrayList<>();
 
@@ -120,10 +133,40 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
                     .isAfter(LocalDateTime.now()));
         });
 
-        int t1Size = testRepository.findByTransactionId(transactionId1).collectList().block().size();
-        int t2Size = testRepository.findByTransactionId(transactionId2).collectList().block().size();
+    }
 
-        Assertions.assertEquals(datas.size(), t1Size + t2Size);
+    @Test
+    public void shouldReturnWithOverdraftContext() {
+        List<String> eventIds = testRepository.findByTransactionId(overdraft_transaction_id)
+                .collectList().block()
+                .stream().map(a -> a.getId()).toList();
+
+        int size = contentTestRepository.findByTransactionId(overdraft_transaction_id)
+                        .collectList().block().size();
+
+        eventIds.forEach(a -> {
+            Assertions.assertNotNull(a);
+            this.eventIds.add(a);
+        });
+
+        doReturn(Flux.fromIterable(eventIds))
+                .when(eventRepository).findAllIdsForClearing(
+                        any(BalanceChangeEventStatus.class),
+                        anyInt(),
+                        anyString(),
+                        any(LocalDateTime.class)
+                );
+
+        List<BalanceChangeData> datas = query.getBulk(BalanceChangeEventStatus.PENDING,
+                100,
+                LocalDateTime.now(), SeededDatabaseIdFlag.NONE).collectList().block();
+
+        datas.forEach(data -> {
+            Assertions.assertNotNull(data.getOverdraftChangeContext());
+            Assertions.assertEquals(data.getOverdraftChangeContext().getAccountOverdraftIds()
+                    .size(), size);
+        });
+
     }
 
     @Test

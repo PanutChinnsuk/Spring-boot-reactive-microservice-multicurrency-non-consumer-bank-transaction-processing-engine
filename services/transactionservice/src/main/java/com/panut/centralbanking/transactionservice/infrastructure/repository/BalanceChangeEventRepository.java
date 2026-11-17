@@ -61,7 +61,7 @@ public interface BalanceChangeEventRepository
     @Modifying
     @Query("""
             UPDATE transaction_balance_change_events e 
-            SET e.blacklist_expires_at = :incremented, t.version = version + 1 
+            SET e.blacklist_expires_at = :incremented, e.version = e.version + 1 
             WHERE e.id IN (:eventIds) 
             """)
     Mono<Void> incrementBlacklistExpiry(@Param("eventIds")Collection<String> eventIds,
@@ -70,7 +70,7 @@ public interface BalanceChangeEventRepository
     @Modifying
     @Query("""
             UPDATE transaction_balance_change_events e 
-            SET e.applying_expires_at = :incremented, t.version = version + 1
+            SET e.applying_expires_at = :incremented, e.version = e.version + 1
             WHERE e.id IN (:eventIds) 
             """)
     Mono<Void> incrementApplyingExpiry(@Param("eventIds")Collection<String> eventIds,
@@ -79,7 +79,7 @@ public interface BalanceChangeEventRepository
     @Modifying
     @Query("""
             UPDATE transaction_balance_change_events e 
-            SET e.status = :newStatus, t.version = version + 1
+            SET e.status = :newStatus, e.version = e.version + 1
             WHERE e.id IN (:eventIds) 
             """)
     Mono<Void> bulkStatusUpdate(@Param("eventIds")Collection<String> eventIds,

@@ -56,7 +56,7 @@ public interface TransactionRepository extends ReactiveCrudRepository<Transactio
 
     @Modifying
     @Query("""
-            UPDATE transactions t SET t.status = :upNextStatus, t.version = version + 1
+            UPDATE transactions t SET t.status = :upNextStatus, t.version = t.version + 1
             WHERE t.status = :currentStatus AND
             t.id IN (:transactionIds)
             """)
