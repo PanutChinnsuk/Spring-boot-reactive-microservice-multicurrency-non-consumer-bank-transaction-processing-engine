@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FxRateGetLatestResponse {
+public class FxRateGetResponse {
     private String fxRateId;
     private BigDecimal bidRate;
     private BigDecimal askRate;

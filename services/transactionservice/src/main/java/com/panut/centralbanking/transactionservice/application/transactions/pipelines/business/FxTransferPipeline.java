@@ -6,7 +6,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.response.
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.LedgerAccountQuery;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.AbstractPipelineTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.BaseBuyForeignTransferData;
@@ -45,7 +45,7 @@ public class FxTransferPipeline {
 
 
 
-    protected Mono<FxRateGetLatestResponse> getFxRateConversion(final FxRateData fxRateData) {
+    protected Mono<FxRateGetResponse> getFxRateConversion(final FxRateData fxRateData) {
         return fxRateServiceController
                 .getLatestFxRate(FxRateGetLatestRequest.withFxRateData(fxRateData));
     }
@@ -82,7 +82,7 @@ public class FxTransferPipeline {
                                 "into current pipeline chain"))
                         .flatMap(chain ->
                                 chain.fxRateData(fxRateData.withId(chain
-                                        .getFxRateGetLatestResponse()
+                                        .getFxRateGetResponse()
                                         .getFxRateId()))
                         )
                         .doOnNext(a -> log.info("put fx rate data from before " +

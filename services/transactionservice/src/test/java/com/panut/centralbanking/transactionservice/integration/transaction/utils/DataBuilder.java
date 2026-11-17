@@ -4,8 +4,7 @@ import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.AccountStatus;
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
-import org.springframework.stereotype.Component;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -43,8 +42,8 @@ public class DataBuilder {
         return new GetAccountsInfoForTransactionResponse(queryResults);
     }
 
-    public static FxRateGetLatestResponse latestConversion() {
-        return new FxRateGetLatestResponse("TEST",
+    public static FxRateGetResponse latestConversion() {
+        return new FxRateGetResponse("TEST",
                 BigDecimal.valueOf(25),
                 BigDecimal.valueOf(50),
                 BigDecimal.valueOf(37.5),

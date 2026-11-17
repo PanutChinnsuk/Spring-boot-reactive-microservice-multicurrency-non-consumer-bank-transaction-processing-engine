@@ -2,6 +2,7 @@ package com.panut.centralbanking.transactionservice.application.transactions.pip
 
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
+import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,6 +15,25 @@ public class AccountData {
     private final BigDecimal convertedAmount;
     private final String ledgerAccountId;
     private final TransactionLineDirection direction;
+
+    private static AccountData buildFromLine(final TransactionLine line,
+                                                  final BigDecimal revertedConverted) {
+        return new AccountData(line.getAccountId(),
+                line.getBasedAmount(),
+                revertedConverted,
+                line.getLedgerAccountId(),
+                line.getDirection());
+    }
+
+
+    public static AccountData fromTransactionLine(final TransactionLine line) {
+        return buildFromLine(line, line.getConvertedAmount());
+    }
+
+    public static AccountData fromTransactionLine(final TransactionLine line,
+                                                  final BigDecimal revertedConverted) {
+        return buildFromLine(line, revertedConverted);
+    }
 
 
     public static class V1 {

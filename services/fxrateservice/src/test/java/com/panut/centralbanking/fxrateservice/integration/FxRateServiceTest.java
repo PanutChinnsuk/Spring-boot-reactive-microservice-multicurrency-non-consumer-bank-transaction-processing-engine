@@ -8,9 +8,8 @@ import com.panut.centralbanking.fxrateservice.IntegrationDev;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateCreateRequest;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetLatestRequest;
 import com.panut.centralbanking.fxrateservice.api.response.FxRateCreatedResponse;
-import com.panut.centralbanking.fxrateservice.api.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.fxrateservice.api.response.FxRateGetResponse;
 import com.panut.centralbanking.fxrateservice.application.service.FxRateService;
-import com.panut.centralbanking.fxrateservice.infrastructure.model.FxRate;
 import com.panut.centralbanking.fxrateservice.infrastructure.repository.FxRateRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -67,7 +64,7 @@ public class FxRateServiceTest implements IntegrationDev {
             addId(fxRateService.createFxRate(r).block());
         }
 
-        FxRateGetLatestResponse response = fxRateService
+        FxRateGetResponse response = fxRateService
                 .getLatest(new FxRateGetLatestRequest(r.getBaseCurrency(),
                         r.getQuoteCurrency())).block().getOptionalBody();
         Assertions.assertNotNull(response.getBidRate(), "bidrate");

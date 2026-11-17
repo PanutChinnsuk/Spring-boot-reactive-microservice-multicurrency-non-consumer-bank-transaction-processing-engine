@@ -8,7 +8,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.AccountSe
 import com.panut.centralbanking.transactionservice.api.service.account.request.GetAccountsInfoForTransactionRequest;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.FxTransferPipeline;
@@ -81,7 +81,7 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
 
     private void foreignBuyBase(final Long transferingForeignAmount) {
         ForeignBuyBaseTransferData data = foreignBuyBaseTransferData(transferingForeignAmount);
-        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
+        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
         CurrencyCode quoteCurrency = CurrencyCode.THB;
         FxRateData fxRateData = FxRateData.quoteAsk(quoteCurrency);
         int digits = 4;
@@ -130,7 +130,7 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
 
     private void baseBuyForeign(final Long transferingBaseAmount) {
         BaseBuyForeignTransferData data = baseBuyForeignTransferData(transferingBaseAmount);
-        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
+        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
         CurrencyCode quoteCurrency = CurrencyCode.THB;
         FxRateData fxRateData = FxRateData.quoteBid(quoteCurrency);
         int digits = 4;

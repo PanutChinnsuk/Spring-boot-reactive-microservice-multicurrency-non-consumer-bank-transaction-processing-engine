@@ -3,8 +3,9 @@ package com.panut.centralbanking.fxrateservice.api.controller.service;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
+import com.panut.centralbanking.fxrateservice.api.request.FxRateGetByIdRequest;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetLatestRequest;
-import com.panut.centralbanking.fxrateservice.api.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.fxrateservice.api.response.FxRateGetResponse;
 import com.panut.centralbanking.fxrateservice.application.service.FxRateService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,8 +26,16 @@ public class FxRateServiceController {
 
     @ServiceHasAuthorityExpectsMono(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_LATEST_METHOD)
     @PostMapping(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_LATEST_METHOD)
-    public Mono<CommonResult<FxRateGetLatestResponse>> getLatest(@RequestBody @Valid
+    public Mono<CommonResult<FxRateGetResponse>> getLatest(@RequestBody @Valid
                                                    FxRateGetLatestRequest r) {
         return fxRateService.getLatest(r);
+    }
+
+
+    @ServiceHasAuthorityExpectsMono(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_BY_ID_METHOD)
+    @PostMapping(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_BY_ID_METHOD)
+    public Mono<CommonResult<FxRateGetResponse>> getById(@RequestBody @Valid
+                                                               FxRateGetByIdRequest r) {
+        return fxRateService.getById(r);
     }
 }

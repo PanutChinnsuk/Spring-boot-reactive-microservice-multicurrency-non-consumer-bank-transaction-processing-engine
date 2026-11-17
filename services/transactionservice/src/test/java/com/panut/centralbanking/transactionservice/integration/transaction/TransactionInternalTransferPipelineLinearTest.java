@@ -8,7 +8,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.request.G
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.InternalTransferPipeline;
@@ -279,7 +279,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 linearBaseBuyForeignWithConvertedAmount(baseAmount, converted);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
-        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
+        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
 
         withFx(baseAmount, converted, converted, latestConversion,
                 data, response);
@@ -297,7 +297,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 linearBaseBuyForeign(baseAmount, fxDirection);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
-        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
+        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
 
         BigDecimal expected = FxRateCurrencyConversion
                 .V1.convertMultiply(baseAmount, latestConversion,
@@ -318,7 +318,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 linearForeignBuyBase(foreignAmount, fxDirection);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.foreignBuyBaseAccountsInfo(quoteCurrency);
-        FxRateGetLatestResponse latestConversion = DataBuilder.latestConversion();
+        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
 
         BigDecimal expected = FxRateCurrencyConversion
                 .V1.convertDivide(foreignAmount, latestConversion,
@@ -333,7 +333,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     private void withFx(BigDecimal baseAmount,
                         BigDecimal converted,
                         BigDecimal expectedConverted,
-                        FxRateGetLatestResponse latestConversion,
+                        FxRateGetResponse latestConversion,
                         InternalLinearTransferPipelineData data,
                         GetAccountsInfoForTransactionResponse response) {
 

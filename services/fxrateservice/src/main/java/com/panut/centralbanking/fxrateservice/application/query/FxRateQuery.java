@@ -30,4 +30,12 @@ public class FxRateQuery {
                                    final CurrencyCode quote) {
         return fxRateRepository.findExistLatest(base, quote);
     }
+
+    public Mono<FxRate> findById(final String fxRateId) {
+        return fxRateRepository.findById(fxRateId)
+                .switchIfEmpty(Mono.error(
+                        () -> new NotFound("Fx rate table does not contain a rate " +
+                                " which id was " + fxRateId)
+                ));
+    }
 }

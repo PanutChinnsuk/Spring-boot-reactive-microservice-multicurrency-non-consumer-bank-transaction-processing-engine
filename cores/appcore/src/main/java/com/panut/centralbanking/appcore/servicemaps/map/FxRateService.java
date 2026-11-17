@@ -11,5 +11,9 @@ public class FxRateService {
     public static final String GET_LATEST_FULL_PATH = FullPath.loadBalancedOf(
             ID, GET_LATEST_METHOD);
 
+    public static final String GET_BY_ID_METHOD = "/get-by-id";
+    public static final String GET_BY_ID_FULL_PATH = FullPath.loadBalancedOf(
+            ID, GET_BY_ID_METHOD);
+
 
 }

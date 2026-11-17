@@ -1,7 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1;
 
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import lombok.Getter;
 import reactor.core.publisher.Mono;
@@ -10,15 +10,15 @@ import java.util.Map;
 
 @Getter
 public class TransferPipelineChain {
-    private FxRateGetLatestResponse fxRateGetLatestResponse;
+    private FxRateGetResponse fxRateGetResponse;
     private Map<String, String> ledgerCodeMap;
     private FxRateData fxRateData;
     private GetAccountsInfoForTransactionResponse getAccountsInfoForTransactionResponse;
 
 
-    public Mono<TransferPipelineChain> fxRateGetLatestResponse(final FxRateGetLatestResponse fxRateGetLatestResponse) {
+    public Mono<TransferPipelineChain> fxRateGetLatestResponse(final FxRateGetResponse fxRateGetResponse) {
         return Mono.defer(() -> {
-            this.fxRateGetLatestResponse = fxRateGetLatestResponse;
+            this.fxRateGetResponse = fxRateGetResponse;
 
             return Mono.just(this);
         });

@@ -47,6 +47,8 @@ public interface FxRateRepository extends ReactiveCrudRepository<FxRate, String>
     Mono<String> findExistLatest(@Param("baseCurrency")CurrencyCode baseCurrency,
                             @Param("quoteCurrency")CurrencyCode quoteCurrency);
 
+
+
     Mono<Boolean> existsByBaseCurrencyAndQuoteCurrency(CurrencyCode baseCurrency,
                                                        CurrencyCode quoteCurrency);
 

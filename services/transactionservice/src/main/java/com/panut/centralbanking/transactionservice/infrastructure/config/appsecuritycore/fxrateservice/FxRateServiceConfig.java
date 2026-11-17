@@ -26,7 +26,8 @@ public class FxRateServiceConfig {
                 .renewMinutes(1)
                 .betweenServicesSecretKey(property.getFxRateServiceKey())
                 .optionalName("FX RATE SERVICE SIGNATURE")
-                .serviceAuthorities(FxRateService.GET_LATEST_METHOD)
+                .serviceAuthorities(FxRateService.GET_LATEST_METHOD,
+                        FxRateService.GET_BY_ID_METHOD)
                 .ServiceSignatureConfigSecurityContext(context)
                 .build();
     }

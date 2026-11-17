@@ -3,8 +3,6 @@ package com.panut.centralbanking.fxrateservice.infrastructure.model;
 import com.panut.centralbanking.appR2dbccore.persistence.UUIDBasedStringEntity;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
-import com.panut.centralbanking.fxrateservice.api.response.FxRateGetLatestResponse;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

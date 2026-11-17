@@ -1,7 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.FxTransferPipeline.v1;
 
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.BaseBuyForeignTransferData;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +51,7 @@ public class FxTransferPipelineModuleV1 {
                 .doOnNext(a -> log.info("After passed to defaultForeignBuyBase"))
                 .map(chain -> {
                     BigDecimal uncovertedForeignAmount = data.getForeignAmount();
-                    FxRateGetLatestResponse latestConversion = chain.getFxRateGetLatestResponse();
+                    FxRateGetResponse latestConversion = chain.getFxRateGetResponse();
                     FxRateData fxRateData = chain.getFxRateData();
                     GetAccountsInfoForTransactionResponse response = chain
                             .getGetAccountsInfoForTransactionResponse();
@@ -74,21 +75,42 @@ public class FxTransferPipelineModuleV1 {
                     log.info("defaultForeignBuyBase, convertedProfitAmount {}",
                             convertedProfitAmount);
 
-                    List<AccountData> accountDatas = List.of(
-                            AccountData.V1.fxDebit(fromAccount,
-                                    uncovertedForeignAmount,
-                                    convertedForeignAmount,
-                                    ledgerAccountId),
-                            AccountData.V1.linearCredit(toAccount,
-                                    convertedForeignAmount,
-                                    ledgerAccountId),
-                            AccountData.V1.linearCredit(internalProfitAccount,
-                                    convertedProfitAmount,
-                                    ledgerAccountId),
-                            AccountData.V1.linearClearingDebit(internalFxClearing,
-                                    convertedProfitAmount,
-                                    ledgerAccountId)
-                    );
+
+
+                    var totalCredit = convertedForeignAmount.add(convertedProfitAmount);
+                    var totalClearing = uncovertedForeignAmount.compareTo(totalCredit) > 0
+                            ? uncovertedForeignAmount.subtract(totalCredit)
+                            : totalCredit.subtract(uncovertedForeignAmount);
+
+
+                    log.info("defaultForeignBuyBase, totalClearing {}",
+                            totalClearing);
+
+                    List<AccountData> accountDatas = new ArrayList<>();
+                    accountDatas.add(AccountData.V1.linearDebit(fromAccount,
+                            uncovertedForeignAmount,
+                            ledgerAccountId));
+                    accountDatas.add(AccountData.V1.linearCredit(toAccount,
+                            convertedForeignAmount,
+                            ledgerAccountId));
+                    accountDatas.add(AccountData.V1.linearCredit(internalProfitAccount,
+                            convertedProfitAmount,
+                            ledgerAccountId));
+
+                    if (uncovertedForeignAmount.compareTo(totalCredit) > 0) {
+                        accountDatas.add(AccountData.V1.linearClearingCredit(internalFxClearing,
+                                totalClearing,
+                                ledgerAccountId));
+                    }else {
+                        accountDatas.add(AccountData.V1.linearClearingDebit(internalFxClearing,
+                                totalClearing,
+                                ledgerAccountId));
+                    }
+
+
+
+
+
 
 
                     return new PreTransactionRegisterData(FIXED_TRANSACTION_TYPE,
@@ -107,7 +129,7 @@ public class FxTransferPipelineModuleV1 {
                 .doOnNext(a -> log.info("After passed to defaultBaseBuyForeign"))
                 .map(chain -> {
                     BigDecimal baseAmount = data.getBaseAmount();
-                    FxRateGetLatestResponse latestConversion = chain.getFxRateGetLatestResponse();
+                    FxRateGetResponse latestConversion = chain.getFxRateGetResponse();
                     FxRateData fxRateData = chain.getFxRateData();
                     GetAccountsInfoForTransactionResponse response = chain
                             .getGetAccountsInfoForTransactionResponse();

@@ -2,7 +2,7 @@ package com.panut.centralbanking.transactionservice.application.calculations.pro
 
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ public class FxRateProfitCalculator {
 
     public static class V1 {
         public static BigDecimal foreignBuyBaseProfit(final BigDecimal unconvertedForiegnAmount,
-                                                      final FxRateGetLatestResponse latestConversion,
+                                                      final FxRateGetResponse latestConversion,
                                                       final FxRateData fxRateData) {
             CurrencyCode baseCurrency = latestConversion.getBaseCurrency();
             RoundingMode roundingMode = baseCurrency.getRoundingMode();

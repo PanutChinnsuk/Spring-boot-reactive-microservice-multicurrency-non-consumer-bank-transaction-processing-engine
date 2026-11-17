@@ -7,7 +7,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.response.
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.ExpectedLedgerTypes;
@@ -69,7 +69,7 @@ public class InternalLinearTransferPipelineModuleV1 {
     private BigDecimal decideFxConversion(final CustomPerAccountFxTransferDataPolicy policy,
                                           final BigDecimal baseAmount,
                                           final FxRateData fxRateData,
-                                          final FxRateGetLatestResponse latestConversion) {
+                                          final FxRateGetResponse latestConversion) {
         if (policy.FOREIGN_BUY_BASE())
             return FxRateCurrencyConversion
                     .V1.convertDivide(baseAmount, latestConversion,
@@ -86,7 +86,7 @@ public class InternalLinearTransferPipelineModuleV1 {
 
     private BigDecimal getConvertedWithFxConversion(final CustomAccountTransferData data,
                                                     final AccountInfoForTransactionQueryResult account,
-                                                    final FxRateGetLatestResponse latestConversion) {
+                                                    final FxRateGetResponse latestConversion) {
 
         var fxContext = data.getFxContext();
         FxDirection directionForFx = data.expectedNotNoneFxDirection()
@@ -110,7 +110,7 @@ public class InternalLinearTransferPipelineModuleV1 {
     private AccountData handlePerAccount(final CustomAccountTransferData data,
                                          final AccountInfoForTransactionQueryResult account,
                                          final Map<String,String> ledgerCodeMap,
-                                         final FxRateGetLatestResponse latestConversion) {
+                                         final FxRateGetResponse latestConversion) {
         BigDecimal baseAmount = data.getBaseAmount();
         CurrencyCode accountCurrency = account.getAccountCurrency();
         String ledgerAccountId = ledgerCodeMap.get(data.getLedgerCode().getValue());
@@ -255,7 +255,7 @@ public class InternalLinearTransferPipelineModuleV1 {
                     perAccountDatas.forEach(data -> {
                         var account = response.getAccount(data.getAccountId());
                         AccountData accountData = handlePerAccount(data, account,
-                                chain.getLedgerCodeMap(), chain.getFxRateGetLatestResponse());
+                                chain.getLedgerCodeMap(), chain.getFxRateGetResponse());
 
                         accountDatas.add(accountData);
                     });

@@ -46,6 +46,11 @@ public class TransactionProfile extends VersionedUUIDStringEntity {
         return this.reversedOfTransactionId != null;
     }
 
+    public boolean hasFxRate() {
+        return this.fxRateId != null &&
+                !fxDirection.equals(FxDirection.NONE);
+    }
+
 
     public Mono<TransactionProfile> posted() {
         return Mono.defer(() -> {

@@ -2,9 +2,10 @@ package com.panut.centralbanking.fxrateservice.application.implement;
 
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateCreateRequest;
+import com.panut.centralbanking.fxrateservice.api.request.FxRateGetByIdRequest;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetLatestRequest;
 import com.panut.centralbanking.fxrateservice.api.response.FxRateCreatedResponse;
-import com.panut.centralbanking.fxrateservice.api.response.FxRateGetLatestResponse;
+import com.panut.centralbanking.fxrateservice.api.response.FxRateGetResponse;
 import com.panut.centralbanking.fxrateservice.application.FxRateRepositoryManager;
 import com.panut.centralbanking.fxrateservice.application.query.FxRateQuery;
 import com.panut.centralbanking.fxrateservice.application.service.FxRateService;
@@ -63,16 +64,30 @@ public class FxRateServiceImpl implements FxRateService {
     }
 
     @Override
-    public Mono<CommonResult<FxRateGetLatestResponse>> getLatest(final FxRateGetLatestRequest r) {
+    public Mono<CommonResult<FxRateGetResponse>> getLatest(final FxRateGetLatestRequest r) {
         return fxRateQuery
                 .findLatest(r.getBaseCurrency(),
                         r.getQuoteCurrency())
-                .map(FxRateGetLatestResponse::toResponse)
-                .map(response -> new CommonResult<FxRateGetLatestResponse>(response))
+                .map(FxRateGetResponse::toResponse)
+                .map(response -> new CommonResult<FxRateGetResponse>(response))
                 .doOnSuccess(a ->
                         log.info("Successfully get latest fx rate."))
                 .doOnError(error ->
                         log.error("Failed to get latest fx rate, {}",
+                                error.getLocalizedMessage()));
+    }
+
+
+    @Override
+    public Mono<CommonResult<FxRateGetResponse>> getById(final FxRateGetByIdRequest r) {
+        return fxRateQuery
+                .findById(r.getFxRateId())
+                .map(FxRateGetResponse::toResponse)
+                .map(response -> new CommonResult<FxRateGetResponse>(response))
+                .doOnSuccess(a ->
+                        log.info("Successfully get fx rate by id."))
+                .doOnError(error ->
+                        log.error("Failed to get latest fx rate ny id, {}",
                                 error.getLocalizedMessage()));
     }
 

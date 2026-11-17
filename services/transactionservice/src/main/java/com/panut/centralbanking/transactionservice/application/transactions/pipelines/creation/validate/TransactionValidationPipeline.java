@@ -41,7 +41,7 @@ public class TransactionValidationPipeline {
                     totalDebit.set(totalDebit.get().add(convertedAmount));
             });
 
-            if (!totalCredit.get().equals(totalDebit.get())) {
+            if (totalCredit.get().compareTo(totalDebit.get()) != 0) {
                 return Mono.error(() -> new SystemMisused("Unbalanced transaction ledger. " +
                         "Total debit: " + totalDebit.get() + " | Total credit: " +
                         totalCredit.get()));

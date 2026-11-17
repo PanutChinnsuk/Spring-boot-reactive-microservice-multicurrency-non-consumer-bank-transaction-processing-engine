@@ -7,6 +7,10 @@ import com.panut.centralbanking.transactionservice.infrastructure.repository.Tra
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 @Component
 public class TransactionQuery {
     private final TransactionRepository transactionRepository;
@@ -17,11 +21,12 @@ public class TransactionQuery {
 
 
     public Mono<Transaction> findById(final String transactionId,
-                                      final TransactionStatus expectedStatus) {
-        return transactionRepository.findTransactionById(transactionId, expectedStatus)
+                                      final TransactionStatus... expectedStatuses) {
+        return transactionRepository.findTransactionById(transactionId,
+                        Arrays.asList(expectedStatuses))
                 .switchIfEmpty(Mono.error(
                         () -> new NotFound("Transaction id of " + transactionId + " not found " +
-                                "with expected status of " + expectedStatus)
+                                "with expected status of " + expectedStatuses.toString())
                 ));
     }
 }

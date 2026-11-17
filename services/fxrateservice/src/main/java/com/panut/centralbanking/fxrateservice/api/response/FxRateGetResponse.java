@@ -6,14 +6,13 @@ import com.panut.centralbanking.fxrateservice.infrastructure.model.FxRate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.relational.core.mapping.Column;
 
 import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FxRateGetLatestResponse {
+public class FxRateGetResponse {
     private String fxRateId;
     private BigDecimal bidRate;
     private BigDecimal askRate;
@@ -24,8 +23,8 @@ public class FxRateGetLatestResponse {
 
 
     @JsonIgnore
-    public static FxRateGetLatestResponse toResponse(final FxRate fxRate) {
-        return new FxRateGetLatestResponse(
+    public static FxRateGetResponse toResponse(final FxRate fxRate) {
+        return new FxRateGetResponse(
                 fxRate.getId(),
                 fxRate.getBidRate(),
                 fxRate.getAskRate(),

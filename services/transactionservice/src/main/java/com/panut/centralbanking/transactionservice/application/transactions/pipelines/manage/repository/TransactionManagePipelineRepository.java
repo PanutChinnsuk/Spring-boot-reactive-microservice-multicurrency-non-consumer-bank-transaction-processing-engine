@@ -39,8 +39,8 @@ public class TransactionManagePipelineRepository {
 
 
     public Mono<TransactionManageChain> justTransaction(final String transactionId,
-                                                        final TransactionStatus expectedStatus) {
-        return transactionQuery.findById(transactionId, expectedStatus)
+                                                        final TransactionStatus... expectedStatuses) {
+        return transactionQuery.findById(transactionId, expectedStatuses)
                 .doOnNext(a -> log.info("after find transaction with id and expectedStatus"))
                 .flatMap(transaction -> new TransactionManageChain()
                         .transaction(transaction))
@@ -58,8 +58,8 @@ public class TransactionManagePipelineRepository {
 
 
     public Mono<TransactionManageChain> fullTransaction(final String transactionId,
-                                                        final TransactionStatus expectedStatus) {
-        return justTransaction(transactionId, expectedStatus)
+                                                        final TransactionStatus... expectedStatuses) {
+        return justTransaction(transactionId, expectedStatuses)
                 .doOnNext(a -> log.info("called justTransaction for fullTransaction"))
                 .flatMap(chain -> transactionLineQuery
                         .findTransactionLines(transactionId)
