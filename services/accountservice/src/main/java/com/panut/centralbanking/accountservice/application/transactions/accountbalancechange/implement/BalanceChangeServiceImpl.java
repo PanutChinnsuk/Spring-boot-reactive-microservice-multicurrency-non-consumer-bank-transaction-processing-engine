@@ -272,17 +272,19 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                                     "due to not found."
                                     );
 
-                                if (events != null
-                                        && !events.isEmpty()) {
-                                    if (old.comparedNew(updated)) {
-                                        clearedEventIds
-                                                .addAll(events);
-                                    }else {
-                                        throw new CriticalFailureException(
-                                                "Updated account balance id, " + updated.getId() +
-                                                        " has mismatched balances values, aborting operation."
-                                        );
-                                    }
+                                if (events == null || events.isEmpty())
+                                    throw new IllegalStateException(
+                                            "Cannot get events that affected account balance to check correction"
+                                    );
+
+                                if (old.comparedNew(updated)) {
+                                    clearedEventIds
+                                            .addAll(events);
+                                }else {
+                                    throw new CriticalFailureException(
+                                            "Updated account balance id, " + updated.getId() +
+                                                    " has mismatched balances values, aborting operation."
+                                    );
                                 }
                             });
 
