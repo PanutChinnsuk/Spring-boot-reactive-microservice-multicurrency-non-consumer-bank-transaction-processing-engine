@@ -263,6 +263,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                     result.accountBalances();
 
                             changedButPreUpdate.forEach((key, old) -> {
+                                log.info("Verifying entity correction");
                                 AccountBalance updated = postUpdated.get(key);
                                 List<String> events = myEvents.get(key);
 
@@ -297,7 +298,21 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                         .doOnNext(a -> log.info("Adding processed balance change events."))
                         .flatMap(clearedEventIds ->
                                 processedBalanceChangeEventConnectionFactory
-                                        .batchInsertMultirow(clearedEventIds))
+                                        .batchInsertMultirow(clearedEventIds)
+                                        .thenReturn(clearedEventIds))
+                        .flatMap(clearedEventIds -> processedBalanceChangeEventQuery
+                                .getAlreadyProcessedEventIds(clearedEventIds)
+                                .map(processed -> {
+                                    log.info("Verifying processed events");
+                                    if (!processed.containsAll(clearedEventIds))
+                                        throw new CriticalFailureException("Processed event ids " +
+                                                "from database does not contain previous event ids " +
+                                                "that has affected account balances.");
+
+                                    return processed;
+                                })
+                        )
+
                         .thenReturn(result)
 
                 )

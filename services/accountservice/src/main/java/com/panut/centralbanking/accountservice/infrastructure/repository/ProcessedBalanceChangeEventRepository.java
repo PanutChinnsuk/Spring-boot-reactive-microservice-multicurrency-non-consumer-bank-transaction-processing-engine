@@ -18,7 +18,7 @@ public interface ProcessedBalanceChangeEventRepository
 
     @Query("""
             SELECT pe.event_id FROM account_processed_balance_change_events pe 
-            WHERE pe.event_id IN (:eventIds) FOR UPDATE
+            WHERE pe.event_id IN (:eventIds)
             """)
     Flux<String> getProcessed(@Param("eventIds")Collection<String> eventIds);
 
