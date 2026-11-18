@@ -70,7 +70,8 @@ public class GlobalMonoExceptionHandler {
     }
 
     @ExceptionHandler({Exception.class, OptimisticLockingFailureException.class,
-    PessimisticLockingFailureException.class, DeadlockLoserDataAccessException.class})
+    PessimisticLockingFailureException.class, DeadlockLoserDataAccessException.class,
+    CriticalFailureException.class})
     public Mono<ResponseEntity<Map<String,String>>> handleException(Exception e,
                                                                    ServerWebExchange ex) {
         return createError(e, HttpStatus.INTERNAL_SERVER_ERROR, ex);

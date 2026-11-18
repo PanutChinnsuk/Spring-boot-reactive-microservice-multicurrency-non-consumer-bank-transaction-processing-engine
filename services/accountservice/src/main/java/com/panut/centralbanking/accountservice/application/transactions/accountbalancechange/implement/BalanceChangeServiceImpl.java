@@ -16,6 +16,7 @@ import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalan
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.appR2dbccore.data.MapListSorter;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
+import com.panut.centralbanking.appcore.exceptions.CriticalFailureException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -271,6 +272,11 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                     if (old.comparedNew(updated)) {
                                         clearedEventIds
                                                 .addAll(events);
+                                    }else {
+                                        throw new CriticalFailureException(
+                                                "Updated account balance id, " + updated.getId() +
+                                                        " has mismatched balances values, aborting operation."
+                                        );
                                     }
                                 }
                             });
