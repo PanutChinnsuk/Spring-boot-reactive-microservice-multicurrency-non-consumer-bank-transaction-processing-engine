@@ -3,18 +3,30 @@ package com.panut.centralbanking.transactionservice.application.transactions.pip
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 
 @Data
+@AllArgsConstructor
 public class AccountData {
+    private final String objectIdentity = UUID.randomUUID().toString();
+
     private final String accountId;
     private final BigDecimal amount;
-    private final BigDecimal convertedAmount;
+    private BigDecimal convertedAmount;
     private final String ledgerAccountId;
     private final TransactionLineDirection direction;
+
+    public AccountData incrementConvertedAmount(final BigDecimal amount) {
+        this.convertedAmount = this.convertedAmount.add(amount);
+
+        return this;
+    }
+
 
     private static AccountData buildFromLine(final TransactionLine line,
                                                   final BigDecimal revertedConverted) {

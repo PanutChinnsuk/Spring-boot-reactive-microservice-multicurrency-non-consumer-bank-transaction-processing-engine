@@ -50,10 +50,15 @@ public class BalanceChangeEventService {
 
     public BalanceChangeEvent create(final TransactionLine line,
                                            final ChangingBalance changingBalance) {
+        BigDecimal changingAmount = line.getConvertedAmount();
+
+        var impact = changingBalance.getBalanceImpact();
+        var type = changingBalance.getBalanceChangeType();
+
         return put(line.getAccountId(),
-                line.getConvertedAmount(),
-                changingBalance.getBalanceImpact(),
-                changingBalance.getBalanceChangeType(),
+                changingAmount,
+                impact,
+                type,
                 line.getTransactionId());
     }
 

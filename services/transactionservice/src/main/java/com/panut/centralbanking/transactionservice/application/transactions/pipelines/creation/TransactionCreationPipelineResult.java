@@ -49,6 +49,7 @@ public class TransactionCreationPipelineResult {
                 map(TransactionLine::getId)
                 .toList();
 
+
         return this;
     }
 }

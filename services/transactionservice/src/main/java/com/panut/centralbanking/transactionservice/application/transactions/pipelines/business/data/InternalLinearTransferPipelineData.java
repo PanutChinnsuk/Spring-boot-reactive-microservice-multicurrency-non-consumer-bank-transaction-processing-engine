@@ -1,7 +1,8 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data;
 
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.CustomTransferLedgerPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import lombok.Getter;
 import reactor.core.publisher.Mono;
@@ -13,7 +14,9 @@ import java.util.stream.Collectors;
 @Getter
 public class InternalLinearTransferPipelineData implements AbstractPipelineTransferData {
     private final List<CustomAccountTransferData> customDatas;
-    private final List<CustomAccountTransferDataPolicy> transferPolicies;
+    private final Set<CustomTransferDataPolicy> transferPolicies;
+    private final List<CustomTransferLedgerPolicy> ledgerPolicies;
+
 
     private final int maximumQuoteCurrencySize= 1;
     private final int fixedMinimumSize = 2;
@@ -23,11 +26,11 @@ public class InternalLinearTransferPipelineData implements AbstractPipelineTrans
 
 
     public InternalLinearTransferPipelineData(List<CustomAccountTransferData> customDatas,
-                                              List<CustomAccountTransferDataPolicy> transferPolicies) {
+                                              Set<CustomTransferDataPolicy> transferPolicies,
+                                              List<CustomTransferLedgerPolicy> ledgerPolicies) {
         this.customDatas = customDatas;
         this.transferPolicies = transferPolicies;
-
-        this.fixedSize = customDatas.size();
+        this.ledgerPolicies = ledgerPolicies;
 
         accountIds = customDatas
                 .stream().map(CustomAccountTransferData::getAccountId)
@@ -36,6 +39,9 @@ public class InternalLinearTransferPipelineData implements AbstractPipelineTrans
         ledgerCodes = customDatas
                 .stream().map(data -> data.getLedgerCode().getValue())
                 .collect(Collectors.toSet());
+
+
+        this.fixedSize = accountIds.size();
     }
 
 
@@ -61,6 +67,11 @@ public class InternalLinearTransferPipelineData implements AbstractPipelineTrans
     @Override
     public Set<String> getLedgerCodeSet() {
         return ledgerCodes;
+    }
+
+    public boolean requiredFxRate() {
+        return customDatas.stream()
+                .anyMatch(data -> data.hasFxContext());
     }
 
 

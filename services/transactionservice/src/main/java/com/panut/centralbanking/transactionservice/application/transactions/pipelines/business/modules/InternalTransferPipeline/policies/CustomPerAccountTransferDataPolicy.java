@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies;
 
 public enum CustomPerAccountTransferDataPolicy {
     IS_BASE_CURRENCY,

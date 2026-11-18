@@ -111,8 +111,6 @@ public class FxTransferPipelineModuleV1 {
 
 
 
-
-
                     return new PreTransactionRegisterData(FIXED_TRANSACTION_TYPE,
                             accountDatas, chain.getFxRateData());
                 })

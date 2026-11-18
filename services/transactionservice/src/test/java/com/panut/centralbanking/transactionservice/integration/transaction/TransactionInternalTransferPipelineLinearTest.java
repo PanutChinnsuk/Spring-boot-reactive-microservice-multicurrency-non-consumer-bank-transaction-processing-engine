@@ -13,10 +13,12 @@ import com.panut.centralbanking.transactionservice.application.calculations.conv
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.InternalTransferPipeline;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.InternalLinearTransferPipelineData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomInternalAccountProfitContext;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomPerAccountFxTransferDataPolicy;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomPerAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomPerAccountFxTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomPerAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.CustomTransferLedgerPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.TransferLedgerPolicyEnum;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferDataFxContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
@@ -64,9 +66,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     private String internal1 = SeededDatabase.ID_INTERNAL_ACCOUNT_1;
     private String internal2 = SeededDatabase.ID_INTERNAL_ACCOUNT_2;
 
-    private List<CustomAccountTransferDataPolicy> defaultTransferPolicy() {
-        return List.of(
-                CustomAccountTransferDataPolicy.ACTIVE_ACCOUNTS_ONLY
+    private Set<CustomTransferDataPolicy> defaultTransferPolicy() {
+        return Set.of(
+                CustomTransferDataPolicy.ACTIVE_ACCOUNTS_ONLY
         );
     }
 
@@ -75,6 +77,22 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 CustomPerAccountTransferDataPolicy.IS_BASE_CURRENCY
         );
     }
+
+    private List<CustomTransferLedgerPolicy> fillDebitPolicy(String accountId) {
+        return List.of(
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.FILL_CLEARING_DEBIT)
+                        .withAccountId(accountId)
+        );
+    }
+
+    private List<CustomTransferLedgerPolicy> fillCreditPolicy(String accountId) {
+        return List.of(
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.FILL_CLEARING_CREDIT)
+                        .withAccountId(accountId)
+        );
+    }
+
+
 
     private CustomAccountTransferData customAccountTransferData(String accountId,
                                                                 BigDecimal amount,
@@ -113,7 +131,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         .withPerAccountPolicies(defaultPerAccountolicy())
         );
 
-        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts,
+                defaultTransferPolicy(),
+                null);
     }
 
     private InternalLinearTransferPipelineData linearBaseBuyForeignWithConvertedAmount(BigDecimal baseAmount,
@@ -135,7 +155,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         TransactionLineDirection.CLEARING_CREDIT)
         );
 
-        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts,
+                defaultTransferPolicy(),
+                null);
     }
 
     private InternalLinearTransferPipelineData linearBaseBuyForeign(BigDecimal baseAmount,
@@ -164,7 +186,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         .withPerAccountPolicies(defaultPerAccountolicy())
         );
 
-        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts,
+                defaultTransferPolicy(),
+                null);
     }
 
     private InternalLinearTransferPipelineData linearForeignBuyBase(BigDecimal foreignAmount,
@@ -174,7 +198,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         TransactionLineDirection.DEBIT)
                         .withFxContext(new CustomAccountTransferDataFxContext(
                                 fxDirection,
-                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_PRINCIPAL
                         )),
 
                 customAccountTransferData(toAccountId, foreignAmount,
@@ -193,15 +217,15 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         .withProfitContext(new CustomInternalAccountProfitContext(foreignAmount)),
 
                 customAccountTransferData(internal2, foreignAmount,
+                        TransactionLineDirection.CLEARING_CREDIT),
+                customAccountTransferData(internal2, BigDecimal.ZERO,
                         TransactionLineDirection.CLEARING_DEBIT)
-                        .withFxContext(new CustomAccountTransferDataFxContext(
-                                fxDirection,
-                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE
-                        ))
-                        .withProfitContext(new CustomInternalAccountProfitContext(foreignAmount))
+
         );
 
-        return new InternalLinearTransferPipelineData(perAccounts, defaultTransferPolicy());
+        return new InternalLinearTransferPipelineData(perAccounts,
+                defaultTransferPolicy(),
+                fillDebitPolicy(internal2));
     }
 
 
@@ -214,7 +238,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 .stream()
                 .collect(Collectors.toMap(
                         a -> a.getAccountId(),
-                        Function.identity()
+                        Function.identity(),
+                        (a,b) -> b
                 ));
     }
 
@@ -225,7 +250,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 .stream()
                 .collect(Collectors.toMap(
                         a -> a.getAccountId(),
-                        Function.identity()
+                        Function.identity(),
+                        (a,b) -> b
                 ));
     }
 
@@ -303,6 +329,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 .V1.convertMultiply(baseAmount, latestConversion,
                         FxRateData.quote(quoteCurrency, fxDirection));
 
+
         withFx(baseAmount, null, expected, latestConversion,
                 data, response);
 
@@ -310,7 +337,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
     @Test
     public void shouldCreateLinearFxForeignBuyBase() {
-        BigDecimal foreignAmount = BigDecimal.valueOf(257.25156);
+        BigDecimal foreignAmount = BigDecimal.valueOf(1000);
         FxDirection fxDirection = FxDirection.ASK;
 
         CurrencyCode quoteCurrency = CurrencyCode.CAD;
@@ -353,7 +380,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         cleanRepo.transactionId = result.getTransactionId();
         cleanRepo.transactionLineIds = result.getTransactionLineIds();
 
-        Map<String, TransactionLine> transactionLineMap = getTransactionLineMap(result.getTransactionId());
+        Map<String, TransactionLine> transactionLineMap =
+                getTransactionLineMap(result.getTransactionId());
         Map<String, CustomAccountTransferData> customAccountTransferDataMap =
                 getCustomAccountTransferDataMap(data);
 

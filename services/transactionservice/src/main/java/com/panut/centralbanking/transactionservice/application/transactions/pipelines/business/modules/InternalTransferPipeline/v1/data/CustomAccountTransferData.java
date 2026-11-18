@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomPerAccountTransferDataPolicy;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomPerAccountTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.CustomInternalAccountProfitContext;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;

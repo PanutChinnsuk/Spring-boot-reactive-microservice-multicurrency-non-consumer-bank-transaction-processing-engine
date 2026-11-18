@@ -3,14 +3,16 @@ package com.panut.centralbanking.transactionservice.application.transactions.pip
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 
 import java.util.List;
+import java.util.Set;
 
 public class InternalTransferPipelinePolicies {
 
     public static void applyTransferPolicyValidation(final GetAccountsInfoForTransactionResponse response,
-                                               final List<CustomAccountTransferDataPolicy> policies) {
+                                               final Set<CustomTransferDataPolicy> policies) {
         if (policies == null) return;
         if (policies.isEmpty()) return;
 

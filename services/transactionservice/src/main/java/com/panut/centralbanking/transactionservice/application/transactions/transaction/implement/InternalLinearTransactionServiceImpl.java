@@ -21,7 +21,8 @@ public class InternalLinearTransactionServiceImpl implements InternalLinearTrans
     public Mono<TransactionCreationPipelineResult> linear(final InternalLinearTransferRequest r) {
         return internalTransferPipeline.customLinearTransfer(
                 new InternalLinearTransferPipelineData(r.getCustomDatas(),
-                        r.getTransferPolicies())
+                        r.getTransferPolicies(),
+                        r.getLedgerPolicies())
         );
     }
 }

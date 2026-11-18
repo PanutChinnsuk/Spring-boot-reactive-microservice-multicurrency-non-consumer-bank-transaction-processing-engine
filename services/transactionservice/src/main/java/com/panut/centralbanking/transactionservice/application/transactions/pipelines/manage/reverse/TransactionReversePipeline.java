@@ -7,7 +7,9 @@ import com.panut.centralbanking.transactionservice.api.service.account.response.
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetByIdRequest;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.TransactionManagePipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManageChain;
@@ -21,6 +23,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -98,7 +101,7 @@ public class TransactionReversePipeline {
         this.accountServiceController = accountServiceController;
     }
 
-    private Mono<TransactionManageChain> clear(final TransactionManageChain chain) {
+    private Mono<TransactionCreationPipelineResult> clear(final TransactionManageChain chain) {
         return chain.getTransactionLines()
                 .collectList()
                 .flatMap(lines -> new ReversingChain().transactionLines(lines))
@@ -107,7 +110,8 @@ public class TransactionReversePipeline {
                                 new GetAccountsInfoForTransactionRequest(reverseChain
                                         .getUsingAccountIds())
                         )
-                        .flatMap(reverseChain::accountsInfo)
+                        .flatMap(accountsInfo ->
+                                reverseChain.accountsInfo(accountsInfo.compact()))
                 )
                 .flatMap(reverseChain -> {
                     var transaction = chain.getTransaction();
@@ -130,7 +134,25 @@ public class TransactionReversePipeline {
 
                     return Mono.just(reverseChain);
                 })
-                .thenReturn(chain);
+                .flatMap(reversingChain -> {
+                    List<AccountData> reversingAccountDatas = new ArrayList<>();
+                    var accountsInfo = reversingChain.getAccountsInfo();
+
+                    reversingChain.getTransactionLines().forEach(line -> {
+                        var direction = line.getDirection();
+                        String accountId = line.getAccountId();
+                        var account = accountsInfo.getAccount(accountId);
+
+                        if (!account.isBaseCurrency()) {
+
+                        }
+
+
+                    });
+
+                    return registerPipeline.register(null);
+                });
+
     }
 
 

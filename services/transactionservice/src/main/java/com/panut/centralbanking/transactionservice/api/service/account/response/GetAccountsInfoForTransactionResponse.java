@@ -25,6 +25,7 @@ public class GetAccountsInfoForTransactionResponse {
     private List<AccountInfoForTransactionQueryResult> internalQueryResult;
 
     private Stream<AccountInfoForTransactionQueryResult> streamed;
+    private int accountIdsSize;
 
     private Map<String, AccountInfoForTransactionQueryResult> queryResultMap;
 
@@ -59,6 +60,7 @@ public class GetAccountsInfoForTransactionResponse {
                 AccountInfoForTransactionQueryResult::getId,
                 Function.identity()
         ));
+
 
 
         return this;

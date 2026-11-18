@@ -25,6 +25,18 @@ public enum TransactionLineDirection {
         return this == DEBIT_OVERDRAFT;
     }
 
+    public boolean isClearingCredit() {
+        return this == CLEARING_CREDIT;
+    }
+
+    public boolean isClearingDebit() {
+        return this == CLEARING_DEBIT;
+    }
+
+    public boolean isClearingSide() {
+        return isClearingCredit() || isClearingDebit();
+    }
+
     public boolean isCreditSide() {
         return this == CREDIT ||
                 this == CLEARING_CREDIT ||
