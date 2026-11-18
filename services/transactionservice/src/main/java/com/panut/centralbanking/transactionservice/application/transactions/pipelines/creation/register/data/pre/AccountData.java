@@ -28,23 +28,26 @@ public class AccountData {
     }
 
 
-    private static AccountData buildFromLine(final TransactionLine line,
-                                                  final BigDecimal revertedConverted) {
+    private static AccountData reverse(final TransactionLine line,
+                                      final TransactionLineDirection reversedDirection,
+                                      final BigDecimal revertedConverted) {
         return new AccountData(line.getAccountId(),
                 line.getBasedAmount(),
                 revertedConverted,
                 line.getLedgerAccountId(),
-                line.getDirection());
+                reversedDirection);
     }
 
 
-    public static AccountData fromTransactionLine(final TransactionLine line) {
-        return buildFromLine(line, line.getConvertedAmount());
+    public static AccountData reverseLine(final TransactionLine line,
+                                                  final TransactionLineDirection reversedDirection) {
+        return reverse(line, reversedDirection, line.getConvertedAmount());
     }
 
-    public static AccountData fromTransactionLine(final TransactionLine line,
+    public static AccountData reverseLine(final TransactionLine line,
+                                                  final TransactionLineDirection reversedDirection,
                                                   final BigDecimal revertedConverted) {
-        return buildFromLine(line, revertedConverted);
+        return reverse(line, reversedDirection, revertedConverted);
     }
 
 

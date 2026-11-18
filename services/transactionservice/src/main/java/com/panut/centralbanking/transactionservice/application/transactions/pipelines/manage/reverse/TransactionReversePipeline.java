@@ -11,11 +11,13 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.PreTransactionRegisterData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.TransactionManagePipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManageChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManagePipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.profile.TransactionProfileRepositoryManager;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.TransactionRepositoryManager;
+import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.Getter;
@@ -101,6 +103,18 @@ public class TransactionReversePipeline {
         this.accountServiceController = accountServiceController;
     }
 
+    public TransactionLineDirection getReverseDirection(final TransactionLineDirection direction) {
+        return switch (direction) {
+            case CREDIT -> TransactionLineDirection.DEBIT;
+            case DEBIT -> TransactionLineDirection.CREDIT;
+            case CREDIT_OVERDRAFT -> TransactionLineDirection.DEBIT_OVERDRAFT;
+            case DEBIT_OVERDRAFT -> TransactionLineDirection.CREDIT_OVERDRAFT;
+            case CLEARING_DEBIT -> TransactionLineDirection.CLEARING_CREDIT;
+            case CLEARING_CREDIT -> TransactionLineDirection.CLEARING_DEBIT;
+            case NONE -> TransactionLineDirection.NONE;
+        };
+    }
+
     private Mono<TransactionCreationPipelineResult> clear(final TransactionManageChain chain) {
         return chain.getTransactionLines()
                 .collectList()
@@ -140,17 +154,19 @@ public class TransactionReversePipeline {
 
                     reversingChain.getTransactionLines().forEach(line -> {
                         var direction = line.getDirection();
+                        var reversedDirection = getReverseDirection(direction);
                         String accountId = line.getAccountId();
                         var account = accountsInfo.getAccount(accountId);
 
-                        if (!account.isBaseCurrency()) {
-
-                        }
-
-
+                        reversingAccountDatas.add(AccountData.reverseLine(line,
+                                reversedDirection));
                     });
 
-                    return registerPipeline.register(null);
+
+                    return registerPipeline.register(new PreTransactionRegisterData(chain
+                            .getTransaction().getTransactionType(),
+                            reversingAccountDatas,
+                            reversingChain.getFxRateData()));
                 });
 
     }
