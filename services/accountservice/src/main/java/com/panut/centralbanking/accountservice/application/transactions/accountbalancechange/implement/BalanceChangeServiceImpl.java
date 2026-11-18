@@ -266,8 +266,13 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                 AccountBalance updated = postUpdated.get(key);
                                 List<String> events = myEvents.get(key);
 
-                                if (updated != null
-                                        && events != null
+                                if (updated == null)
+                                    throw new IllegalStateException(
+                                            "Cannot get updated account balance to check with old, " +
+                                                    "due to not found."
+                                    );
+
+                                if (events != null
                                         && !events.isEmpty()) {
                                     if (old.comparedNew(updated)) {
                                         clearedEventIds
