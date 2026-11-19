@@ -9,5 +9,7 @@ import java.util.List;
 public interface BalanceChangeService {
     Mono<CommonResult> bulk(List<BalanceChangeData> datas,
                             boolean requiredResult);
+    Mono<CommonResult> bulkDirect(List<BalanceChangeData> datas,
+                           boolean requiredResult);
 
 }

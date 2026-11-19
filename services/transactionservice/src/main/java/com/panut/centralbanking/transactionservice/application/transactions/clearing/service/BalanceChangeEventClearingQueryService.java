@@ -7,8 +7,10 @@ import com.panut.centralbanking.transactionservice.api.service.account.data.rela
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.TransactionBalanceClearingChain;
 import com.panut.centralbanking.transactionservice.application.transactions.contents.overdraft.TransactionOverdraftContentQuery;
+import com.panut.centralbanking.transactionservice.application.worker.WorkerService;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.core.WorkerName;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
@@ -29,20 +31,24 @@ public class BalanceChangeEventClearingQueryService {
     private final BalanceChangeEventRepository eventRepository;
     private final TransactionOverdraftContentQuery overdraftContentQuery;
     private final DatabaseClient databaseClient;
+    private final WorkerService workerService;
 
     public BalanceChangeEventClearingQueryService(TransactionRepository transactionRepository,
                                                   BalanceChangeEventRepository eventRepository,
                                                   TransactionOverdraftContentQuery overdraftContentQuery,
-                                                  DatabaseClient databaseClient) {
+                                                  DatabaseClient databaseClient,
+                                                  WorkerService workerService) {
         this.transactionRepository = transactionRepository;
         this.eventRepository = eventRepository;
         this.overdraftContentQuery = overdraftContentQuery;
         this.databaseClient = databaseClient;
+        this.workerService = workerService;
     }
 
 
     private final BalanceChangeEventStatus EXPECTING_EVENT_STATUS = BalanceChangeEventStatus.PENDING;
 
+    @Deprecated
     public Mono<TransactionBalanceClearingChain> getSortedEachTransaction(final TransactionStatus status) {
         return databaseClient.sql("""
                 SELECT t.id as t_id, e.* FROM transaction_balance_change_events e
@@ -135,8 +141,9 @@ public class BalanceChangeEventClearingQueryService {
                                                               final LocalDateTime incrementedBlacklistExpiry,
                                                               final int sizeLimit,
                                                               final String blacklistFlag) {
-        return eventRepository.findAllIdsForClearing(eventStatus, sizeLimit,
-                        blacklistFlag, LocalDateTime.now())
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .thenMany(eventRepository.findAllIdsForClearing(eventStatus, sizeLimit,
+                        blacklistFlag, LocalDateTime.now()))
                 .collectList()
                 .flatMap(ids -> {
                     log.info("event ids from getBulkAndIncrementExpiry before increment is empty? {}",

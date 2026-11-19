@@ -333,13 +333,17 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     }
 
 
-
+    @Override
+    public Mono<CommonResult> bulkDirect(final List<BalanceChangeData> datas,
+                                   final boolean requiredResult) {
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .then(bulk(datas, requiredResult));
+    }
 
     @Override
     public Mono<CommonResult> bulk(final List<BalanceChangeData> datas,
                                    final boolean requiredResult) {
-        return workerService.initWorker(WorkerName.TRANSACTION)
-                .then(excludeAlreadyProcessedEventIds(datas))
+        return excludeAlreadyProcessedEventIds(datas)
                 .flatMap(safeDatas -> {
                     if (safeDatas.isEmpty()) {
                         log.info("safeDatas is empty, skipping the entire bulk method");

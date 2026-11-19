@@ -3,6 +3,8 @@ package com.panut.centralbanking.accountservice.application.transactions.clearin
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
+import com.panut.centralbanking.accountservice.application.worker.WorkerService;
+import com.panut.centralbanking.accountservice.core.WorkerName;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,11 +18,14 @@ import java.util.List;
 public class TransactionBalanceClearingSchedulerModuleV1 {
     private final BalanceChangeService balanceChangeService;
     private final TransactionClearingServiceController serviceController;
+    private final WorkerService workerService;
 
     public TransactionBalanceClearingSchedulerModuleV1(BalanceChangeService balanceChangeService,
-                                               TransactionClearingServiceController serviceController) {
+                                               TransactionClearingServiceController serviceController,
+                                                       WorkerService workerService) {
         this.balanceChangeService = balanceChangeService;
         this.serviceController = serviceController;
+        this.workerService = workerService;
     }
 
     private String name = "TransactionBalanceClearingScheduler";
@@ -33,7 +38,8 @@ public class TransactionBalanceClearingSchedulerModuleV1 {
     }
 
     public Mono<Void> clearPending() {
-        return serviceController.getBulkPending()
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .thenMany(serviceController.getBulkPending())
                 .collectList()
                 .doOnNext(a -> log.info("{} : bulkPending to list",
                         name))
