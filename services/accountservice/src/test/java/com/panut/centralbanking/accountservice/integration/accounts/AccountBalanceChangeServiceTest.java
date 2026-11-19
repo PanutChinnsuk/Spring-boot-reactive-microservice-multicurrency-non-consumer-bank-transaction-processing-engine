@@ -10,6 +10,7 @@ import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.Account;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
+import com.panut.centralbanking.accountservice.infrastructure.model.worker.AccountServiceWorker;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
@@ -17,11 +18,16 @@ import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
@@ -39,6 +45,8 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Autowired
     private AccountBalanceMatcher accountBalanceMatcher;
+
+
 
     private String account1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     private String account2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
@@ -84,6 +92,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
         CommonResult result = balanceChangeService
                 .bulk(single, true).block();
+
         List<AccountBalanceChangedData> resultList = (List<AccountBalanceChangedData>)
                 result.getOptionalBody();
         AccountBalanceChangedData data = resultList.getFirst();
@@ -202,6 +211,7 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         var secondResult = balanceChangeService.bulk(data, true).block();
         Assertions.assertNull(secondResult);
     }
+
 
 
 

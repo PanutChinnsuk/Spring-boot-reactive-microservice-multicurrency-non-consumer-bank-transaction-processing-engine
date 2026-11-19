@@ -11,6 +11,8 @@ import com.panut.centralbanking.accountservice.application.events.balancechange.
 import com.panut.centralbanking.accountservice.application.events.balancechange.query.ProcessedBalanceChangeEventQuery;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
+import com.panut.centralbanking.accountservice.application.worker.WorkerService;
+import com.panut.centralbanking.accountservice.core.WorkerName;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalanceChange;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
@@ -146,6 +148,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     private final ProcessedBalanceChangeEventConnectionFactory
     processedBalanceChangeEventConnectionFactory;
     private final ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery;
+    private final WorkerService workerService;
 
 
     public BalanceChangeServiceImpl(AccountBalanceQuery accountBalanceQuery,
@@ -154,7 +157,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                     AccountOverdraftConnectionFactory overdraftConnectionFactory,
                                     AccountOverdraftQuery accountOverdraftQuery,
                                     ProcessedBalanceChangeEventConnectionFactory processedBalanceChangeEventConnectionFactory,
-                                    ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery) {
+                                    ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery,
+                                    WorkerService workerService) {
         this.accountBalanceQuery = accountBalanceQuery;
         this.recordService = recordService;
         this.connectionFactory = connectionFactory;
@@ -162,6 +166,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
         this.accountOverdraftQuery = accountOverdraftQuery;
         this.processedBalanceChangeEventConnectionFactory = processedBalanceChangeEventConnectionFactory;
         this.processedBalanceChangeEventQuery = processedBalanceChangeEventQuery;
+        this.workerService = workerService;
     }
 
 
@@ -333,7 +338,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     @Override
     public Mono<CommonResult> bulk(final List<BalanceChangeData> datas,
                                    final boolean requiredResult) {
-        return excludeAlreadyProcessedEventIds(datas)
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .then(excludeAlreadyProcessedEventIds(datas))
                 .flatMap(safeDatas -> {
                     if (safeDatas.isEmpty()) {
                         log.info("safeDatas is empty, skipping the entire bulk method");
