@@ -2,6 +2,7 @@ package com.panut.centralbanking.transactionservice.infrastructure.model;
 
 import com.panut.centralbanking.appR2dbccore.persistence.VersionedUUIDStringEntity;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionReversalContext;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +37,16 @@ public class TransactionProfile extends VersionedUUIDStringEntity {
         this.fxRateId = fxRateId;
         setInsert(transactionId);
 
+    }
+
+    public TransactionProfile applyWithTransactionReversalContext(
+            final TransactionReversalContext transactionReversalContext
+    ) {
+        if (transactionReversalContext == null)
+            return this;
+
+        this.reversedOfTransactionId = transactionReversalContext.getOfTransactionId();
+        return this;
     }
 
     public boolean isPostedState() {

@@ -39,4 +39,8 @@ public class SeededDatabase {
     public static final String ID_EMPTY_ACCOUNT_OVERDRAFT_1 = "TEST_EMPTY";
     public static final String ID_EMPTY_ACCOUNT_OVERDRAFT_2 = "TEST_EMPTY2";
 
+    public static final String ID_REVERSED_TRANSACTION_UNSETTLED_CHILD = "TEST_REVERSED_OF_TEST_EMPTY";
+
+    public static final String ID_SETTLED_TRANSACTION = "TEST_SETTLED";
+    public static final String ID_SETTLED_TRANSACTION_WITH_FX_RATE_ID = "TEST_SETTLED_WITH_FX_RATE_ID";
 }

@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.post;
 
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create.data.TransactionLineCreateData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionReversalContext;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
 import jakarta.annotation.Nullable;
@@ -16,6 +17,9 @@ public class PostTransactionRegisterData {
     private final String fxRateId;
     private final FxDirection fxDirection;
     private final Set<String> usingAccountIds;
+
+    @Nullable
+    private final TransactionReversalContext possbileTransactionReversalContext;
 
 
 

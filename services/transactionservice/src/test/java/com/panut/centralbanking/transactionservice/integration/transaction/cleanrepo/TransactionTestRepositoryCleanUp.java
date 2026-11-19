@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.integration.transaction;
+package com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo;
 
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionLineRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionProfileRepository;
@@ -12,7 +12,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-class TransactionTestRepositoryCleanUp {
+public class TransactionTestRepositoryCleanUp {
     @Autowired
     private TransactionRepository transactionRepository;
 
@@ -22,19 +22,21 @@ class TransactionTestRepositoryCleanUp {
     @Autowired
     private TransactionLineRepository transactionLineRepository;
 
-    public String transactionId;
+    public List<String> transactionIds = new ArrayList<>();
     public List<String> transactionLineIds = new ArrayList<>();
 
 
     public void cleanUp() {
-        log.info("transactionId for clean up is null: {}", Boolean.toString(transactionId == null));
+        log.info("transactionId for clean up size: {}", transactionIds.size());
         log.info("transactionLinesIds for clean up size: {}", transactionLineIds.size());
         transactionLineIds.forEach(id -> transactionLineRepository
                 .deleteById(id).block());
 
-        if (transactionId == null) return;
-        transactionProfileRepository.deleteById(transactionId).block();
-        transactionRepository.deleteById(transactionId).block();
+        transactionIds.forEach(id -> {
+            transactionProfileRepository.deleteById(id).block();
+            transactionRepository.deleteById(id).block();
+        });
+
         log.info("Clean up test data");
 
     }

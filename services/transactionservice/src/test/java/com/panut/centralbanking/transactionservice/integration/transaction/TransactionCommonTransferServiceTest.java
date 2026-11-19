@@ -7,8 +7,8 @@ import com.panut.centralbanking.transactionservice.api.request.SameCurrencyTrans
 import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.implement.CommonTransactionServiceImpl;
-import com.panut.centralbanking.transactionservice.application.transactions.transaction.service.CommonTransactionService;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.AccountControllerDataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
@@ -74,8 +74,8 @@ public class TransactionCommonTransferServiceTest implements IntegrationDevTest 
         Assertions.assertEquals(last.getBasedAmount(), last.getConvertedAmount());
 
 
-        cleanUpRepo.transactionId = result.getTransactionId();
-        cleanUpRepo.transactionLineIds = result.getTransactionLineIds();
+        cleanUpRepo.transactionIds.add(result.getTransactionId());
+        cleanUpRepo.transactionLineIds.addAll(result.getTransactionLineIds());
     }
 
     private void accountServiceControllerReturnValid() {

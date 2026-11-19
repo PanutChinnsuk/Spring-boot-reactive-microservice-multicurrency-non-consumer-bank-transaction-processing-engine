@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.authorization.validator;
 
 import com.panut.centralbanking.appcore.exceptions.BusinessException;
+import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionProfileRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
@@ -14,6 +15,8 @@ public class TransactionAuthorizationPipelineValidator {
     public TransactionAuthorizationPipelineValidator(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
+
+
 
     private final TransactionStatus settledStatus = TransactionStatus.POSTED;
 

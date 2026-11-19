@@ -17,6 +17,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
@@ -98,8 +99,8 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
                 fxTransferPipeline.foreignBuyBase(data)
                         .block();
 
-        cleanRepo.transactionId = result.getTransactionId();
-        cleanRepo.transactionLineIds = result.getTransactionLineIds();
+        cleanRepo.transactionIds.add(result.getTransactionId());
+        cleanRepo.transactionLineIds.addAll(result.getTransactionLineIds());
 
 
         BigDecimal profitAmount = FxRateProfitCalculator
@@ -147,8 +148,8 @@ public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
                 fxTransferPipeline.baseBuyForeign(data)
                         .block();
 
-        cleanRepo.transactionId = result.getTransactionId();
-        cleanRepo.transactionLineIds = result.getTransactionLineIds();
+        cleanRepo.transactionIds.add(result.getTransactionId());
+        cleanRepo.transactionLineIds.addAll(result.getTransactionLineIds());
 
 
         BigDecimal baseToForeignAmount = FxRateCurrencyConversion

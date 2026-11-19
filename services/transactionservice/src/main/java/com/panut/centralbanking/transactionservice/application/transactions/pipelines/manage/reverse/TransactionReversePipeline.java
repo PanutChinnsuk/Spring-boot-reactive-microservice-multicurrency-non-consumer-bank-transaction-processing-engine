@@ -9,6 +9,7 @@ import com.panut.centralbanking.transactionservice.api.service.fxRate.request.Fx
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionReversalContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.PreTransactionRegisterData;
@@ -25,6 +26,7 @@ import com.panut.centralbanking.transactionservice.core.WorkerName;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -84,6 +86,7 @@ class ReversingChain {
     }
 }
 
+@Slf4j
 @Component
 public class TransactionReversePipeline {
     private final TransactionManagePipelineRepository repository;
@@ -110,7 +113,7 @@ public class TransactionReversePipeline {
         this.validator = validator;
     }
 
-    public TransactionLineDirection getReverseDirection(final TransactionLineDirection direction) {
+    private TransactionLineDirection getReverseDirection(final TransactionLineDirection direction) {
         return switch (direction) {
             case CREDIT -> TransactionLineDirection.DEBIT;
             case DEBIT -> TransactionLineDirection.CREDIT;
@@ -122,42 +125,38 @@ public class TransactionReversePipeline {
         };
     }
 
-    private Mono<TransactionCreationPipelineResult> clear(final TransactionManageChain chain) {
+    private Mono<TransactionCreationPipelineResult> clear(final TransactionManageChain chain,
+                                                          final String reversingOfId) {
         return chain.getTransactionLines()
                 .collectList()
                 .flatMap(lines -> new ReversingChain().transactionLines(lines))
-                .flatMap(reverseChain ->  accountServiceController
-                        .getAccountsInfoForTransaction(
-                                new GetAccountsInfoForTransactionRequest(reverseChain
-                                        .getUsingAccountIds())
-                        )
-                        .flatMap(accountsInfo ->
-                                reverseChain.accountsInfo(accountsInfo.compact()))
-                )
+                .doOnNext(a -> log.info("start reversing chain with transaction lines"))
                 .flatMap(reverseChain -> {
                     var profile = chain.getTransactionProfile();
                     var fxRateId = profile.getFxRateId();
                     var fxDirection = profile.getFxDirection();
 
                     FxRateGetResponse fxRateConversion = null;
-                    FxRateData fxRateData = null;
+                    FxRateData fxRateData = FxRateData.empty(fxDirection);
+
+                    log.info("profile has fxRate? {}", profile.hasFxRate());
                     if (profile.hasFxRate()) {
-                        return reverseChain
-                                .fxRateData(FxRateData.empty(fxDirection)
-                                        .withId(fxRateId));
+                        fxRateData.withId(profile.getFxRateId());
+                        log.info("profile has fxRate, used the same fx rate id of {}",
+                                profile.getFxRateId());
                     }
 
-                    return Mono.just(reverseChain);
+                    return reverseChain.fxRateData(fxRateData);
                 })
+                .doOnNext(a -> log.info("reversing lines"))
                 .flatMap(reversingChain -> {
                     List<AccountData> reversingAccountDatas = new ArrayList<>();
-                    var accountsInfo = reversingChain.getAccountsInfo();
 
                     reversingChain.getTransactionLines().forEach(line -> {
                         var direction = line.getDirection();
                         var reversedDirection = getReverseDirection(direction);
                         String accountId = line.getAccountId();
-                        var account = accountsInfo.getAccount(accountId);
+
 
                         reversingAccountDatas.add(AccountData.reverseLine(line,
                                 reversedDirection));
@@ -167,7 +166,12 @@ public class TransactionReversePipeline {
                     return registerPipeline.register(new PreTransactionRegisterData(chain
                             .getTransaction().getTransactionType(),
                             reversingAccountDatas,
-                            reversingChain.getFxRateData()));
+                            reversingChain.getFxRateData())
+                            .withTransactionReversalContext(
+                                    new TransactionReversalContext(reversingOfId)
+                            )
+
+                    );
                 });
 
     }
@@ -176,10 +180,24 @@ public class TransactionReversePipeline {
     public Mono<TransactionManagePipelineResult> reverse(final String transactionId) {
         return workerService.initWorker(WorkerName.TRANSACTION)
                 .then(validator.isAlreadyReversed(transactionId))
+                .doOnNext(a -> log.info("check if transaction is already reversed"))
                 .then(repository.fullTransaction(transactionId,
                         TransactionStatus.values()))
-                .flatMap(this::clear)
-                .thenReturn(new TransactionManagePipelineResult());
+                .doOnNext(a ->
+                        log.info("get full transaction info for reversal"))
+                .flatMap(chain -> clear(chain, transactionId))
+                .doOnNext(a -> log.info("pre register"))
+                .map(creationResult ->
+                        new TransactionManagePipelineResult(
+                                creationResult.getTransactionId(),
+                                creationResult.getTransactionStatus()
+                        ))
+                .doOnSuccess(a ->
+                        log.info("Successfully reversed transaction id of {}",
+                                transactionId))
+                .doOnError(error ->
+                        log.error("Failed to reverse transaction, {}",
+                                error.getLocalizedMessage()));
     }
 }
 

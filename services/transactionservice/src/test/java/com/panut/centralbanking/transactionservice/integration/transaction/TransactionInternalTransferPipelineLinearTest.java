@@ -26,6 +26,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
@@ -274,8 +275,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         TransactionCreationPipelineResult result = internalTransferPipeline
                 .customLinearTransfer(data).block();
 
-        cleanRepo.transactionId = result.getTransactionId();
-        cleanRepo.transactionLineIds = result.getTransactionLineIds();
+        cleanRepo.transactionIds.add(result.getTransactionId());
+        cleanRepo.transactionLineIds.addAll(result.getTransactionLineIds());
 
         Map<String, TransactionLine> transactionLineMap = getTransactionLineMap(result.getTransactionId());
         Map<String, CustomAccountTransferData> customAccountTransferDataMap =
@@ -377,8 +378,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         TransactionCreationPipelineResult result = internalTransferPipeline
                 .customLinearTransfer(data).block();
 
-        cleanRepo.transactionId = result.getTransactionId();
-        cleanRepo.transactionLineIds = result.getTransactionLineIds();
+        cleanRepo.transactionIds.add(result.getTransactionId());
+        cleanRepo.transactionLineIds.addAll(result.getTransactionLineIds());
 
         Map<String, TransactionLine> transactionLineMap =
                 getTransactionLineMap(result.getTransactionId());

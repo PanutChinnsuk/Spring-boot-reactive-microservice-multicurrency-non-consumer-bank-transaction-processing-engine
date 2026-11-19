@@ -71,12 +71,15 @@ public class TransactionAuthorizePipeline {
     }
 
 
+
     public Mono<TransactionManagePipelineResult> authorize(final String transactionId) {
         return workerService.initWorker(WorkerName.TRANSACTION)
                 .then(repository.fullTransaction(transactionId, REQUIRED_TRANSACTION_STATUS))
                 .doOnNext(a -> log.info("after get full transaction data chain"))
                 .flatMap(chain -> {
                     var profile = chain.getTransactionProfile();
+                    log.info("transaction is reversed state? {}",
+                            profile.isReversedState());
                     if (profile.isReversedState()) {
                         return validator.isReversingTransactionCleared(profile
                                 .getReversedOfTransactionId())

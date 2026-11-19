@@ -36,7 +36,8 @@ public class TransactionCreationPipeline {
                 .flatMap(chain -> transactionProfileCreateService
                         .createProfile(chain.getTransaction().getId(),
                                 data.getFxDirection(),
-                                data.getFxRateId())
+                                data.getFxRateId(),
+                                data.getPossbileTransactionReversalContext())
                         .flatMap(profile -> chain.transactionProfile(profile))
                         .doOnNext(a -> log.info("Transaction profile to chain."))
                 )

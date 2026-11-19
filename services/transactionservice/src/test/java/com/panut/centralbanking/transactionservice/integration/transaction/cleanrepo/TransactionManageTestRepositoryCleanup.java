@@ -1,7 +1,6 @@
-package com.panut.centralbanking.transactionservice.integration.transaction.manage;
+package com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo;
 
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionLineRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import lombok.extern.slf4j.Slf4j;

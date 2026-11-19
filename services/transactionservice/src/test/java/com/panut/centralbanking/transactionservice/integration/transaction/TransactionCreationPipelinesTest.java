@@ -11,6 +11,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -82,8 +83,8 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
 
         Assertions.assertEquals(TransactionStatus.PENDING,
                 result.getTransactionStatus());
-        cleanRepo.transactionId = result.getTransactionId();
-        cleanRepo.transactionLineIds = result.getTransactionLineIds();
+        cleanRepo.transactionIds.add(result.getTransactionId());
+        cleanRepo.transactionLineIds.addAll(result.getTransactionLineIds());
 
     }
 

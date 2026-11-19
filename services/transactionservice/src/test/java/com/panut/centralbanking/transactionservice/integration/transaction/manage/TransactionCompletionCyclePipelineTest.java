@@ -1,16 +1,17 @@
 package com.panut.centralbanking.transactionservice.integration.transaction.manage;
 
+import com.panut.centralbanking.appcore.exceptions.BusinessException;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.TransactionManagePipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.authorization.TransactionAuthorizePipeline;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.posting.TransactionPostPipeline;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionManageTestRepositoryCleanup;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import org.junit.jupiter.api.*;
@@ -20,7 +21,7 @@ import java.math.BigDecimal;
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TransactionCompleteCyclePipelineTest implements IntegrationDevTest {
+public class TransactionCompletionCyclePipelineTest implements IntegrationDevTest {
     @Autowired
     private TransactionAuthorizePipeline transactionAuthorizePipeline;
 
@@ -46,6 +47,8 @@ public class TransactionCompleteCyclePipelineTest implements IntegrationDevTest 
             .ID_TRANSACTION_AUTHORIZED_NO_ASSET_EXPENSE;
     private String authorized_asset_expense_id = SeededDatabase
             .ID_TRANSACTION_AUTHORIZED_ASSET_EXPENSE;
+    private String reversedTransactionUnsettledChildId = SeededDatabase
+            .ID_REVERSED_TRANSACTION_UNSETTLED_CHILD;
 
 
     private String deductingAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
@@ -55,10 +58,12 @@ public class TransactionCompleteCyclePipelineTest implements IntegrationDevTest 
     @BeforeEach
     public void beforeEach() {
         cleanRepo.setDefault(no_asset_expense_id, TransactionStatus.PENDING);
+        cleanRepo.setDefault(reversedTransactionUnsettledChildId, TransactionStatus.PENDING);
         cleanRepo.setDefault(asset_expense_id, TransactionStatus.PENDING);
         cleanRepo.setDefault(authorized_no_asset_expense_id, TransactionStatus.AUTHORIZED);
         cleanRepo.setDefault(authorized_asset_expense_id, TransactionStatus.AUTHORIZED);
     }
+
 
     @AfterEach
     public void afterEach() {
@@ -126,7 +131,7 @@ public class TransactionCompleteCyclePipelineTest implements IntegrationDevTest 
 
     @Test
     public void shouldPendingAuthorizeForNoAssetExpense() {
-        TransactionManagePipelineResult result = transactionAuthorizePipeline
+        var result = transactionAuthorizePipeline
                 .authorize(no_asset_expense_id).block();
 
         Assertions.assertEquals(TransactionStatus.PENDING_AUTHORIZED,
@@ -137,7 +142,7 @@ public class TransactionCompleteCyclePipelineTest implements IntegrationDevTest 
 
     @Test
     public void shouldPendingAuthorizeForAssetExpense() {
-        TransactionManagePipelineResult result = transactionAuthorizePipeline
+        var result = transactionAuthorizePipeline
                 .authorize(asset_expense_id).block();
 
         Assertions.assertEquals(TransactionStatus.PENDING_AUTHORIZED,
@@ -148,23 +153,33 @@ public class TransactionCompleteCyclePipelineTest implements IntegrationDevTest 
 
     @Test
     public void shouldPendingPostForNoAssetExpense() {
-        TransactionManagePipelineResult result = transactionPostPipeline
+        var result = transactionPostPipeline
                 .post(authorized_no_asset_expense_id).block();
 
         Assertions.assertEquals(TransactionStatus.PENDING_POSTED,
                 result.getTransactionStatus());
+
 
         checkPostLedger(authorized_no_asset_expense_id, deductingAccountId, addingAccountId);
     }
 
     @Test
     public void shouldPendingPostForAssetExpense() {
-        TransactionManagePipelineResult result = transactionPostPipeline
+        var result = transactionPostPipeline
                 .post(authorized_asset_expense_id).block();
 
         Assertions.assertEquals(TransactionStatus.PENDING_POSTED,
                 result.getTransactionStatus());
 
         checkPostLedger(authorized_asset_expense_id, deductingAccountId, addingAccountId);
+    }
+
+    @Test
+    public void shouldNotAllowUnsettledChildForReversedTransaction() {
+        Assertions.assertThrows(
+                BusinessException.class,
+                () -> transactionAuthorizePipeline.authorize(reversedTransactionUnsettledChildId)
+                        .block()
+        );
     }
 }

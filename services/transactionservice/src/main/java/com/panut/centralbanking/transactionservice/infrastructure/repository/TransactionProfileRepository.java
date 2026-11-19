@@ -33,7 +33,7 @@ public interface TransactionProfileRepository extends ReactiveCrudRepository<Tra
 
     @Query("""
             SELECT tp.id FROM transaction_profiles tp
-            WHERE tp.reversed_of = :reversingId
+            WHERE tp.reversed_of_transaction_id = :reversingId
             """)
     Mono<String> getIdAlreadyReversed(@Param("reversingId")String reversingId);
 }
