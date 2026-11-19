@@ -29,4 +29,11 @@ public interface TransactionProfileRepository extends ReactiveCrudRepository<Tra
             """)
     Mono<Void> setPosted(@Param("transactionIds") Collection<String> transactionIds,
                          @Param("currentTimestamp")LocalDateTime currentTimestamp);
+
+
+    @Query("""
+            SELECT tp.id FROM transaction_profiles tp
+            WHERE tp.reversed_of = :reversingId
+            """)
+    Mono<String> getIdAlreadyReversed(@Param("reversingId")String reversingId);
 }

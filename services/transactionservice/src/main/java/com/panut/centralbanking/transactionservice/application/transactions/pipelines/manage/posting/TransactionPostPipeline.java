@@ -6,8 +6,10 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManageChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManagePipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.TransactionRepositoryManager;
+import com.panut.centralbanking.transactionservice.application.worker.WorkerService;
 import com.panut.centralbanking.transactionservice.core.LedgerType;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.core.WorkerName;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,15 +24,18 @@ public class TransactionPostPipeline {
     private final TransactionManagePipelineRepository repository;
     private final TransactionRepositoryManager manager;
     private final BalanceChangeEventService eventService;
+    private final WorkerService workerService;
 
 
 
     public TransactionPostPipeline(TransactionManagePipelineRepository repository,
                                         TransactionRepositoryManager manager,
-                                        BalanceChangeEventService eventService) {
+                                        BalanceChangeEventService eventService,
+                                   WorkerService workerService) {
         this.repository = repository;
         this.manager = manager;
         this.eventService = eventService;
+        this.workerService = workerService;
     }
 
 
@@ -100,7 +105,8 @@ public class TransactionPostPipeline {
 
 
     public Mono<TransactionManagePipelineResult> post(final String transactionId) {
-        return repository.fullTransaction(transactionId, REQUIRED_TRANSACTION_STATUS)
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .then(repository.fullTransaction(transactionId, REQUIRED_TRANSACTION_STATUS))
                 .doOnNext(a -> log.info("after get full transaction data chain"))
                 .flatMap(this::clear)
                 .doOnNext(a -> log.info("after clear"))

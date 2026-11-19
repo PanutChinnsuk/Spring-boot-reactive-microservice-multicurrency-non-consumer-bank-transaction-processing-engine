@@ -66,4 +66,13 @@ public interface TransactionRepository extends ReactiveCrudRepository<Transactio
     Mono<Void> toNextStatus(@Param("upNextStatus") TransactionStatus upNextStatus,
                             @Param("currentStatus") TransactionStatus currentStatus,
                             @Param("transactionIds") List<String> transactionIds);
+
+
+    @Query("""
+            SELECT t.id FROM transactions t
+            WHERE t.id = :transactionId AND
+            t.status = :settledStatus 
+            """)
+    Mono<String> getSettledTransaction(@Param("transactionId") String transactionId,
+                                  @Param("settledStatus") TransactionStatus settledStatus);
 }

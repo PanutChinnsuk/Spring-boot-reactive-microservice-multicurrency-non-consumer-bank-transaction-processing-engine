@@ -15,10 +15,13 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.TransactionManagePipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManageChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManagePipelineRepository;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.reverse.validator.TransactionReversePipelineValidator;
 import com.panut.centralbanking.transactionservice.application.transactions.profile.TransactionProfileRepositoryManager;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.TransactionRepositoryManager;
+import com.panut.centralbanking.transactionservice.application.worker.WorkerService;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.core.WorkerName;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +43,7 @@ class ReversingChain {
 
     private Set<String> usingAccountIds;
     private Set<CurrencyCode> usingQuoteCurrencies;
+
 
     public Mono<ReversingChain> FxRateGetResponse(final FxRateGetResponse fxRateConversion) {
         return Mono.defer(() -> {
@@ -86,21 +90,24 @@ public class TransactionReversePipeline {
     private final TransactionRepositoryManager transactionManager;
     private final TransactionRegisterPipeline registerPipeline;
     private final TransactionProfileRepositoryManager profileManager;
-    private final FxRateServiceController fxRateServiceController;
     private final AccountServiceController accountServiceController;
+    private final WorkerService workerService;
+    private final TransactionReversePipelineValidator validator;
 
     public TransactionReversePipeline(TransactionManagePipelineRepository repository,
                                       TransactionRepositoryManager transactionManager,
                                       TransactionRegisterPipeline registerPipeline,
                                       TransactionProfileRepositoryManager profileManager,
-                                      FxRateServiceController fxRateServiceController,
-                                      AccountServiceController accountServiceController) {
+                                      AccountServiceController accountServiceController,
+                                      WorkerService workerService,
+                                      TransactionReversePipelineValidator validator) {
         this.repository = repository;
         this.transactionManager = transactionManager;
         this.registerPipeline = registerPipeline;
         this.profileManager = profileManager;
-        this.fxRateServiceController = fxRateServiceController;
         this.accountServiceController = accountServiceController;
+        this.workerService = workerService;
+        this.validator = validator;
     }
 
     public TransactionLineDirection getReverseDirection(final TransactionLineDirection direction) {
@@ -128,7 +135,6 @@ public class TransactionReversePipeline {
                                 reverseChain.accountsInfo(accountsInfo.compact()))
                 )
                 .flatMap(reverseChain -> {
-                    var transaction = chain.getTransaction();
                     var profile = chain.getTransactionProfile();
                     var fxRateId = profile.getFxRateId();
                     var fxDirection = profile.getFxDirection();
@@ -136,14 +142,9 @@ public class TransactionReversePipeline {
                     FxRateGetResponse fxRateConversion = null;
                     FxRateData fxRateData = null;
                     if (profile.hasFxRate()) {
-                        return fxRateServiceController
-                                .getById(new FxRateGetByIdRequest(fxRateId))
-                                .flatMap(fxRate ->
-                                        reverseChain.FxRateGetResponse(fxRate)
-                                )
-                                .flatMap(revC -> revC
-                                        .fxRateData(FxRateData.empty(fxDirection))
-                                );
+                        return reverseChain
+                                .fxRateData(FxRateData.empty(fxDirection)
+                                        .withId(fxRateId));
                     }
 
                     return Mono.just(reverseChain);
@@ -173,8 +174,10 @@ public class TransactionReversePipeline {
 
 
     public Mono<TransactionManagePipelineResult> reverse(final String transactionId) {
-        return repository.fullTransaction(transactionId,
-                TransactionStatus.values())
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .then(validator.isAlreadyReversed(transactionId))
+                .then(repository.fullTransaction(transactionId,
+                        TransactionStatus.values()))
                 .flatMap(this::clear)
                 .thenReturn(new TransactionManagePipelineResult());
     }

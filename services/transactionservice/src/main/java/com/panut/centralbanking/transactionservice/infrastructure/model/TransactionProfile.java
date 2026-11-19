@@ -76,7 +76,5 @@ public class TransactionProfile extends VersionedUUIDStringEntity {
         });
     }
 
-    public Mono<Boolean> isReversed() {
-        return Mono.fromCallable(() -> isReversedState());
-    }
+
 }
