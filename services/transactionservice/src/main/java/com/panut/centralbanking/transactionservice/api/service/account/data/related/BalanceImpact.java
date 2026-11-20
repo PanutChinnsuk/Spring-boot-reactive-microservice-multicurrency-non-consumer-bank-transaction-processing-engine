@@ -3,5 +3,16 @@ package com.panut.centralbanking.transactionservice.api.service.account.data.rel
 public enum BalanceImpact {
     NOTHING,
     DEDUCT,
-    ADD
+    ADD;
+
+    public boolean ADD() {
+        return this == ADD;
+    }
+
+    public boolean DEDUCT() {
+        return this == DEDUCT;
+    }
+
+
+
 }

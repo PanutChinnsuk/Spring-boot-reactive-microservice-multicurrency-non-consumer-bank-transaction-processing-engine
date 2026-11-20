@@ -6,7 +6,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.data.Bala
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.TransactionBalanceClearingChain;
-import com.panut.centralbanking.transactionservice.application.transactions.contents.overdraft.TransactionOverdraftContentQuery;
+import com.panut.centralbanking.transactionservice.application.transactions.contents.overdraft.query.TransactionOverdraftContentQuery;
 import com.panut.centralbanking.transactionservice.application.worker.WorkerService;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
@@ -23,7 +23,6 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Component
 @Slf4j
@@ -187,8 +186,9 @@ public class BalanceChangeEventClearingQueryService {
                                                final LocalDateTime incrementedApplyingExpiry,
                                                final int sizeLimit,
                                                final String blacklistFlag) {
-        return eventRepository.findAllIdsForApplying(eventStatus, sizeLimit,
-                        blacklistFlag, LocalDateTime.now())
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .thenMany(eventRepository.findAllIdsForApplying(eventStatus, sizeLimit,
+                        blacklistFlag, LocalDateTime.now()))
                 .collectList()
                 .flatMap(ids -> {
                     log.info("event ids from getApplyingAndIncrementExpiry before increment is empty? {}",

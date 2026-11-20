@@ -9,4 +9,12 @@ public enum BalanceChangeType {
     public boolean requiredTransactionOverdraftContent() {
         return this == OVERDRAFTED;
     }
+
+    public boolean BALANCE() {
+        return this == BALANCE;
+    }
+
+    public boolean RESERVE() {
+        return this == RESERVE;
+    }
 }

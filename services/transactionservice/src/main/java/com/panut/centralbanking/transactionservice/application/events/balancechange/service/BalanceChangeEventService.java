@@ -6,6 +6,7 @@ import com.panut.centralbanking.transactionservice.application.events.balancecha
 import com.panut.centralbanking.transactionservice.application.events.balancechange.ChangingBalance;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.OptimizedBalanceChangeEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -45,6 +46,14 @@ public class BalanceChangeEventService {
                                            final String transactionId,
                                            final ChangingBalance changingBalance) {
         return put(accountId, amount, changingBalance.getBalanceImpact(),
+                changingBalance.getBalanceChangeType(), transactionId);
+    }
+
+    public BalanceChangeEvent create(final OptimizedBalanceChangeEvent event,
+                                     final ChangingBalance changingBalance,
+                                     final String transactionId) {
+        return put(event.getAccountId(), event.getAmount(),
+                changingBalance.getBalanceImpact(),
                 changingBalance.getBalanceChangeType(), transactionId);
     }
 
