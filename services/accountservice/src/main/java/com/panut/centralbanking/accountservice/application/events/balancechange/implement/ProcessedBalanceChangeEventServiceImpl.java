@@ -1,6 +1,8 @@
 package com.panut.centralbanking.accountservice.application.events.balancechange.implement;
 
 import com.panut.centralbanking.accountservice.application.events.balancechange.service.ProcessedBalanceChangeEventService;
+import com.panut.centralbanking.accountservice.application.worker.WorkerService;
+import com.panut.centralbanking.accountservice.core.WorkerName;
 import com.panut.centralbanking.accountservice.infrastructure.repository.ProcessedBalanceChangeEventRepository;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -12,17 +14,22 @@ import java.util.stream.Collectors;
 @Component
 public class ProcessedBalanceChangeEventServiceImpl implements ProcessedBalanceChangeEventService {
     private final ProcessedBalanceChangeEventRepository repository;
+    private final WorkerService workerService;
 
-    public ProcessedBalanceChangeEventServiceImpl(ProcessedBalanceChangeEventRepository repository) {
+    public ProcessedBalanceChangeEventServiceImpl(ProcessedBalanceChangeEventRepository repository,
+                                                  WorkerService workerService) {
         this.repository = repository;
+        this.workerService = workerService;
     }
 
 
     @Override
     public Mono<Set<String>> getAppliable(final List<String> eventIds) {
-        return repository.getAppliable(eventIds)
-                .collect(Collectors.toSet());
+        return workerService.initWorker(WorkerName.TRANSACTION)
+                .then(repository.getAppliable(eventIds)
+                        .collect(Collectors.toSet()));
     }
+
 
 
 }

@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -44,6 +45,8 @@ public class BalanceChangeEventClearingQueryService {
         this.databaseClient = databaseClient;
         this.workerService = workerService;
     }
+
+
 
 
     private final BalanceChangeEventStatus EXPECTING_EVENT_STATUS = BalanceChangeEventStatus.PENDING;
@@ -143,7 +146,9 @@ public class BalanceChangeEventClearingQueryService {
                                                               final String blacklistFlag) {
         return workerService.initWorker(WorkerName.TRANSACTION)
                 .thenMany(eventRepository.findAllIdsForClearing(eventStatus, sizeLimit,
-                        blacklistFlag, LocalDateTime.now()))
+                        blacklistFlag, LocalDateTime.now(),
+                        TransactionStatus.eventClearableStatuses)
+                )
                 .collectList()
                 .flatMap(ids -> {
                     log.info("event ids from getBulkAndIncrementExpiry before increment is empty? {}",

@@ -22,6 +22,7 @@ public class AccountService {
             ID, ACCOUNTS_INFO_FOR_TRANSACTION_METHOD);
 
 
+
     public static final String GET_PROCESSED_BALANCE_CHANGE_EVENT_METHOD = "/event/balance/get-processed";
     public static final String GET_PROCESSED_BALANCE_CHANGE_EVENT_FULL_PATH = FullPath.loadBalancedOf(
             ID, GET_PROCESSED_BALANCE_CHANGE_EVENT_METHOD);

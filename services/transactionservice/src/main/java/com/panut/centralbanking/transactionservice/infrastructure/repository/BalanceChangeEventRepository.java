@@ -2,7 +2,9 @@ package com.panut.centralbanking.transactionservice.infrastructure.repository;
 
 import com.panut.centralbanking.transactionservice.api.service.account.data.BalanceChangeData;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
+import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
+import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.OptimizedBalanceChangeEvent;
 import org.springframework.data.r2dbc.repository.Modifying;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,8 @@ public interface BalanceChangeEventRepository
     @Query("""
             SELECT e.id
             FROM transaction_balance_change_events e
+            JOIN transactions t
+            ON t.id = e.transaction_id AND e.status IN (:expectedStatuses)
             WHERE e.status = :eventStatus AND
             e.id NOT LIKE :excludedIdFlag AND
             (e.blacklist_expires_at IS NULL OR e.blacklist_expires_at < :currentTimestamp)
@@ -27,9 +31,10 @@ public interface BalanceChangeEventRepository
             """)
     Flux<String> findAllIdsForClearing(@Param("eventStatus")
                                                BalanceChangeEventStatus eventStatus,
-                                               @Param("sizeLimit") int sizeLimit,
-                                               @Param("excludedIdFlag") String excludedIdFlag,
-                                       @Param("currentTimestamp") LocalDateTime currentTimestamp);
+                                       @Param("sizeLimit") int sizeLimit,
+                                       @Param("excludedIdFlag") String excludedIdFlag,
+                                       @Param("currentTimestamp") LocalDateTime currentTimestamp,
+                                       @Param("expectedStatuses")Collection<TransactionStatus> expectedStatuses);
 
     @Query("""
             SELECT e.id
@@ -85,6 +90,14 @@ public interface BalanceChangeEventRepository
     Mono<Void> bulkStatusUpdate(@Param("eventIds")Collection<String> eventIds,
                                        @Param("newStatus") BalanceChangeEventStatus newStatus);
 
+    @Query("""
+            SELECT e.id, e.account_id, e.amount, e.balance_impact,
+            e.balance_change_type, e.status 
+            FROM transaction_balance_change_events e
+            WHERE e.transaction_id = :transactionId
+            FOR UPDATE
+            """)
+    Flux<OptimizedBalanceChangeEvent> getByTransactionId(@Param("transactionId") String transactionId);
 
 
 }

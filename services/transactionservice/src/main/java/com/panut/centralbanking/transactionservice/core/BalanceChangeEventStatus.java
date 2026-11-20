@@ -4,6 +4,11 @@ public enum BalanceChangeEventStatus {
     REVERSED,
     CANCELLED,
     PENDING,
-    COMPLETED
+    COMPLETED;
+
+
+    public boolean isPendingState() {
+        return this == PENDING;
+    }
 }
 

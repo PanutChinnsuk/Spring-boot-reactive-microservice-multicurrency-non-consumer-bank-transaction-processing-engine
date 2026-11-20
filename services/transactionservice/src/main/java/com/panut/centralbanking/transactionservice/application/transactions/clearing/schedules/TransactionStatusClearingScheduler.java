@@ -51,8 +51,8 @@ public class TransactionStatusClearingScheduler {
 
     @Scheduled(fixedDelayString = "#{(180000 * @transactionClearingProperty.getScheduleMinutes) + " +
             "@transactionClearingProperty.getScheduleMilliOffset}", initialDelay = 60000L)
-    public Mono<Void>  clearPendingReverse() {
-        v1Module.clear(TransactionStatus.PENDING_REVERSED,
+    public Mono<Void>  clearPendingCancelled() {
+        v1Module.clear(TransactionStatus.PENDING_CANCELLED,
                 SeededDatabaseIdFlag.TEST).subscribe();
 
         return Mono.empty();

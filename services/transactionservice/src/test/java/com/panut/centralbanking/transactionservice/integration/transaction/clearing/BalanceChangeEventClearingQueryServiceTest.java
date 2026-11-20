@@ -115,6 +115,8 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
         List<BalanceChangeData> datas = query.getBulk(eventStatus, 100,
                 incremented, SeededDatabaseIdFlag.NONE).collectList().block();
 
+        Assertions.assertTrue(!datas.isEmpty());
+
         datas.forEach(event -> {
             Assertions.assertNotNull(event.getEventId(), "event id");
 
@@ -154,7 +156,8 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
                         any(BalanceChangeEventStatus.class),
                         anyInt(),
                         anyString(),
-                        any(LocalDateTime.class)
+                        any(LocalDateTime.class),
+                        anyCollection()
                 );
 
         List<BalanceChangeData> datas = query.getBulk(BalanceChangeEventStatus.PENDING,
