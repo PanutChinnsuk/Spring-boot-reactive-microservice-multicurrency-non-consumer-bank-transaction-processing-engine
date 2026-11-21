@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.integration.transaction.manage;
 
+import com.panut.centralbanking.appR2dbccore.data.MapListSorter;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
@@ -24,6 +25,13 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
 
+record CancelledLedger(BigDecimal totalBalanceDeduct,
+                       BigDecimal totalBalanceAdd,
+                       BigDecimal totalReserveDeduct,
+                       BigDecimal totalReserveAdd,
+                       BigDecimal totalOverdraftAdd,
+                       BigDecimal totalOverdraftDeduct) {};
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionCancellationCycleTest implements IntegrationDevTest {
     @Autowired
@@ -44,15 +52,19 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
             .ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS;
     private String procWithOverdraft = SeededDatabase
             .ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS_WITH_OVERDRAFT_CONTENTS;
+    private String everything = SeededDatabase
+            .ID_TRANSACTION_FOR_CANCEL_HAS_EVERYTHING;
+
     private List<String> transactionIds = List.of(
             noProc,
             proc,
-            procWithOverdraft
+            procWithOverdraft,
+            everything
     );
 
     private List<String> getNewCreated(String transactionId) {
         return eventTestRepository
-                .getNewCreated(List.of(transactionId),
+                .getNewCreatedIds(List.of(transactionId),
                         SeededDatabaseIdFlag.TEST)
                 .collectList().block();
     }
@@ -80,7 +92,7 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
                 transactionIds).block();
 
         List<String> newEventIds = eventTestRepository
-                .getNewCreated(transactionIds,
+                .getNewCreatedIds(transactionIds,
                         SeededDatabaseIdFlag.TEST)
                 .collectList().block();
         eventTestRepository.deleteByIdIn(newEventIds).block();
@@ -97,9 +109,6 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
         var pre = eventTestRepository
                 .findByTransactionId(noProc).collectList()
                 .block();
-
-        BigDecimal totalAdd = getTotalLedger(pre, BalanceImpact.ADD);
-        BigDecimal totalDeduct = getTotalLedger(pre, BalanceImpact.DEDUCT);
 
         cancellationPipeline
                 .cancel(noProc).block();
@@ -123,49 +132,186 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     }
 
 
-    //@Test
-    public void shouldAllCancelledAndReverse() {
+    @Test
+    public void shouldCancelledWorstCase() {
         var pre = eventTestRepository
-                .findByTransactionId(proc).collectList()
+                .findByTransactionId(everything).collectList()
                 .block();
 
         var processedIds = getIdsortByStatus(pre, BalanceChangeEventStatus.COMPLETED);
         var pendingIds = getIdsortByStatus(pre, BalanceChangeEventStatus.PENDING);
 
+        Assertions.assertTrue(processedIds.size() > 0, "proc ids size");
+        Assertions.assertTrue(pendingIds.size() > 0, "pending ids size");
+
+        var previousIds = new ArrayList<>(processedIds);
+        previousIds.addAll(pendingIds);
+
         doReturn(Mono.just(processedIds))
                 .when(serviceController)
                 .getAppliableBalanceEvents(any(GetProcessedBalanceEventIdsRequest.class));
 
-        cancellationPipeline.cancel(proc).block();
+        cancellationPipeline.cancel(everything).block();
+
+        var post = eventTestRepository
+                .findByIdIn(previousIds).collectList()
+                .block();
+
+        post.stream().filter(a -> a.getStatus().isPendingState())
+                .forEach(e -> {
+            Assertions.assertEquals(BalanceChangeEventStatus.CANCELLED,
+                    e.getStatus());
+        });
 
 
-        var cancelledPendings = getByIds(pendingIds);
-        var reversedProcessed = getByIds(processedIds);
+        var newEvents = eventTestRepository
+                .getNewCreated(everything, previousIds).collectList().block();
+
+
+        Assertions.assertTrue(!newEvents.isEmpty(), "new events empty");
+
+
+
+
+
+        var preMap = getPerAccountMap(pre);
+        var postMap = getPerAccountMap(newEvents);
+
+        var completedStatus = BalanceChangeEventStatus.COMPLETED;
+        var pendingStatus = BalanceChangeEventStatus.PENDING;
+
+        preMap.forEach((accountId, events) -> {
+            var rollBacks = postMap.get(accountId);
+            Assertions.assertNotNull(rollBacks, "null at " + accountId);
+            Assertions.assertTrue(!rollBacks.isEmpty(), "empty at " + accountId);
+
+
+            var preAccumelated = getAccumelatedLedger(events, completedStatus);
+            var newAccumelated = getAccumelatedLedger(rollBacks, pendingStatus);
+
+
+            var balAdd = preAccumelated.totalBalanceAdd();
+            var newBalDed = newAccumelated.totalBalanceDeduct();
+            if (balAdd.signum() > 0)
+                Assertions.assertEquals(balAdd, newBalDed,
+                        flagString("ledger balance add", accountId));
+
+            var balDed = preAccumelated.totalBalanceDeduct();
+            var newBalAdd = newAccumelated.totalBalanceAdd();
+            if (balDed.signum() > 0)
+                Assertions.assertEquals(balDed, newBalAdd,
+                        flagString("ledger balance deduct", accountId));
+
+            var ovdAdd = preAccumelated.totalOverdraftAdd();
+            var newOvdDed = newAccumelated.totalOverdraftDeduct();
+            if (ovdAdd.signum() > 0)
+                Assertions.assertEquals(ovdAdd, newOvdDed,
+                        flagString("ledger overdraft add", accountId));
+
+            var ovdDed = preAccumelated.totalOverdraftDeduct();
+            var newOvdAdd = newAccumelated.totalOverdraftAdd();
+            if (ovdDed.signum() > 0)
+                Assertions.assertEquals(ovdDed, newOvdAdd,
+                        flagString("ledger overdraft deduct", accountId));
+
+            var resAdd = preAccumelated.totalReserveAdd();
+            var resDed = preAccumelated.totalReserveDeduct();
+            var newResAdd = newAccumelated.totalReserveAdd();
+            var newResDed = newAccumelated.totalReserveDeduct();
+
+            Assertions.assertTrue(newResAdd.signum() <= 0,
+                    "impossible system rollback");
+
+            if (resAdd.signum() > 0 && resDed.signum() > 0) {
+                BigDecimal instantRefund = resAdd;
+
+                if (resAdd.compareTo(resDed) >= 0) {
+                    instantRefund = resAdd.subtract(resDed);
+
+                    if (instantRefund.signum() <= 0)
+                        instantRefund = resDed;
+                }
+
+                var mergedRefund = newBalAdd.subtract(newBalAdd.subtract(instantRefund));
+                Assertions.assertEquals(mergedRefund,
+                        instantRefund,
+                        flagString("refund", accountId));
+            }
+
+
+        });
 
 
 
     }
 
-    private BigDecimal getTotalLedger(List<BalanceChangeEvent> events,
-                                      BalanceChangeType balanceChangeType,
-                                      BalanceImpact balanceImpact) {
-        return events
-                .stream()
-                .filter(a -> a.getBalanceImpact().equals(balanceImpact)
-                && a.getBalanceChangeType().equals(balanceChangeType)
-
-                ).map(a -> a.getAmount())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private String flagString(String any, String key) {
+        return any + " " + key;
     }
 
-    private BigDecimal getTotalLedger(List<BalanceChangeEvent> events,
-                                      BalanceImpact balanceImpact) {
-        return events
-                .stream()
-                .filter(a -> a.getBalanceImpact().equals(balanceImpact)
-                ).map(a -> a.getAmount())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private Map<String,List<BalanceChangeEvent>> getPerAccountMap(List<BalanceChangeEvent> list) {
+        Map<String, List<BalanceChangeEvent>> map = new HashMap<>();
+
+        list.forEach(e -> {
+            MapListSorter.sortMapList(map,
+                    e.getAccountId(), e);
+        });
+
+
+        return map;
     }
+
+    private CancelledLedger getAccumelatedLedger(List<BalanceChangeEvent> events,
+                                                 BalanceChangeEventStatus status) {
+        var reserveDeducted = BigDecimal.ZERO;
+        var reserveAdded = BigDecimal.ZERO;
+        var balanceDeducted = BigDecimal.ZERO;
+        var balanceAdded = BigDecimal.ZERO;
+        var overdraftDeducted = BigDecimal.ZERO;
+        var overdraftAdded = BigDecimal.ZERO;
+
+        for (int i = 0; i < events.size(); i++) {
+            var event = events.get(i);
+
+            if (!event.getStatus().equals(status))
+                continue;
+
+            var isAdd = event.getBalanceImpact().ADD();
+            var isDeduct = event.getBalanceImpact().DEDUCT();
+            var type = event.getBalanceChangeType();
+            var amount = event.getAmount();
+
+
+
+            if (type.BALANCE()) {
+                if (isAdd)
+                    balanceAdded = balanceAdded.add(amount);
+                if (isDeduct)
+                    balanceDeducted = balanceDeducted.add(amount);
+            }
+
+            if (type.RESERVE()) {
+                if (isAdd)
+                    reserveAdded = reserveAdded.add(amount);
+                if (isDeduct)
+                    reserveDeducted = reserveDeducted.add(amount);
+            }
+
+            if (type.requiredTransactionOverdraftContent()) {
+                if (isAdd)
+                    overdraftAdded = overdraftAdded.add(amount);
+                if (isDeduct)
+                    overdraftDeducted = overdraftDeducted.add(amount);
+            }
+        }
+
+        return new CancelledLedger(balanceDeducted, balanceAdded,
+                reserveDeducted,
+                reserveAdded,
+                overdraftAdded,
+                overdraftDeducted);
+    }
+
 
     private Set<String> getIdsortByStatus(List<BalanceChangeEvent> events,
                                      BalanceChangeEventStatus status) {

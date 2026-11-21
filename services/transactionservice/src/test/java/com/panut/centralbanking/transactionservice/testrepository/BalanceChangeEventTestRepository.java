@@ -26,8 +26,16 @@ public interface BalanceChangeEventTestRepository
             WHERE e.transaction_id IN (:transactionIds) AND
             e.id NOT LIKE :excludedIdFlag
             """)
-    Flux<String> getNewCreated(@Param("transactionIds") Collection<String> transactionIds,
-                               @Param("excludedIdFlag") String excludedIdFlag);
+    Flux<String> getNewCreatedIds(@Param("transactionIds") Collection<String> transactionIds,
+                                  @Param("excludedIdFlag") String excludedIdFlag);
+
+    @Query("""
+            SELECT e.* FROM transaction_balance_change_events e
+            WHERE e.transaction_id = :transactionId AND
+            e.id NOT IN (:eventIds)
+            """)
+    Flux<BalanceChangeEvent> getNewCreated(@Param("transactionId") String transactionId,
+                                  @Param("eventIds") Collection<String> excludedEventIds);
 
     Mono<Void> deleteByIdIn(Collection<String> ids);
 
@@ -66,6 +74,7 @@ public interface BalanceChangeEventTestRepository
 
 
     Flux<BalanceChangeEvent> findByIdIn(Collection<String> eventIds);
+
 
 
 

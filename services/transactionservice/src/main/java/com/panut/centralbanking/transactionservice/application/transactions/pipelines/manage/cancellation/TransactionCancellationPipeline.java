@@ -90,6 +90,13 @@ class CancellationChain {
         if (balanceChangeEvents == null)
             return;
 
+        balanceChangeEvents.forEach(event -> {
+            log.info("EVENT ADDED, TYPE {}, IMPACT {}, AMOUNT {}",
+                    event.getBalanceChangeType(),
+                    event.getBalanceImpact(),
+                    event.getAmount());
+        });
+
         this.reversing.addAll(balanceChangeEvents);
     }
 
@@ -158,7 +165,7 @@ public class TransactionCancellationPipeline {
         }
 
 
-        return new ProcLedgerResult(BigDecimal.ZERO, null);
+        return new ProcLedgerResult(BigDecimal.ZERO, newEvents);
     }
 
     private ProcLedgerResult clearBalance(final BigDecimal balanceAdded,
@@ -275,6 +282,8 @@ public class TransactionCancellationPipeline {
         throw new SystemMisused("Cancellation reversing proc reserve ledger, impossible condition.");
     }
 
+
+
     private Mono<TransactionManageChain> clear(final TransactionManageChain manageChain,
                                               final String transactionId) {
         return eventQuery.getBalanceChangeEventsByTransactionId(transactionId)
@@ -290,37 +299,6 @@ public class TransactionCancellationPipeline {
                         ).flatMap(chain::processedEventIds)
                 )
                 .doOnNext(a -> log.info("get processed event ids"))
-               /* .flatMap(chain -> {
-                    var hasRequiredOverdraftContent = chain
-                            .isRequiredTransactionOverdraftContext();
-                    log.info("cancellation related to overdraft content? {}",
-                            hasRequiredOverdraftContent);
-
-                    if (!hasRequiredOverdraftContent)
-                        return Mono.just(chain);
-
-                    log.info("cancellation related to overdraft content");
-
-                    return overdraftContentQuery
-                            .getOverdraftIdsMap(chain.getEventIds())
-                            .doOnNext(a -> log.info("get related overdraft contents"))
-                            .flatMap(overdraftIds -> {
-                                log.info("content size. {}", overdraftIds.size());
-                                var contents = overdraftIds.get(transactionId);
-
-                                if (contents == null)
-                                    return Mono.empty();
-
-                                log.info("content found from transaction id, next to include");
-
-                                return Flux.fromIterable(contents)
-                                        .flatMap(overdraftId ->
-                                                overdraftContentService
-                                                        .include(overdraftId,
-                                                                transactionId))
-                                        .then();
-                            }).thenReturn(chain);
-                })*/
                 .map(chain -> {
                     var eventMap = chain.getEventMap();
                     var processed = chain.getProcessedEventIds();
@@ -341,7 +319,7 @@ public class TransactionCancellationPipeline {
                             var event = events.get(i);
                             String eventId = event.getId();
 
-                            if (!processed.contains(event)) {
+                            if (!processed.contains(eventId)) {
                                 log.info("processed ids does not contain event id {}, going straight to direct cancel",
                                         eventId);
                                 chain.addDirectCancel(eventId);
@@ -386,10 +364,10 @@ public class TransactionCancellationPipeline {
 
                         log.info("account {}, before balanceDeducted: {}",
                                 accountId, balanceDeducted);
-                        balanceDeducted = balanceAdded.subtract(
+                        balanceDeducted = balanceDeducted.subtract(
                                 clearedReserveResult.leftOver());
-                        log.info("account {}, after balanceDeducted: {}",
-                                accountId, balanceDeducted);
+                        log.info("account {}, after balanceDeducted: {}, subtracted leftOver: {}",
+                                accountId, balanceDeducted, clearedReserveResult.leftOver());
 
                         var clearedBalanceResult = clearBalance(balanceAdded,
                                 balanceDeducted, accountId, transactionId);
