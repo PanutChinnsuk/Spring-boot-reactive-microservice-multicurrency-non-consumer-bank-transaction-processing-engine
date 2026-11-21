@@ -42,11 +42,14 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
 
 
     private String no_asset_expense_id = SeededDatabase.ID_TRANSACTION_NO_ASSET_EXPENSE;
+    private String overdrafted_id = SeededDatabase.ID_TRANSACTION_OVERDRAFT;
     private String asset_expense_id = SeededDatabase.ID_TRANSACTION_ASSET_EXPENSE;
     private String authorized_no_asset_expense_id = SeededDatabase
             .ID_TRANSACTION_AUTHORIZED_NO_ASSET_EXPENSE;
     private String authorized_asset_expense_id = SeededDatabase
             .ID_TRANSACTION_AUTHORIZED_ASSET_EXPENSE;
+    private String authorized_overdraft_id = SeededDatabase
+            .ID_TRANSACTION_AUTHORIZED_OVERDRAFT;
     private String reversedTransactionUnsettledChildId = SeededDatabase
             .ID_REVERSED_TRANSACTION_UNSETTLED_CHILD;
 
@@ -60,8 +63,10 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
         cleanRepo.setDefault(no_asset_expense_id, TransactionStatus.PENDING);
         cleanRepo.setDefault(reversedTransactionUnsettledChildId, TransactionStatus.PENDING);
         cleanRepo.setDefault(asset_expense_id, TransactionStatus.PENDING);
+        cleanRepo.setDefault(overdrafted_id, TransactionStatus.PENDING);
         cleanRepo.setDefault(authorized_no_asset_expense_id, TransactionStatus.AUTHORIZED);
         cleanRepo.setDefault(authorized_asset_expense_id, TransactionStatus.AUTHORIZED);
+        cleanRepo.setDefault(authorized_overdraft_id, TransactionStatus.AUTHORIZED);
     }
 
 
@@ -69,8 +74,10 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
     public void afterEach() {
         cleanRepo.cleanUpBalanceChangeEvents(no_asset_expense_id);
         cleanRepo.cleanUpBalanceChangeEvents(asset_expense_id);
+        cleanRepo.cleanUpBalanceChangeEvents(overdrafted_id);
         cleanRepo.cleanUpBalanceChangeEvents(authorized_no_asset_expense_id);
         cleanRepo.cleanUpBalanceChangeEvents(authorized_asset_expense_id);
+        cleanRepo.cleanUpBalanceChangeEvents(authorized_overdraft_id);
         beforeEach();
     }
 
@@ -141,6 +148,17 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
     }
 
     @Test
+    public void shouldPendingAuthorizeForOverdraft() {
+        var result = transactionAuthorizePipeline
+                .authorize(overdrafted_id).block();
+
+        Assertions.assertEquals(TransactionStatus.PENDING_AUTHORIZED,
+                result.getTransactionStatus());
+
+        checkAuthorizeLedger(overdrafted_id, deductingAccountId);
+    }
+
+    @Test
     public void shouldPendingAuthorizeForAssetExpense() {
         var result = transactionAuthorizePipeline
                 .authorize(asset_expense_id).block();
@@ -161,6 +179,18 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
 
 
         checkPostLedger(authorized_no_asset_expense_id, deductingAccountId, addingAccountId);
+    }
+
+    @Test
+    public void shouldPendingPostForOverdraft() {
+        var result = transactionPostPipeline
+                .post(authorized_overdraft_id).block();
+
+        Assertions.assertEquals(TransactionStatus.PENDING_POSTED,
+                result.getTransactionStatus());
+
+
+        checkPostLedger(authorized_overdraft_id, deductingAccountId, addingAccountId);
     }
 
     @Test

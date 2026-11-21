@@ -50,8 +50,11 @@ public class TransactionAuthorizePipeline {
                 .filter(line -> {
                     LedgerType ledgerType = chain.getLedgerTypeOfLine(line);
                     boolean isAssetExpense = ledgerType.isAssetExpense();
-                    boolean isCredit = line.getDirection().isCredit();
-                    boolean isDebit = line.getDirection().isDebit();
+                    boolean isCredit = line.getDirection().isCredit()
+                            || line.getDirection().isCreditOverdraft();
+
+                    boolean isDebit = line.getDirection().isDebit()
+                            || line.getDirection().isDebitOverdraft();
 
                     return (isAssetExpense && isCredit) || (!isAssetExpense && isDebit);
 

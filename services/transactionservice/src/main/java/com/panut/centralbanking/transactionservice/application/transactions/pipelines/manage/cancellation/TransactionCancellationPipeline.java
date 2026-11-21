@@ -1,8 +1,8 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.cancellation;
 
+import com.panut.centralbanking.appR2dbccore.data.MapListSorter;
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountBalanceChangeServiceController;
-import com.panut.centralbanking.transactionservice.api.service.account.AccountServiceController;
 import com.panut.centralbanking.transactionservice.api.service.account.request.GetProcessedBalanceEventIdsRequest;
 import com.panut.centralbanking.transactionservice.application.events.balancechange.BalanceChangeEventRepositoryManager;
 import com.panut.centralbanking.transactionservice.application.events.balancechange.ChangingBalance;
@@ -18,23 +18,26 @@ import com.panut.centralbanking.transactionservice.application.worker.WorkerServ
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.core.WorkerName;
-import com.panut.centralbanking.transactionservice.infrastructure.model.datacontent.TransactionOverdraftContent;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.querydto.OptimizedBalanceChangeEvent;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.util.*;
 
+record ProcLedgerResult(BigDecimal leftOver,
+                                 List<BalanceChangeEvent> newEventS) {}
+
+@Slf4j
 @Getter
 class CancellationChain {
-    private List<OptimizedBalanceChangeEvent> events;
-    private List<String> eventIds;
+    private Map<String, List<OptimizedBalanceChangeEvent>> eventMap = new HashMap<>();
+    private List<String> eventIds = new ArrayList<>();
     private Set<String> processedEventIds;
 
     private Map<String, List<String>> possibleOverdraftContents;
@@ -42,15 +45,25 @@ class CancellationChain {
     private List<BalanceChangeEvent> reversing = new ArrayList<>();
     private List<String> directCancel = new ArrayList<>();
 
+    private boolean requiredTransactionOverdraftContext = false;
 
-    public Mono<CancellationChain> events(final List<OptimizedBalanceChangeEvent> events) {
+
+    public Mono<CancellationChain> eventMap(final List<OptimizedBalanceChangeEvent> events) {
         return Mono.defer(() -> {
-            this.events = events;
-            eventIds = events.stream()
-                    .filter(e -> e.getStatus()
-                            .isPendingState())
-                    .map(OptimizedBalanceChangeEvent::getId)
-                    .toList();
+            events.forEach(event -> {
+                String key = event.getAccountId();
+
+                MapListSorter.sortMapList(eventMap,
+                        key, event);
+
+                eventIds.add(event.getId());
+
+                if (event.getBalanceChangeType().requiredTransactionOverdraftContent())
+                    this.requiredTransactionOverdraftContext = true;
+            });
+
+            log.info("after sortMapList, eventMap size: {}",
+                    eventMap.size());
 
             return Mono.just(this);
         });
@@ -73,8 +86,11 @@ class CancellationChain {
         });
     }
 
-    public void addReversing(final BalanceChangeEvent balanceChangeEvent) {
-        this.reversing.add(balanceChangeEvent);
+    public void addReversing(final List<BalanceChangeEvent> balanceChangeEvents) {
+        if (balanceChangeEvents == null)
+            return;
+
+        this.reversing.addAll(balanceChangeEvents);
     }
 
     public void addDirectCancel(final String eventId) {
@@ -82,6 +98,7 @@ class CancellationChain {
     }
 }
 
+@Slf4j
 @Component
 public class TransactionCancellationPipeline {
     private final TransactionManagePipelineRepository repository;
@@ -119,128 +136,314 @@ public class TransactionCancellationPipeline {
         this.overdraftContentQuery = overdraftContentQuery;
     }
 
-    private BalanceChangeEvent asReversed(final OptimizedBalanceChangeEvent before,
-                                          final Map<String, List<String>> possibleOverdraftContents,
+    private ProcLedgerResult clearOverdrafted(final BigDecimal overdraftAdded,
+                                          final BigDecimal overdraftDeducted,
+                                          final String accountId,
                                           final String transactionId) {
-        var isAdd = before.getBalanceImpact().ADD();
-        var isDeduct= before.getBalanceImpact().DEDUCT();
+        List<BalanceChangeEvent> newEvents = new ArrayList<>();
 
-        var type = before.getBalanceChangeType();
+        var hasAddedOverdraft = overdraftAdded.signum() > 0;
+        var hasDeductedOverdraft = overdraftDeducted.signum() > 0;
 
-        if (type.requiredTransactionOverdraftContent()) {
-            if (possibleOverdraftContents != null) {
-                List<String> overdraftIds = possibleOverdraftContents.get(transactionId);
-
-                overdraftIds.forEach(id -> {
-                    overdraftContentService.include(id, transactionId);
-                });
-            }
-
-
-            if (isAdd)
-                return eventService.create(before,
-                        ChangingBalance.overdraftedDeduct(),
-                        transactionId);
-            if (isDeduct)
-                return eventService.create(before,
-                        ChangingBalance.overdraftedAdd(),
-                        transactionId);
+        if (hasAddedOverdraft) {
+            log.info("hasAddedOverdraft");
+            newEvents.add(eventService.create(accountId, overdraftAdded, transactionId,
+                    ChangingBalance.overdraftedDeduct()));
         }
 
-        if (type.BALANCE()) {
-            if (isAdd)
-                return eventService.create(before,
-                        ChangingBalance.balanceDeduct(),
-                        transactionId);
-            if (isDeduct)
-                return eventService.create(before,
-                        ChangingBalance.balanceAdd(),
-                        transactionId);
-        }
-
-        if (type.RESERVE()) {
-            if (isAdd)
-                return eventService.create(before,
-                        ChangingBalance.reserveDeduct(),
-                        transactionId);
-            if (isDeduct)
-                return eventService.create(before,
-                        ChangingBalance.reserveAdd(),
-                        transactionId);
+        if (hasDeductedOverdraft) {
+            log.info("hasDeductedOverdraft");
+            newEvents.add(eventService.create(accountId, overdraftDeducted, transactionId,
+                    ChangingBalance.overdraftedAdd()));
         }
 
 
-
-        throw new SystemMisused("Balance change event to reversed on cancellation has " +
-                "absolute no matched condition type");
+        return new ProcLedgerResult(BigDecimal.ZERO, null);
     }
 
-    public Mono<TransactionManageChain> clear(final TransactionManageChain manageChain,
+    private ProcLedgerResult clearBalance(final BigDecimal balanceAdded,
+                                          final BigDecimal balanceDeducted,
+                                          final String accountId,
+                                          final String transactionId) {
+        List<BalanceChangeEvent> newEvents = new ArrayList<>();
+
+        var balanceReceived = balanceAdded.signum() > 0;
+        var noBalanceDeducted = balanceDeducted.signum() <= 0;
+        var hasBalanceDeducted = balanceDeducted.signum() > 0;
+
+        if (balanceReceived) {
+            log.info("balanceReceived");
+            newEvents.add(eventService.create(accountId, balanceAdded, transactionId,
+                    ChangingBalance.balanceDeduct()));
+        }
+
+        if (noBalanceDeducted) {
+            log.info("noBalanceDeducted");
+            return new ProcLedgerResult(BigDecimal.ZERO, newEvents);
+        }
+
+        if (hasBalanceDeducted) {
+            log.info("hasBalanceDeducted");
+            newEvents.add(eventService.create(accountId, balanceDeducted, transactionId,
+                    ChangingBalance.balanceAdd()));
+            return new ProcLedgerResult(BigDecimal.ZERO, newEvents);
+        }
+
+        throw new SystemMisused("Cancellation reversing proc balance ledger, impossible condition.");
+    }
+
+    private ProcLedgerResult clearReserve(final BigDecimal reserveAdded,
+                                          final BigDecimal reserveDeducted,
+                                          final String accountId,
+                                          final String transactionId) {
+        List<BalanceChangeEvent> newEvents = new ArrayList<>();
+
+        var bothAreZero = reserveAdded.signum() <= 0 &&
+                reserveDeducted.signum() <= 0;
+        var onlyDeducted = reserveAdded.signum() <= 0 && reserveDeducted.signum() > 0;
+        var onlyAdded = reserveAdded.signum() > 0 && reserveDeducted.signum() <= 0;
+        var addedAndDeducted = reserveAdded.compareTo(reserveDeducted) >= 0 &&
+                reserveDeducted.signum() > 0;
+        var addedLessThanDeducted = reserveAdded.compareTo(reserveDeducted) < 0 &&
+                reserveDeducted.signum() > 0;
+
+        if (bothAreZero)
+            return new ProcLedgerResult(BigDecimal.ZERO, null);
+
+        //RARE CASE SAFE GUARD
+        if (onlyDeducted) {
+            log.info("onlyDeducted");
+            newEvents.add(eventService.create(accountId, reserveDeducted, transactionId,
+                    ChangingBalance.balanceAdd()));
+
+            return new ProcLedgerResult(reserveDeducted, newEvents);
+        }
+
+        if (onlyAdded) {
+            log.info("onlyAdded");
+            newEvents.add(eventService.create(accountId, reserveAdded, transactionId,
+                    ChangingBalance.reserveDeduct()));
+
+            return new ProcLedgerResult(BigDecimal.ZERO, newEvents);
+        }
+
+        if (addedAndDeducted) {
+            log.info("addedAndDeducted");
+            BigDecimal leftOver = reserveAdded.subtract(reserveDeducted);
+            log.info("leftOver: {}", leftOver);
+
+            if (leftOver.signum() <= 0) {
+                BigDecimal instantRefund = reserveDeducted;
+
+                log.info("leftOver is zero due to reserveDeducted has the same amount, refund {}",
+                        instantRefund);
+
+                newEvents.add(eventService.create(accountId, instantRefund, transactionId,
+                        ChangingBalance.balanceAdd()));
+            }else {
+                BigDecimal instantRefund = reserveAdded.subtract(reserveDeducted);
+
+                log.info("leftOver is not zero due to reserves not fully settled, refund {}",
+                        instantRefund);
+
+                newEvents.add(eventService.create(accountId, instantRefund, transactionId,
+                        ChangingBalance.balanceAdd()));
+                newEvents.add(eventService.create(accountId, leftOver, transactionId,
+                        ChangingBalance.reserveDeduct()));
+            }
+
+            return new ProcLedgerResult(leftOver, newEvents);
+        }
+
+        //RARE CASE SAFE GUARD
+        if (addedLessThanDeducted) {
+            log.info("addedLessThanDeducted");
+            newEvents.add(eventService.create(accountId, reserveDeducted, transactionId,
+                    ChangingBalance.balanceAdd()));
+
+            if (reserveAdded.signum() > 0) {
+                log.info("unsettled reserveAdded: {}", reserveAdded);
+
+
+                newEvents.add(eventService.create(accountId, reserveAdded, transactionId,
+                        ChangingBalance.reserveDeduct()));
+            }
+
+            return new ProcLedgerResult(reserveDeducted, newEvents);
+        }
+
+        throw new SystemMisused("Cancellation reversing proc reserve ledger, impossible condition.");
+    }
+
+    private Mono<TransactionManageChain> clear(final TransactionManageChain manageChain,
                                               final String transactionId) {
         return eventQuery.getBalanceChangeEventsByTransactionId(transactionId)
+                .doOnNext(a ->
+                        log.info("get event of transaction to cancel"))
                 .flatMap(events ->
-                    new CancellationChain().events(events)
+                    new CancellationChain().eventMap(events)
                 )
+                .doOnNext(a -> log.info("started a cancellation chain"))
                 .flatMap(chain ->
                         serviceController.getAppliableBalanceEvents(
                                 new GetProcessedBalanceEventIdsRequest(chain.getEventIds())
-                        )
-                                .flatMap(chain::processedEventIds)
+                        ).flatMap(chain::processedEventIds)
                 )
-                .flatMap(chain -> {
-                    var hasRequiredOverdraftContent = chain.getEvents()
-                            .stream().anyMatch(event ->
-                            event.getBalanceChangeType()
-                                    .requiredTransactionOverdraftContent());
+                .doOnNext(a -> log.info("get processed event ids"))
+               /* .flatMap(chain -> {
+                    var hasRequiredOverdraftContent = chain
+                            .isRequiredTransactionOverdraftContext();
+                    log.info("cancellation related to overdraft content? {}",
+                            hasRequiredOverdraftContent);
 
-                    if (hasRequiredOverdraftContent)
-                        return overdraftContentQuery
-                                .getOverdraftIdsMap(chain.getEventIds())
-                                .flatMap(chain::possibleOverdraftContents);
+                    if (!hasRequiredOverdraftContent)
+                        return Mono.just(chain);
 
-                    return Mono.just(chain);
-                })
+                    log.info("cancellation related to overdraft content");
+
+                    return overdraftContentQuery
+                            .getOverdraftIdsMap(chain.getEventIds())
+                            .doOnNext(a -> log.info("get related overdraft contents"))
+                            .flatMap(overdraftIds -> {
+                                log.info("content size. {}", overdraftIds.size());
+                                var contents = overdraftIds.get(transactionId);
+
+                                if (contents == null)
+                                    return Mono.empty();
+
+                                log.info("content found from transaction id, next to include");
+
+                                return Flux.fromIterable(contents)
+                                        .flatMap(overdraftId ->
+                                                overdraftContentService
+                                                        .include(overdraftId,
+                                                                transactionId))
+                                        .then();
+                            }).thenReturn(chain);
+                })*/
                 .map(chain -> {
-                    var events = chain.getEvents();
+                    var eventMap = chain.getEventMap();
                     var processed = chain.getProcessedEventIds();
                     var possibleOverdraftContents = chain.getPossibleOverdraftContents();
 
 
-                    events.forEach(event -> {
-                        String eventId = event.getId();
-                        if (processed.contains(eventId)) {
-                            chain.addReversing(asReversed(event,
-                                    possibleOverdraftContents,
-                                    transactionId));
-                        }else {
-                            chain.addDirectCancel(eventId);
+                    eventMap.forEach((accountId,
+                                      events) -> {
+
+                        var reserveDeducted = BigDecimal.ZERO;
+                        var reserveAdded = BigDecimal.ZERO;
+                        var balanceDeducted = BigDecimal.ZERO;
+                        var balanceAdded = BigDecimal.ZERO;
+                        var overdraftDeducted = BigDecimal.ZERO;
+                        var overdraftAdded = BigDecimal.ZERO;
+
+                        for (int i = 0; i < events.size(); i++) {
+                            var event = events.get(i);
+                            String eventId = event.getId();
+
+                            if (!processed.contains(event)) {
+                                log.info("processed ids does not contain event id {}, going straight to direct cancel",
+                                        eventId);
+                                chain.addDirectCancel(eventId);
+                                continue;
+                            }
+
+                            var isAdd = event.getBalanceImpact().ADD();
+                            var isDeduct = event.getBalanceImpact().DEDUCT();
+                            var type = event.getBalanceChangeType();
+                            var amount = event.getAmount();
+
+                            log.info("processed event id, {} :balanceChangeType: {}, balanceImpact: {}",
+                                    event.getId(),
+                                    type,
+                                    event.getBalanceImpact());
+
+                            if (type.BALANCE()) {
+                                if (isAdd)
+                                    balanceAdded = balanceAdded.add(amount);
+                                if (isDeduct)
+                                    balanceDeducted = balanceDeducted.add(amount);
+                            }
+
+                            if (type.RESERVE()) {
+                                if (isAdd)
+                                    reserveAdded = reserveAdded.add(amount);
+                                if (isDeduct)
+                                    reserveDeducted = reserveDeducted.add(amount);
+                            }
+
+                            if (type.requiredTransactionOverdraftContent()) {
+                                if (isAdd)
+                                    overdraftAdded = overdraftAdded.add(amount);
+                                if (isDeduct)
+                                    overdraftDeducted = overdraftDeducted.add(amount);
+                            }
+
                         }
+
+                        var clearedReserveResult = clearReserve(reserveAdded,
+                                reserveDeducted, accountId, transactionId);
+
+                        log.info("account {}, before balanceDeducted: {}",
+                                accountId, balanceDeducted);
+                        balanceDeducted = balanceAdded.subtract(
+                                clearedReserveResult.leftOver());
+                        log.info("account {}, after balanceDeducted: {}",
+                                accountId, balanceDeducted);
+
+                        var clearedBalanceResult = clearBalance(balanceAdded,
+                                balanceDeducted, accountId, transactionId);
+
+                        var clearedOverdraftResult = clearOverdrafted(overdraftAdded,
+                                overdraftDeducted, accountId, transactionId);
+
+                        chain.addReversing(clearedReserveResult.newEventS());
+                        chain.addReversing(clearedBalanceResult.newEventS());
+                        chain.addReversing(clearedOverdraftResult.newEventS());
                     });
 
                     return chain;
                 })
+                .doOnNext(a -> log.info("performing bulk"))
                 .flatMap(chain ->
                         eventService.flush(chain.getReversing())
+                                .doOnNext(a ->
+                                        log.info("flush all new events, size {}",
+                                                chain.getReversing().size()))
                                 .then(eventRepository
                                         .bulkStatusUpdate(chain.getDirectCancel(),
-                                                BalanceChangeEventStatus.CANCELLED))
+                                                BalanceChangeEventStatus.CANCELLED)
+                                )
+                                .doOnNext(a -> log.info("set direct cancel statuses to cancelled"))
+
                 )
                 .thenReturn(manageChain);
     }
 
+    //self reminder >>> make it to only query just for the transaction itself IF
+    //future does NOT required its profile
     public Mono<TransactionManagePipelineResult> cancel(final String transactionId) {
         return workerService.initWorker(WorkerName.TRANSACTION)
-                .then(repository.fullTransaction(transactionId,
+                .then(repository.justTransaction(transactionId,
                         TransactionStatus.cancellableStatuses
                                 .toArray(new TransactionStatus[0]))
                 )
+                .doOnNext(a ->
+                        log.info("after get just transaction and its profile"))
                 .flatMap(chain -> clear(chain, transactionId))
                 .map(TransactionManageChain::getTransaction)
                 .flatMap(transaction ->
                         manager.save(transaction
                                 .changeStatus(TransactionStatus.PENDING_CANCELLED)))
+                .doOnNext(a -> log.info("change transaction status to PENDING_CANCELLED"))
                 .map(transaction -> new TransactionManagePipelineResult()
-                        .transaction(transaction));
+                        .transaction(transaction))
+                .doOnSuccess(a ->
+                        log.info("Successfully cancelled transaction id of {}",
+                                transactionId))
+                .doOnError(error ->
+                        log.error("Failed to cancel transaction, {}",
+                                error.getLocalizedMessage()));
 
     }
 }

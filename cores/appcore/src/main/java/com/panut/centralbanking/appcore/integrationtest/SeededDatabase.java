@@ -12,14 +12,19 @@ public class SeededDatabase {
     public static final String ID_CUSTOMER_1 = "TEST";
     public static final String ID_NORMAL_ACCOUNT_1 = "TEST";
     public static final String ID_NORMAL_ACCOUNT_2 = "TEST2";
+    public static final String ID_EMPTY_ACCOUNT_1 = "TEST_EMPTY";
     public static final String ID_INTERNAL_ACCOUNT_1 = "INTERNAL";
     public static final String ID_INTERNAL_ACCOUNT_2 = "INTERNAL2";
     public static final String ID_TRANSACTION_NO_ASSET_EXPENSE = "TEST_NO_ASSET_EXPENSE";
     public static final String ID_TRANSACTION_ASSET_EXPENSE = "TEST_ASSET_EXPENSE";
+    public static final String ID_TRANSACTION_OVERDRAFT = "TEST_OVERDRAFTED";
+
     public static final String ID_TRANSACTION_AUTHORIZED_NO_ASSET_EXPENSE =
             "TEST_AUTHORIZED_NO_ASSET_EXPENSE";
     public static final String ID_TRANSACTION_AUTHORIZED_ASSET_EXPENSE =
             "TEST_AUTHORIZED_ASSET_EXPENSE";
+    public static final String ID_TRANSACTION_AUTHORIZED_OVERDRAFT =
+            "TEST_AUTHORIZED_OVERDRAFTED";
 
     public static final String ID_PENDING_TRANSACTION_1 = "TEST";
     public static final String ID_PENDING_TRANSACTION_2 = "TEST2";
@@ -43,4 +48,13 @@ public class SeededDatabase {
 
     public static final String ID_SETTLED_TRANSACTION = "TEST_SETTLED";
     public static final String ID_SETTLED_TRANSACTION_WITH_FX_RATE_ID = "TEST_SETTLED_WITH_FX_RATE_ID";
+
+    public static final String ID_TRANSACTION_FOR_CANCEL_NO_PROC_EVENTS =
+            "TEST_CANCEL_NO_PROCESSED_EVENT";
+    public static final String ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS =
+            "TEST_CANCEL_PROCESSED_EVENT";
+    public static final String ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS_WITH_OVERDRAFT_CONTENTS =
+            "TEST_CANCEL_PROCESSED_WITH_OVERDRAFT_CONTENT";
+    public static final String ID_TRANSACTION_FOR_CANCEL_HAS_EVERYTHING =
+            "TEST_CANCEL_HAS_EVERYTHING";
 }

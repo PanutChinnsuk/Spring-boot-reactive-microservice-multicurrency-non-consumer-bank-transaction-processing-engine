@@ -19,6 +19,17 @@ public interface BalanceChangeEventTestRepository
 
     Flux<BalanceChangeEvent> findByTransactionId(String transactionId);
 
+    Flux<BalanceChangeEvent> findByTransactionIdIn(Collection<String> transactionIds);
+
+    @Query("""
+            SELECT e.id FROM transaction_balance_change_events e
+            WHERE e.transaction_id IN (:transactionIds) AND
+            e.id NOT LIKE :excludedIdFlag
+            """)
+    Flux<String> getNewCreated(@Param("transactionIds") Collection<String> transactionIds,
+                               @Param("excludedIdFlag") String excludedIdFlag);
+
+    Mono<Void> deleteByIdIn(Collection<String> ids);
 
     @Query("""
             UPDATE transaction_balance_change_events e SET e.status = :eventStatus
@@ -42,6 +53,19 @@ public interface BalanceChangeEventTestRepository
             """)
     Mono<Void> setAllBlacklistExpirty(@Param("eventIds")Collection<String> eventIds,
                                       @Param("now")LocalDateTime now);
+
+
+
+    @Query("""
+            UPDATE transaction_balance_change_events e SET
+            e.status = :toStatus
+            WHERE e.id = :eventId
+            """)
+    Mono<Void> rollbackStatus(@Param("eventId") String eventId,
+                              @Param("toStatus") BalanceChangeEventStatus toStatus);
+
+
+    Flux<BalanceChangeEvent> findByIdIn(Collection<String> eventIds);
 
 
 

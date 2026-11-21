@@ -82,16 +82,15 @@ public class TransactionPostPipeline {
                     ChangingBalance changingBalance = ChangingBalance.none();
 
                     if (isAssetExpense) {
-                        if (isCredit) changingBalance = ChangingBalance.reserveDeduct();
+                        if (isCredit || isCreditOverdraft) changingBalance = ChangingBalance.reserveDeduct();
                         if (isDebit) changingBalance = ChangingBalance.balanceAdd();
-                        if (isCreditOverdraft) changingBalance = ChangingBalance.overdraftedDeduct();
                         if (isDebitOverdraft) changingBalance = ChangingBalance.overdraftedAdd();
 
                     }else {
                         if (isCredit) changingBalance = ChangingBalance.balanceAdd();
-                        if (isDebit) changingBalance = ChangingBalance.reserveDeduct();
+                        if (isDebit || isDebitOverdraft) changingBalance = ChangingBalance.reserveDeduct();
                         if (isCreditOverdraft) changingBalance = ChangingBalance.overdraftedAdd();
-                        if (isDebitOverdraft) changingBalance = ChangingBalance.overdraftedDeduct();
+
                     }
 
                     chain.addBalanceChangeEvent(eventService.create(line, changingBalance));
