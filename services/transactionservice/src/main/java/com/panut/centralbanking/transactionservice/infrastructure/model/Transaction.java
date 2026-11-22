@@ -26,9 +26,12 @@ public class Transaction extends VersionedUUIDStringEntity {
 
 
     @Builder
-    public Transaction(TransactionType transactionType) {
+    public Transaction(TransactionType transactionType,
+                       TransactionStatus transactionStatus) {
         this.transactionType = transactionType;
-        this.transactionStatus = TransactionStatus.PENDING;
+        this.transactionStatus = transactionStatus == null
+                ? TransactionStatus.PENDING
+                : transactionStatus;
         this.createdAt = LocalDateTime.now();
         setInsert();
     }

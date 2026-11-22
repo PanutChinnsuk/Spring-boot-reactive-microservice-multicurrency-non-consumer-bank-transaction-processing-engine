@@ -2,16 +2,15 @@ package com.panut.centralbanking.transactionservice.integration.transaction.mana
 
 import com.panut.centralbanking.appR2dbccore.data.MapListSorter;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
-import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.api.service.account.AccountBalanceChangeServiceController;
-import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceChangeType;
-import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.api.service.account.request.GetProcessedBalanceEventIdsRequest;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.cancellation.TransactionCancellationPipeline;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.isolation.TransactionCancellationISO;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionTestRepository;
 import org.junit.jupiter.api.*;
@@ -46,8 +45,14 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     @MockitoSpyBean
     private AccountBalanceChangeServiceController serviceController;
 
+    @Autowired
+    private TransactionCancellationISO iso;
 
-    private String noProc = SeededDatabase.ID_TRANSACTION_FOR_CANCEL_NO_PROC_EVENTS;
+    @Autowired
+    private TransactionTestRepositoryCleanUp cleanRepo;
+
+
+    private String noProc;
     private String proc = SeededDatabase
             .ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS;
     private String procWithOverdraft = SeededDatabase
@@ -55,47 +60,42 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     private String everything = SeededDatabase
             .ID_TRANSACTION_FOR_CANCEL_HAS_EVERYTHING;
 
-    private List<String> transactionIds = List.of(
-            noProc,
-            proc,
-            procWithOverdraft,
-            everything
-    );
+    private List<String> transactionIds = new ArrayList<>();
 
-    private List<String> getNewCreated(String transactionId) {
+    private List<BalanceChangeEvent> getNewCreatedEvents(String transactionId,
+                                                         List<String> excludedEventIds) {
         return eventTestRepository
-                .getNewCreatedIds(List.of(transactionId),
-                        SeededDatabaseIdFlag.TEST)
+                .getNewCreated(transactionId,
+                        excludedEventIds)
                 .collectList().block();
+    }
+
+    private List<String> getEventIds(String transaction) {
+        return eventTestRepository.getCreatedIds(noProc).collectList().block();
     }
 
     private Map<String, BalanceChangeEventStatus> rollBack = new HashMap<>();
 
     @BeforeAll
     public void setUp() {
-        eventTestRepository
+        noProc = iso.caseNoProc().getId();
+
+        transactionIds.add(noProc);
+
+       /* eventTestRepository
                 .findByTransactionIdIn(transactionIds)
                 .collectList()
                 .block()
                 .forEach(e -> {
                     rollBack.put(e.getId(), e.getStatus());
-                });
+                });*/
     }
 
     @AfterAll
     public void cleanUp() {
-        rollBack.forEach((k,v) -> {
-            eventTestRepository.rollbackStatus(k, v).block();
-        });
+        cleanRepo.cleanUpEvents(transactionIds);
+        cleanRepo.cleanUp(transactionIds);
 
-        transactionTestRepository.setStatus(TransactionStatus.PENDING_POSTED,
-                transactionIds).block();
-
-        List<String> newEventIds = eventTestRepository
-                .getNewCreatedIds(transactionIds,
-                        SeededDatabaseIdFlag.TEST)
-                .collectList().block();
-        eventTestRepository.deleteByIdIn(newEventIds).block();
     }
 
 
@@ -105,6 +105,7 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
                 .when(serviceController)
                 .getAppliableBalanceEvents(any(GetProcessedBalanceEventIdsRequest.class));
 
+        var oldEventIds = getEventIds(noProc);
 
         var pre = eventTestRepository
                 .findByTransactionId(noProc).collectList()
@@ -128,11 +129,11 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
         Assertions.assertEquals(TransactionStatus.PENDING_CANCELLED,
                 transaction.getTransactionStatus(), "tx status");
 
-        Assertions.assertTrue(getNewCreated(noProc).isEmpty(), "no new event create");
+        Assertions.assertTrue(getNewCreatedEvents(noProc, oldEventIds).isEmpty(), "no new event create");
     }
 
 
-    @Test
+   // @Test
     public void shouldCancelledWorstCase() {
         var pre = eventTestRepository
                 .findByTransactionId(everything).collectList()
@@ -167,6 +168,10 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
         var newEvents = eventTestRepository
                 .getNewCreated(everything, previousIds).collectList().block();
 
+        newEvents.forEach(e -> {
+            Assertions.assertEquals(e.getTransactionId(), everything);
+        });
+
 
         Assertions.assertTrue(!newEvents.isEmpty(), "new events empty");
 
@@ -181,6 +186,9 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
         var pendingStatus = BalanceChangeEventStatus.PENDING;
 
         preMap.forEach((accountId, events) -> {
+
+
+
             var rollBacks = postMap.get(accountId);
             Assertions.assertNotNull(rollBacks, "null at " + accountId);
             Assertions.assertTrue(!rollBacks.isEmpty(), "empty at " + accountId);

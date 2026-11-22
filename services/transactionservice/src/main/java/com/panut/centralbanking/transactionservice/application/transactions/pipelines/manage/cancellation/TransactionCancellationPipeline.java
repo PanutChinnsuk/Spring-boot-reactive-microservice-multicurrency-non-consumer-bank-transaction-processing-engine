@@ -378,6 +378,8 @@ public class TransactionCancellationPipeline {
                         chain.addReversing(clearedReserveResult.newEventS());
                         chain.addReversing(clearedBalanceResult.newEventS());
                         chain.addReversing(clearedOverdraftResult.newEventS());
+
+                        log.info("new events created: {}", chain.getReversing().size());
                     });
 
                     return chain;

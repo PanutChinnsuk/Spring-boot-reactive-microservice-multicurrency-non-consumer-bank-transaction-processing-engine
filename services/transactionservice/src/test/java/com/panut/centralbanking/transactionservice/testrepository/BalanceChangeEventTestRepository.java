@@ -23,11 +23,9 @@ public interface BalanceChangeEventTestRepository
 
     @Query("""
             SELECT e.id FROM transaction_balance_change_events e
-            WHERE e.transaction_id IN (:transactionIds) AND
-            e.id NOT LIKE :excludedIdFlag
+            WHERE e.transaction_id = :transactionId
             """)
-    Flux<String> getNewCreatedIds(@Param("transactionIds") Collection<String> transactionIds,
-                                  @Param("excludedIdFlag") String excludedIdFlag);
+    Flux<String> getCreatedIds(@Param("transactionId") String transactionId);
 
     @Query("""
             SELECT e.* FROM transaction_balance_change_events e

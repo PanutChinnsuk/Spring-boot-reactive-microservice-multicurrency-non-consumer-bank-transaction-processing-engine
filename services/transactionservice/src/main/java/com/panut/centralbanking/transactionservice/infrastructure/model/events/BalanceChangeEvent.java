@@ -50,15 +50,27 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
                               BigDecimal amount,
                               BalanceImpact balanceImpact,
                               BalanceChangeType balanceChangeType,
-                              String transactionId) {
+                              String transactionId,
+                                                 BalanceChangeEventStatus status) {
         this.accountId = accountId;
         this.amount = amount;
         this.balanceImpact = balanceImpact;
         this.balanceChangeType = balanceChangeType;
         this.transactionId = transactionId;
-        this.status = BalanceChangeEventStatus.PENDING;
+        this.status = status == null
+                ? BalanceChangeEventStatus.PENDING
+                : status;
 
         return this;
+    }
+
+    public BalanceChangeEvent balanceChangeEvent(String accountId,
+                                                 BigDecimal amount,
+                                                 BalanceImpact balanceImpact,
+                                                 BalanceChangeType balanceChangeType,
+                                                 String transactionId) {
+        return balanceChangeEvent(accountId, amount, balanceImpact,
+                balanceChangeType, transactionId, null);
     }
 
     @Builder
@@ -67,12 +79,14 @@ public class BalanceChangeEvent extends VersionedUUIDStringEntity {
                               BalanceImpact balanceImpact,
                               BalanceChangeType balanceChangeType,
                               String transactionId,
-                              String id) {
+                              String id,
+                              BalanceChangeEventStatus status) {
         balanceChangeEvent(accountId,
                 amount,
                 balanceImpact,
                 balanceChangeType,
-                transactionId);
+                transactionId,
+                status);
         if (id == null) {
             setInsert();
         }else {
