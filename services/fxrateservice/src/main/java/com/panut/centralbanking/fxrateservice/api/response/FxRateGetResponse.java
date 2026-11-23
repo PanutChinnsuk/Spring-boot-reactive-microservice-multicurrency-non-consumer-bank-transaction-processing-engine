@@ -19,7 +19,7 @@ public class FxRateGetResponse {
     private BigDecimal midRate;
     private BigDecimal treasuryRate;
     private CurrencyCode baseCurrency;
-
+    private CurrencyCode quoteCurrency;
 
 
     @JsonIgnore
@@ -30,7 +30,8 @@ public class FxRateGetResponse {
                 fxRate.getAskRate(),
                 fxRate.getMidRate(),
                 fxRate.getTreasuryRate(),
-                fxRate.getBaseCurrency()
+                fxRate.getBaseCurrency(),
+                fxRate.getQuoteCurrency()
         );
     }
 }

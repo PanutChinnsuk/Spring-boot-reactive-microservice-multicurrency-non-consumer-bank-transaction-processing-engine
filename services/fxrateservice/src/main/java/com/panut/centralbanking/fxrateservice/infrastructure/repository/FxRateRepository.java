@@ -6,9 +6,11 @@ import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public interface FxRateRepository extends ReactiveCrudRepository<FxRate, String> {
 
@@ -35,6 +37,16 @@ public interface FxRateRepository extends ReactiveCrudRepository<FxRate, String>
             """)
     Mono<FxRate> findLatest(@Param("baseCurrency")CurrencyCode baseCurrency,
                               @Param("quoteCurrency")CurrencyCode quoteCurrency);
+
+    @Query("""
+            SELECT f.base_currency, f.id, f.bid_rate, f.ask_rate, f.mid_rate, f.treasury_rate
+            FROM fx_rates f
+            WHERE f.base_currency = (:baseCurrencies) AND
+            f.quote_currency = (:quoteCurrencies)
+            ORDER BY f.timestamp DESC 
+            """)
+    Flux<FxRate> findMultiLatest(@Param("baseCurrencies") Set<CurrencyCode> baseCurrencies,
+                                 @Param("quoteCurrencies")Set<CurrencyCode> quoteCurrencies);
 
 
     @Query("""

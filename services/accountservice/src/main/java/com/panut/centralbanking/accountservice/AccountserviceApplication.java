@@ -1,5 +1,7 @@
 package com.panut.centralbanking.accountservice;
 
+import com.panut.centralbanking.accountservice.api.controller.service.AccountStateServiceController;
+import com.panut.centralbanking.accountservice.api.request.serviceonly.VerifyAccountsStateRequest;
 import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
 import com.panut.centralbanking.appcore.util.ListIndex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @SpringBootApplication(exclude = {
 		UserDetailsServiceAutoConfiguration.class,
@@ -20,8 +23,6 @@ import java.util.Map;
 })
 @EnableScheduling
 public class AccountserviceApplication {
-
-
 	public static void main(String[] args) {
 		SpringApplication.run(AccountserviceApplication.class, args);
 	}

@@ -12,7 +12,5 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VerifyAccountsStateRequest {
-    @NotNull
-    @NotEmpty
     private Set<String> accountIds;
 }

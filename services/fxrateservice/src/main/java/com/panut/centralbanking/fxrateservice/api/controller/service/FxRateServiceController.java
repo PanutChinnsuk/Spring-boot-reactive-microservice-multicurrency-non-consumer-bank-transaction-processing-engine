@@ -5,7 +5,9 @@ import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetByIdRequest;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetLatestRequest;
+import com.panut.centralbanking.fxrateservice.api.request.FxRateMultiGetLatestRequest;
 import com.panut.centralbanking.fxrateservice.api.response.FxRateGetResponse;
+import com.panut.centralbanking.fxrateservice.api.response.FxRateMultiGetResponse;
 import com.panut.centralbanking.fxrateservice.application.service.FxRateService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +32,15 @@ public class FxRateServiceController {
                                                    FxRateGetLatestRequest r) {
         return fxRateService.getLatest(r);
     }
+
+    @ServiceHasAuthorityExpectsMono(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.MULTI_GET_LATEST_METHOD)
+    @PostMapping(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.MULTI_GET_LATEST_METHOD)
+    public Mono<CommonResult<FxRateMultiGetResponse>> multiGetLatest(@RequestBody @Valid
+                                                                     FxRateMultiGetLatestRequest r) {
+        return fxRateService.multiGetLatest(r);
+    }
+
+
 
 
     @ServiceHasAuthorityExpectsMono(com.panut.centralbanking.appcore.servicemaps.map.FxRateService.GET_BY_ID_METHOD)

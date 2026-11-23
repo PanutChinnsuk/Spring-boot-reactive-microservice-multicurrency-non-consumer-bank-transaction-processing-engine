@@ -18,7 +18,7 @@ public class InternalLinearTransferPipelineData implements AbstractPipelineTrans
     private final List<CustomTransferLedgerPolicy> ledgerPolicies;
 
 
-    private final int maximumQuoteCurrencySize= 1;
+    private final int maximumQuoteCurrencySize = 1;
     private final int fixedMinimumSize = 2;
     private final int fixedSize;
     private final Set<String> accountIds;

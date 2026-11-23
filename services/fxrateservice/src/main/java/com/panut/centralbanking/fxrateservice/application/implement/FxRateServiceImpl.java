@@ -4,8 +4,10 @@ import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateCreateRequest;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetByIdRequest;
 import com.panut.centralbanking.fxrateservice.api.request.FxRateGetLatestRequest;
+import com.panut.centralbanking.fxrateservice.api.request.FxRateMultiGetLatestRequest;
 import com.panut.centralbanking.fxrateservice.api.response.FxRateCreatedResponse;
 import com.panut.centralbanking.fxrateservice.api.response.FxRateGetResponse;
+import com.panut.centralbanking.fxrateservice.api.response.FxRateMultiGetResponse;
 import com.panut.centralbanking.fxrateservice.application.FxRateRepositoryManager;
 import com.panut.centralbanking.fxrateservice.application.query.FxRateQuery;
 import com.panut.centralbanking.fxrateservice.application.service.FxRateService;
@@ -16,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -75,6 +80,36 @@ public class FxRateServiceImpl implements FxRateService {
                 .doOnError(error ->
                         log.error("Failed to get latest fx rate, {}",
                                 error.getLocalizedMessage()));
+    }
+
+    @Override
+    public Mono<CommonResult<FxRateMultiGetResponse>> multiGetLatest(final FxRateMultiGetLatestRequest r) {
+        return fxRateQuery
+                .findMultiLatest(r.getBaseCurrencies(),
+                        r.getQuoteCurrencies())
+                .collectList()
+                .map(list -> list.stream()
+                        .map(fx -> FxRateGetResponse.toResponse(fx))
+                        .collect(Collectors.toMap(
+                                FxRateGetResponse::getQuoteCurrency,
+                                Function.identity(),
+                                (old,newFx)
+                                        -> newFx
+                        ))
+                )
+                .map(map ->
+                        new FxRateMultiGetResponse(map))
+                .map(response ->
+                        new CommonResult<>("successfully multi get latest fx rates",
+                                response)
+                )
+                .doOnSuccess(a ->
+                        log.info("Successfully multi get latest fx rates."))
+                .doOnError(error ->
+                        log.error("Failed to multi get latest fx rates, {}",
+                                error.getLocalizedMessage()));
+
+
     }
 
 

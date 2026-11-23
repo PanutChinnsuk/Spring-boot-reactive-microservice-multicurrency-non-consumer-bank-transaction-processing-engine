@@ -18,6 +18,7 @@ public class FxRateGetResponse {
     private BigDecimal midRate;
     private BigDecimal treasuryRate;
     private CurrencyCode baseCurrency;
+    private CurrencyCode quoteCurrency;
 
 
     public BigDecimal getRate(final FxDirection fxDirection) {
