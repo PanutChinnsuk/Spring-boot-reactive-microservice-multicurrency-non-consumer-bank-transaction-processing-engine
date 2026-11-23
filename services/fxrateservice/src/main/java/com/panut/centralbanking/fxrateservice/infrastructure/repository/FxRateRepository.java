@@ -29,7 +29,8 @@ public interface FxRateRepository extends ReactiveCrudRepository<FxRate, String>
                               @Param("currentId") String currentFxRateId);
 
     @Query("""
-            SELECT f.base_currency, f.id, f.bid_rate, f.ask_rate, f.mid_rate, f.treasury_rate
+            SELECT f.base_currency, f.id, f.bid_rate, f.ask_rate, f.mid_rate,
+             f.treasury_rate, f.quote_currency
             FROM fx_rates f
             WHERE f.base_currency = :baseCurrency AND
             f.quote_currency = :quoteCurrency
@@ -39,7 +40,8 @@ public interface FxRateRepository extends ReactiveCrudRepository<FxRate, String>
                               @Param("quoteCurrency")CurrencyCode quoteCurrency);
 
     @Query("""
-            SELECT f.base_currency, f.id, f.bid_rate, f.ask_rate, f.mid_rate, f.treasury_rate
+            SELECT f.base_currency, f.id, f.bid_rate, f.ask_rate, f.mid_rate,
+             f.treasury_rate, f.quote_currency
             FROM fx_rates f
             WHERE f.base_currency = (:baseCurrencies) AND
             f.quote_currency = (:quoteCurrencies)

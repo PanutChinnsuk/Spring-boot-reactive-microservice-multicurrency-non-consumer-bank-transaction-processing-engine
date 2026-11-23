@@ -71,6 +71,8 @@ public class FxRateServiceTest implements IntegrationDev {
         Assertions.assertNotNull(response.getAskRate(), "askrate");
         Assertions.assertNotNull(response.getMidRate(), "midrate");
         Assertions.assertNotNull(response.getTreasuryRate(), "treasuryrate");
+        Assertions.assertNotNull(response.getBaseCurrency(), "base");
+        Assertions.assertNotNull(response.getQuoteCurrency(), "quote");
     }
 
     @Test
