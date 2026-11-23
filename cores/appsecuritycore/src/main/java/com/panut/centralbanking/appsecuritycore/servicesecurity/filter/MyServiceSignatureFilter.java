@@ -38,7 +38,8 @@ public class MyServiceSignatureFilter implements WebFilter, Ordered {
                     boolean isUserCallRequest = body.isUserCallRequest();
                     if (!body.headerExists()) {
                         log.debug("MyServiceSignatureFilter request has no expected header.");
-                        return chain.filter(exchange);
+                        return withNoAuthentication(ServiceSecurityContext.emptyContext(),
+                                chain, exchange);
                     }
                     log.debug("MyServiceSignatureFilter request has expected header.");
                     return CoreHeaders.getExistTokenFromHeader(body)
