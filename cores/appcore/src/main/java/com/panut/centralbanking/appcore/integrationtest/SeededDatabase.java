@@ -57,4 +57,9 @@ public class SeededDatabase {
             "TEST_CANCEL_PROCESSED_WITH_OVERDRAFT_CONTENT";
     public static final String ID_TRANSACTION_FOR_CANCEL_HAS_EVERYTHING =
             "TEST_CANCEL_HAS_EVERYTHING";
+
+
+    public static final String ID_LEDGER_ACCOUNT_NO_ASSET_EXPENSE = "TEST_NO_ASSET_EXPENSE";
+    public static final String ID_LEDGER_ACCOUNT_ASSET = "TEST_ASSET";
+    public static final String ID_LEDGER_ACCOUNT_EXPENSE = "TEST_EXPENSE";
 }

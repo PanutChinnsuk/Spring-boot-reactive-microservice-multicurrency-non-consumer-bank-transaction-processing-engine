@@ -17,7 +17,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionFxTransferPipelineTest implements IntegrationDevTest {
     @Autowired
-    private TransactionTestRepositoryCleanUp cleanRepo;
+    private RepositoryCleanUp cleanRepo;
 
     @Autowired
     private FxTransferPipeline fxTransferPipeline;

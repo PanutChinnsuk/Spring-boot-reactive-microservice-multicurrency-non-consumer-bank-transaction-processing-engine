@@ -8,7 +8,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.AccountSe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.implement.CommonTransactionServiceImpl;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.AccountControllerDataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
@@ -35,7 +35,7 @@ public class TransactionCommonTransferServiceTest implements IntegrationDevTest 
 
 
     @Autowired
-    private TransactionTestRepositoryCleanUp cleanUpRepo;
+    private RepositoryCleanUp cleanUpRepo;
 
 
 

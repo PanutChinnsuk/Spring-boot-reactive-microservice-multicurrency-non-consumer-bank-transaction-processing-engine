@@ -11,7 +11,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
-import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
     private TransactionRegisterPipeline transactionRegisterPipeline;
 
     @Autowired
-    private TransactionTestRepositoryCleanUp cleanRepo;
+    private RepositoryCleanUp cleanRepo;
 
 
 

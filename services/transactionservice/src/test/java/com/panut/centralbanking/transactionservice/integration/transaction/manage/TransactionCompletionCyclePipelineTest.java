@@ -11,13 +11,17 @@ import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionManageTestRepositoryCleanup;
+import com.panut.centralbanking.transactionservice.integration.transaction.isolation.orchest.TransactionCompletionCycleISO;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -25,8 +29,6 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
     @Autowired
     private TransactionAuthorizePipeline transactionAuthorizePipeline;
 
-    @Autowired
-    private TransactionManageTestRepositoryCleanup cleanRepo;
 
     @Autowired
     private TransactionRepository repository;
@@ -40,45 +42,68 @@ public class TransactionCompletionCyclePipelineTest implements IntegrationDevTes
     @Autowired
     private TransactionPostPipeline transactionPostPipeline;
 
+    @Autowired
+    private TransactionCompletionCycleISO iso;
 
-    private String no_asset_expense_id = SeededDatabase.ID_TRANSACTION_NO_ASSET_EXPENSE;
-    private String overdrafted_id = SeededDatabase.ID_TRANSACTION_OVERDRAFT;
-    private String asset_expense_id = SeededDatabase.ID_TRANSACTION_ASSET_EXPENSE;
-    private String authorized_no_asset_expense_id = SeededDatabase
-            .ID_TRANSACTION_AUTHORIZED_NO_ASSET_EXPENSE;
-    private String authorized_asset_expense_id = SeededDatabase
-            .ID_TRANSACTION_AUTHORIZED_ASSET_EXPENSE;
-    private String authorized_overdraft_id = SeededDatabase
-            .ID_TRANSACTION_AUTHORIZED_OVERDRAFT;
-    private String reversedTransactionUnsettledChildId = SeededDatabase
-            .ID_REVERSED_TRANSACTION_UNSETTLED_CHILD;
+    @Autowired
+    private RepositoryCleanUp cleanRepo;
+
+
+    private String no_asset_expense_id;
+    private String overdrafted_id;
+    private String asset_expense_id;
+    private String authorized_no_asset_expense_id;
+    private String authorized_asset_expense_id;
+    private String authorized_overdraft_id;
+    private String reversedTransactionUnsettledChildId;
 
 
     private String deductingAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     private String addingAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_2;
     private int digits = SeededDatabase.DATABASE_DECIMAL_DIGITS;
 
-    @BeforeEach
-    public void beforeEach() {
-        cleanRepo.setDefault(no_asset_expense_id, TransactionStatus.PENDING);
-        cleanRepo.setDefault(reversedTransactionUnsettledChildId, TransactionStatus.PENDING);
-        cleanRepo.setDefault(asset_expense_id, TransactionStatus.PENDING);
-        cleanRepo.setDefault(overdrafted_id, TransactionStatus.PENDING);
-        cleanRepo.setDefault(authorized_no_asset_expense_id, TransactionStatus.AUTHORIZED);
-        cleanRepo.setDefault(authorized_asset_expense_id, TransactionStatus.AUTHORIZED);
-        cleanRepo.setDefault(authorized_overdraft_id, TransactionStatus.AUTHORIZED);
+    private List<String> transactionIds = new ArrayList<>();
+
+    @BeforeAll
+    public void setUp() {
+        no_asset_expense_id = iso.noAssetExpenseCase(addingAccountId, deductingAccountId,
+                TransactionStatus.PENDING, BigDecimal.valueOf(9)).getId();
+
+        asset_expense_id = iso.assetExpenseCase(addingAccountId, deductingAccountId,
+                TransactionStatus.PENDING, BigDecimal.valueOf(2.5415)).getId();
+
+        overdrafted_id = iso.overdraftCase(addingAccountId, deductingAccountId,
+                TransactionStatus.PENDING, BigDecimal.valueOf(200)).getId();
+
+        authorized_no_asset_expense_id = iso.noAssetExpenseCase(addingAccountId, deductingAccountId,
+                TransactionStatus.AUTHORIZED, BigDecimal.valueOf(99.99)).getId();
+
+        authorized_asset_expense_id = iso.assetExpenseCase(addingAccountId, deductingAccountId,
+                TransactionStatus.AUTHORIZED, BigDecimal.valueOf(0.021)).getId();
+
+        authorized_overdraft_id = iso.overdraftCase(addingAccountId, deductingAccountId,
+                TransactionStatus.AUTHORIZED, BigDecimal.TEN).getId();
+
+
+        var reversed = iso.reverseWithUnsettledChildCase();
+
+        reversedTransactionUnsettledChildId = reversed.getId();
+
+        transactionIds.add(no_asset_expense_id);
+        transactionIds.add(asset_expense_id);
+        transactionIds.add(overdrafted_id);
+        transactionIds.add(authorized_asset_expense_id);
+        transactionIds.add(authorized_no_asset_expense_id);
+        transactionIds.add(authorized_overdraft_id);
+        transactionIds.add(reversedTransactionUnsettledChildId);
+        transactionIds.add(reversed.getReversedOfTransactionId());
+
     }
 
 
-    @AfterEach
+    @AfterAll
     public void afterEach() {
-        cleanRepo.cleanUpBalanceChangeEvents(no_asset_expense_id);
-        cleanRepo.cleanUpBalanceChangeEvents(asset_expense_id);
-        cleanRepo.cleanUpBalanceChangeEvents(overdrafted_id);
-        cleanRepo.cleanUpBalanceChangeEvents(authorized_no_asset_expense_id);
-        cleanRepo.cleanUpBalanceChangeEvents(authorized_asset_expense_id);
-        cleanRepo.cleanUpBalanceChangeEvents(authorized_overdraft_id);
-        beforeEach();
+        cleanRepo.hardCleanUp(transactionIds);
     }
 
     private BigDecimal getTotalFromLines(String transactionId,

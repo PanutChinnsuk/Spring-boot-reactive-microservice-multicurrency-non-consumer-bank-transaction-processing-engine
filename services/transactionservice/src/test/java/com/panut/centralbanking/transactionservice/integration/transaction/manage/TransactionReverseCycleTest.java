@@ -5,7 +5,7 @@ import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.reverse.TransactionReversePipeline;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionProfileTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionTestRepository;
@@ -25,7 +25,7 @@ public class TransactionReverseCycleTest implements IntegrationDevTest {
     private TransactionReversePipeline reversePipeline;
 
     @Autowired
-    private TransactionTestRepositoryCleanUp cleanRepo;
+    private RepositoryCleanUp cleanRepo;
 
     @Autowired
     private TransactionProfileTestRepository profileTestRepository;

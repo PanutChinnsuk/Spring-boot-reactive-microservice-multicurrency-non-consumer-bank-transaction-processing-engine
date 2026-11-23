@@ -9,8 +9,8 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
-import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
-import com.panut.centralbanking.transactionservice.integration.transaction.isolation.TransactionCancellationISO;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.isolation.orchest.TransactionCancellationISO;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionTestRepository;
 import org.junit.jupiter.api.*;
@@ -49,7 +49,7 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     private TransactionCancellationISO iso;
 
     @Autowired
-    private TransactionTestRepositoryCleanUp cleanRepo;
+    private RepositoryCleanUp cleanRepo;
 
 
     private String noProc;
@@ -57,8 +57,7 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
             .ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS;
     private String procWithOverdraft = SeededDatabase
             .ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS_WITH_OVERDRAFT_CONTENTS;
-    private String everything = SeededDatabase
-            .ID_TRANSACTION_FOR_CANCEL_HAS_EVERYTHING;
+    private String everything;
 
     private List<String> transactionIds = new ArrayList<>();
 
@@ -79,22 +78,17 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     @BeforeAll
     public void setUp() {
         noProc = iso.caseNoProc().getId();
+        everything = iso.worstCaseWithEverything().getId();
 
         transactionIds.add(noProc);
+        transactionIds.add(everything);
 
-       /* eventTestRepository
-                .findByTransactionIdIn(transactionIds)
-                .collectList()
-                .block()
-                .forEach(e -> {
-                    rollBack.put(e.getId(), e.getStatus());
-                });*/
+
     }
 
     @AfterAll
     public void cleanUp() {
-        cleanRepo.cleanUpEvents(transactionIds);
-        cleanRepo.cleanUp(transactionIds);
+        cleanRepo.hardCleanUp(transactionIds);
 
     }
 
@@ -133,7 +127,7 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     }
 
 
-   // @Test
+    @Test
     public void shouldCancelledWorstCase() {
         var pre = eventTestRepository
                 .findByTransactionId(everything).collectList()

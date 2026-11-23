@@ -7,15 +7,15 @@ import com.panut.centralbanking.transactionservice.IntegrationDevTest;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.schedules.TransactionStatusClearingScheduler;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.schedules.modules.TransactionStatusClearingModuleV1;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.core.TransactionType;
 import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionProfileRepository;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.isolation.TransactionISO;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionProfileTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionTestRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionStatusClearingModuleTest implements IntegrationDevTest {
     @Autowired
     private TransactionStatusClearingModuleV1 v1Module;
@@ -37,34 +38,38 @@ public class TransactionStatusClearingModuleTest implements IntegrationDevTest {
     private TransactionProfileRepository transactionProfileRepository;
 
 
+    @Autowired
+    private TransactionISO transactionISO;
 
     @Autowired
     private TransactionProfileTestRepository profileTestRepository;
 
-    private String transactionPendingAuthorizeId =
-            SeededDatabase.ID_EMPTY_PENDING_AUTHORIZE_TRANSACTION_1;
-    private String transactionPendingPostedId =
-            SeededDatabase.ID_EMPTY_PENDING_POSTED_TRANSACTION_1;
+    @Autowired
+    private RepositoryCleanUp cleanRepo;
+
+    private String transactionPendingAuthorizeId;
+    private String transactionPendingPostedId;
+
     private TransactionStatus pendingAuthorized = TransactionStatus.PENDING_AUTHORIZED;
     private TransactionStatus pendingPosted = TransactionStatus.PENDING_POSTED;
 
-    private void setDefault() {
-        testRepository.setStatus(pendingAuthorized,
-                transactionPendingAuthorizeId).block();
-        testRepository.setStatus(pendingPosted,
-                transactionPendingPostedId).block();
 
-        profileTestRepository.setNullPosted(transactionPendingPostedId).block();
+    @BeforeAll
+    public void setUp() {
+        var pendingAuth = transactionISO
+                .transaction(TransactionType.TRANSFER, pendingAuthorized);
+        var pendingPost = transactionISO
+                .transaction(TransactionType.TRANSFER, pendingPosted);
+        transactionISO.transactionProfile(pendingPost);
+
+        transactionPendingAuthorizeId = pendingAuth.getId();
+        transactionPendingPostedId = pendingPost.getId();
     }
 
-    @AfterEach
-    public void afterEach() {
-        setDefault();
-    }
-
-    @BeforeEach
-    public void beforeEach() {
-        setDefault();
+    @AfterAll
+    public void cleanUp() {
+        cleanRepo.hardCleanUp(transactionPendingAuthorizeId,
+                transactionPendingPostedId);
     }
 
     @Test

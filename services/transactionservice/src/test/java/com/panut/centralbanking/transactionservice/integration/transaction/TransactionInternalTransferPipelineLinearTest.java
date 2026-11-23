@@ -26,7 +26,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
-import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.TransactionTestRepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
@@ -50,7 +50,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     private InternalTransferPipeline internalTransferPipeline;
 
     @Autowired
-    private TransactionTestRepositoryCleanUp cleanRepo;
+    private RepositoryCleanUp cleanRepo;
 
     @MockitoSpyBean
     private AccountServiceController accountServiceController;

@@ -1,22 +1,17 @@
 package com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo;
 
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionLineRepository;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionProfileRepository;
-import com.panut.centralbanking.transactionservice.infrastructure.repository.TransactionRepository;
-import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
-import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
-import com.panut.centralbanking.transactionservice.testrepository.TransactionProfileTestRepository;
-import com.panut.centralbanking.transactionservice.testrepository.TransactionTestRepository;
+import com.panut.centralbanking.transactionservice.testrepository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 @Component
-public class TransactionTestRepositoryCleanUp {
+public class RepositoryCleanUp {
     @Autowired
     private TransactionTestRepository transactionTestRepository;
 
@@ -28,6 +23,9 @@ public class TransactionTestRepositoryCleanUp {
 
     @Autowired
     private BalanceChangeEventTestRepository eventTestRepository;
+
+    @Autowired
+    private TransactionOverdraftContentTestRepository overdraftContentTestRepository;
 
     public List<String> transactionIds = new ArrayList<>();
     public List<String> transactionLineIds = new ArrayList<>();
@@ -46,8 +44,13 @@ public class TransactionTestRepositoryCleanUp {
 
     }
 
-    public void cleanUp(List<String> transactionIds) {
+    public void hardCleanUp(String... transactionIds) {
+        hardCleanUp(Arrays.stream(transactionIds).toList());
+    }
 
+    public void hardCleanUp(List<String> transactionIds) {
+        cleanUpEvents(transactionIds);
+        cleanUpOverdraftContents(transactionIds);
 
 
         transactionIds.forEach(id -> {
@@ -62,6 +65,8 @@ public class TransactionTestRepositoryCleanUp {
         });
 
 
+
+
     }
 
     public void cleanUpEvents(List<String> transactionIds) {
@@ -74,6 +79,13 @@ public class TransactionTestRepositoryCleanUp {
         });
 
 
+    }
+
+    public void cleanUpOverdraftContents(List<String> transactionIds) {
+        transactionIds.forEach(id -> {
+            overdraftContentTestRepository
+                    .deleteByTransactionId(id).block();
+        });
     }
 
 

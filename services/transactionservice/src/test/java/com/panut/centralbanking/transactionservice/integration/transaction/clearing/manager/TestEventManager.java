@@ -5,6 +5,7 @@ import com.panut.centralbanking.transactionservice.api.service.account.data.rela
 import com.panut.centralbanking.transactionservice.api.service.account.data.related.BalanceImpact;
 import com.panut.centralbanking.transactionservice.application.events.balancechange.BalanceChangeEventRepositoryManager;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
+import com.panut.centralbanking.transactionservice.integration.transaction.isolation.BalanceChangeEventISO;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,9 @@ public class TestEventManager {
 
     @Autowired
     private BalanceChangeEventTestRepository testRepository;
+
+    @Autowired
+    private BalanceChangeEventISO eventISO;
 
 
     private List<String> toDelete = new ArrayList<>();

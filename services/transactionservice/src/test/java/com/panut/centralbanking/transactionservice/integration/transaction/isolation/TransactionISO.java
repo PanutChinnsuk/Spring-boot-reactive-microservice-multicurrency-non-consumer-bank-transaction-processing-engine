@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.integration.transaction.isolation;
 
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionReversalContext;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
@@ -50,18 +51,28 @@ public class TransactionISO {
 
     public TransactionProfile transactionProfile(Transaction transaction,
                                                  FxDirection fxDirection,
-                                                 String fxRateId) {
+                                                 String fxRateId,
+                                                 String ofTransactionId) {
         var tp = TransactionProfile.builder()
                 .transactionId(transaction.getId())
                 .fxDirection(fxDirection)
                 .fxRateId(fxRateId)
-                .build();
+                .build()
+                .applyWithTransactionReversalContext(
+                        new TransactionReversalContext(ofTransactionId)
+                );
 
         return transactionProfileRepository.save(tp).block();
     }
 
     public TransactionProfile transactionProfile(Transaction transaction) {
-        return transactionProfile(transaction, FxDirection.NONE, null);
+        return transactionProfile(transaction, FxDirection.NONE, null, null);
+    }
+
+    public TransactionProfile transactionProfile(Transaction transaction,
+                                                 Transaction reversing ) {
+        return transactionProfile(transaction, FxDirection.NONE, null,
+                reversing.getId());
     }
 
     public TransactionLine transactionLine(Transaction transaction,

@@ -13,6 +13,8 @@ spring:
 
 
 
+
+
 app:
   events:
     transactions:
@@ -44,6 +46,7 @@ eureka:
 
 logging:
   level:
+
     org:
       springframework:
         r2dbc: ERROR
