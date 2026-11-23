@@ -32,4 +32,6 @@ public interface TransactionTestRepository extends ReactiveCrudRepository<Transa
             """)
     Mono<Void> setStatus(@Param("status") TransactionStatus status,
                          @Param("ids") Collection<String> ids);
+
+    Flux<Transaction> findByIdIn(Collection<String> ids);
 }

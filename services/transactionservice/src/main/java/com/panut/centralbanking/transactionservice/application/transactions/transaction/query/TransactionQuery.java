@@ -29,4 +29,8 @@ public class TransactionQuery {
                                 "with expected status of " + expectedStatuses.toString())
                 ));
     }
+
+    public Mono<Transaction> getReversed(final String transactionId) {
+        return transactionRepository.getReversedTransactionId(transactionId);
+    }
 }

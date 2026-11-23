@@ -14,6 +14,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManageChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.repository.TransactionManagePipelineRepository;
 import com.panut.centralbanking.transactionservice.application.transactions.transaction.TransactionRepositoryManager;
+import com.panut.centralbanking.transactionservice.application.transactions.transaction.query.TransactionQuery;
 import com.panut.centralbanking.transactionservice.application.worker.WorkerService;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
@@ -111,36 +112,33 @@ public class TransactionCancellationPipeline {
     private final TransactionManagePipelineRepository repository;
     private final AccountBalanceChangeServiceController serviceController;
     private final TransactionRepositoryManager manager;
-    private final BalanceChangeEventRepositoryManager eventManager;
     private final WorkerService workerService;
     private final BalanceChangeEventService eventService;
     private final BalanceChangeEventQuery eventQuery;
     private final BalanceChangeEventRepository eventRepository;
-    private final TransactionOverdraftContentService overdraftContentService;
     private final TransactionOverdraftContentQuery overdraftContentQuery;
+    private final TransactionQuery transactionQuery;
 
 
 
     public TransactionCancellationPipeline(TransactionManagePipelineRepository repository,
                                            AccountBalanceChangeServiceController serviceController ,
                                            TransactionRepositoryManager manager,
-                                           BalanceChangeEventRepositoryManager eventManager,
                                            WorkerService workerService,
                                            BalanceChangeEventService eventService,
                                            BalanceChangeEventQuery eventQuery,
                                            BalanceChangeEventRepository eventRepository,
-                                           TransactionOverdraftContentService overdraftContentService,
-                                           TransactionOverdraftContentQuery overdraftContentQuery) {
+                                           TransactionOverdraftContentQuery overdraftContentQuery,
+                                           TransactionQuery transactionQuery) {
         this.repository = repository;
         this.serviceController = serviceController;
         this.manager = manager;
-        this.eventManager = eventManager;
         this.workerService = workerService;
         this.eventService = eventService;
         this.eventQuery = eventQuery;
         this.eventRepository = eventRepository;
-        this.overdraftContentService = overdraftContentService;
         this.overdraftContentQuery = overdraftContentQuery;
+        this.transactionQuery = transactionQuery;
     }
 
     private ProcLedgerResult clearOverdrafted(final BigDecimal overdraftAdded,
@@ -385,18 +383,22 @@ public class TransactionCancellationPipeline {
                     return chain;
                 })
                 .doOnNext(a -> log.info("performing bulk"))
-                .flatMap(chain ->
-                        eventService.flush(chain.getReversing())
-                                .doOnNext(a ->
-                                        log.info("flush all new events, size {}",
-                                                chain.getReversing().size()))
-                                .then(eventRepository
-                                        .bulkStatusUpdate(chain.getDirectCancel(),
-                                                BalanceChangeEventStatus.CANCELLED)
-                                )
-                                .doOnNext(a -> log.info("set direct cancel statuses to cancelled"))
+                .flatMap(chain -> {
+                    return eventService.flush(chain.getReversing())
+                            .doOnNext(a ->
+                                    log.info("flush all new events, size {}",
+                                            chain.getReversing().size()))
+                            .then(Mono.just(chain));
+                        })
+                .flatMap(chain -> {
+                      if (chain.getDirectCancel().isEmpty())
+                          return Mono.empty();
 
-                )
+                      return eventRepository
+                              .bulkStatusUpdate(chain.getDirectCancel(),
+                                      BalanceChangeEventStatus.CANCELLED)
+                              .doOnNext(a -> log.info("set direct cancel statuses to cancelled"));
+                })
                 .thenReturn(manageChain);
     }
 
@@ -404,6 +406,15 @@ public class TransactionCancellationPipeline {
     //future does NOT required its profile
     public Mono<TransactionManagePipelineResult> cancel(final String transactionId) {
         return workerService.initWorker(WorkerName.TRANSACTION)
+                .then(transactionQuery.getReversed(transactionId))
+                .expand(nested ->
+                    manager.save(nested
+                            .changeStatus(TransactionStatus.CANCELLED))
+                            .doOnNext(a -> log.info("nested reversed id, {}",
+                                    nested.getId()))
+                            .flatMap(saved ->
+                                    transactionQuery.getReversed(saved.getId()))
+                )
                 .then(repository.justTransaction(transactionId,
                         TransactionStatus.cancellableStatuses
                                 .toArray(new TransactionStatus[0]))

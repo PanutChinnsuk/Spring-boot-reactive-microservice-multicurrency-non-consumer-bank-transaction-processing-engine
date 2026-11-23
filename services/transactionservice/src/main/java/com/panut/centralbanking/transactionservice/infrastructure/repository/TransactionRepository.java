@@ -75,4 +75,15 @@ public interface TransactionRepository extends ReactiveCrudRepository<Transactio
             """)
     Mono<String> getSettledTransaction(@Param("transactionId") String transactionId,
                                   @Param("settledStatus") TransactionStatus settledStatus);
+
+    @Query("""
+            SELECT t.* FROM transactions t
+            JOIN transaction_profiles tp
+            ON tp.reversed_of_transaction_id = :transactionId AND
+            tp.id = t.id
+            """)
+    Mono<Transaction> getReversedTransactionId(@Param("transactionId") String fromTransactionId);
+
+
+
 }

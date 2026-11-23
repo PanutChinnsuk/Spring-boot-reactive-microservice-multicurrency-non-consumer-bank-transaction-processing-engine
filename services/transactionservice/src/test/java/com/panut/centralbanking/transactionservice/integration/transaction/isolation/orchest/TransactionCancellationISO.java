@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -45,6 +46,17 @@ public class TransactionCancellationISO {
 
 
         return tx;
+    }
+
+    public List<String> nestedReversingCase(Transaction original) {
+        var r1 = transactionISO.transaction();
+        var r1p = transactionISO.transactionProfile(r1, original);
+
+        var r2 = transactionISO.transaction();
+        var r2p = transactionISO.transactionProfile(r2, r1);
+
+        return List.of(r2.getId(),
+                r1.getId());
     }
 
     public Transaction worstCaseWithEverything() {
@@ -180,6 +192,9 @@ public class TransactionCancellationISO {
 
         return tx;
     }
+
+
+
 
 
 }

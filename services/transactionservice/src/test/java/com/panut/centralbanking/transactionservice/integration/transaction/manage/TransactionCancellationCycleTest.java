@@ -7,9 +7,12 @@ import com.panut.centralbanking.transactionservice.api.service.account.AccountBa
 import com.panut.centralbanking.transactionservice.api.service.account.request.GetProcessedBalanceEventIdsRequest;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.manage.cancellation.TransactionCancellationPipeline;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
+import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionStatus;
+import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.model.events.BalanceChangeEvent;
 import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
+import com.panut.centralbanking.transactionservice.integration.transaction.isolation.TransactionISO;
 import com.panut.centralbanking.transactionservice.integration.transaction.isolation.orchest.TransactionCancellationISO;
 import com.panut.centralbanking.transactionservice.testrepository.BalanceChangeEventTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionTestRepository;
@@ -49,6 +52,9 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     private TransactionCancellationISO iso;
 
     @Autowired
+    private TransactionISO transactionISO;
+
+    @Autowired
     private RepositoryCleanUp cleanRepo;
 
 
@@ -58,8 +64,10 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
     private String procWithOverdraft = SeededDatabase
             .ID_TRANSACTION_FOR_CANCEL_PROC_EVENTS_WITH_OVERDRAFT_CONTENTS;
     private String everything;
+    private String nestedReversalOrginal;
 
     private List<String> transactionIds = new ArrayList<>();
+    private List<String> nestedReversedIds = new ArrayList<>();
 
     private List<BalanceChangeEvent> getNewCreatedEvents(String transactionId,
                                                          List<String> excludedEventIds) {
@@ -73,21 +81,40 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
         return eventTestRepository.getCreatedIds(noProc).collectList().block();
     }
 
-    private Map<String, BalanceChangeEventStatus> rollBack = new HashMap<>();
+
 
     @BeforeAll
     public void setUp() {
         noProc = iso.caseNoProc().getId();
         everything = iso.worstCaseWithEverything().getId();
 
+        var nestingReversalOriginal = transactionISO.transaction();
+        transactionISO.transactionProfile(nestingReversalOriginal);
+        transactionISO.transactionLine(nestingReversalOriginal,
+                SeededDatabase.ID_NORMAL_ACCOUNT_1,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                TransactionLineDirection.CREDIT,
+                SeededDatabase.ID_LEDGER_ACCOUNT_NO_ASSET_EXPENSE);
+
+
+        nestedReversalOrginal = nestingReversalOriginal.getId();
+
         transactionIds.add(noProc);
         transactionIds.add(everything);
+        transactionIds.add(nestedReversalOrginal);
+
+        var nestedReversalIds = iso.nestedReversingCase(nestingReversalOriginal);
+        transactionIds.addAll(nestedReversalIds);
+        this.nestedReversedIds.addAll(nestedReversalIds);
+
 
 
     }
 
     @AfterAll
     public void cleanUp() {
+        cleanRepo.deleteByListOrder(nestedReversedIds);
         cleanRepo.hardCleanUp(transactionIds);
 
     }
@@ -126,6 +153,33 @@ public class TransactionCancellationCycleTest implements IntegrationDevTest {
         Assertions.assertTrue(getNewCreatedEvents(noProc, oldEventIds).isEmpty(), "no new event create");
     }
 
+    @Test
+    public void shouldReverseNested() {
+        Assertions.assertTrue(!nestedReversedIds.isEmpty(), "nestedIds");
+        Assertions.assertTrue(nestedReversedIds.size() >= 2, "nestedSize");
+
+
+        doReturn(Mono.just(Collections.emptySet()))
+                .when(serviceController)
+                .getAppliableBalanceEvents(any(GetProcessedBalanceEventIdsRequest.class));
+
+        cancellationPipeline.cancel(nestedReversalOrginal).block();
+
+
+        List<Transaction> cancelled = transactionTestRepository
+                .findByIdIn(nestedReversedIds).collectList().block();
+
+        Assertions.assertTrue(!cancelled.isEmpty(), "cancalled empty");
+
+        var original = transactionTestRepository.findById(nestedReversalOrginal).block();
+        Assertions.assertEquals(TransactionStatus.PENDING_CANCELLED,
+                original.getTransactionStatus());
+
+        cancelled.forEach(a -> {
+            Assertions.assertEquals(TransactionStatus.CANCELLED,
+                    a.getTransactionStatus());
+        });
+    }
 
     @Test
     public void shouldCancelledWorstCase() {

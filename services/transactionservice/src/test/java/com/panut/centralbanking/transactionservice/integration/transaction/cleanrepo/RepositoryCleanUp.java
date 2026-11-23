@@ -44,6 +44,12 @@ public class RepositoryCleanUp {
 
     }
 
+    public void deleteByListOrder(List<String> any) {
+        any.forEach(a -> {
+            profileTestRepository.deleteById(a).block();
+        });
+    }
+
     public void hardCleanUp(String... transactionIds) {
         hardCleanUp(Arrays.stream(transactionIds).toList());
     }
