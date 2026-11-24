@@ -1,7 +1,6 @@
-package com.panut.centralbanking.accountservice.application.events.balancechange;
+package com.panut.centralbanking.accountservice.application.events.processedbalancechange;
 
 import com.panut.centralbanking.appR2dbccore.query.SqlAppender;
-import com.panut.centralbanking.appcore.util.ListIndex;
 import io.r2dbc.spi.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.r2dbc.core.DatabaseClient;

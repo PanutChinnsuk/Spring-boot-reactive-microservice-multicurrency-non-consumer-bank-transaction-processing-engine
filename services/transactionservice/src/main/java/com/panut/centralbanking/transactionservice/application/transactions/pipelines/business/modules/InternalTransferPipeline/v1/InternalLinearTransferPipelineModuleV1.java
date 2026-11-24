@@ -307,7 +307,8 @@ public class InternalLinearTransferPipelineModuleV1 {
                 log.info("handlePerAccount: account " + account.getId() +
                         " is base currency, but forced fx rate conversion");
 
-                BigDecimal converted =  getConvertedWithFxConversion(data, account, latestConversion);
+                BigDecimal converted =  getConvertedWithFxConversion(data, account,
+                        latestConversion);
 
                 return new PerAccountResult(AccountData.V1.accountData(account,
                         baseAmount,

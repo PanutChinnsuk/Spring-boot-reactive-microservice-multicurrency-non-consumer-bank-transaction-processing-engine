@@ -48,7 +48,8 @@ public class DataBuilder {
                 BigDecimal.valueOf(50),
                 BigDecimal.valueOf(37.5),
                 BigDecimal.valueOf(40),
-                CurrencyCode.getBaseCurrency());
+                CurrencyCode.getBaseCurrency(),
+                null);
 
     }
 

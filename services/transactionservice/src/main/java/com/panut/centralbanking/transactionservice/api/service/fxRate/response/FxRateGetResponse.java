@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.api.service.fxRate.response;
 
+import com.panut.centralbanking.appcore.exceptions.SystemMisused;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,9 @@ public class FxRateGetResponse {
             case MID -> this.midRate;
             case TREASURY -> this.treasuryRate;
             case NONE -> BigDecimal.ONE;
+            case MULTI -> throw new SystemMisused("FxDirection " + fxDirection +
+                    " is used to define a transaction that contain multiple fx rates only, " +
+                    "which does not relies on a single fxRate data.");
         };
     }
 

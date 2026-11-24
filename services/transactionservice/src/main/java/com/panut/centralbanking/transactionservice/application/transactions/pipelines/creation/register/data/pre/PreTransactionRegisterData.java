@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre;
 
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionMultiFxContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionReversalContext;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class PreTransactionRegisterData {
     private final Set<String> usingAccountIds;
     private final FxRateData fxRateData;
     private TransactionReversalContext transactionReversalContext;
+    private TransactionMultiFxContext transactionMultiFxContext;
 
 
 
@@ -40,6 +42,14 @@ public class PreTransactionRegisterData {
             final TransactionReversalContext transactionReversalContext
     ) {
         this.transactionReversalContext = transactionReversalContext;
+
+        return this;
+    }
+
+    public PreTransactionRegisterData withTransactionMultiFxContext(
+            final TransactionMultiFxContext transactionMultiFxContext
+    ) {
+        this.transactionMultiFxContext = transactionMultiFxContext;
 
         return this;
     }

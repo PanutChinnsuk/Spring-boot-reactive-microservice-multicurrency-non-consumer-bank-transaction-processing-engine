@@ -1,5 +1,6 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create;
 
+import com.panut.centralbanking.transactionservice.application.transactions.contents.multifx.service.TransactionMultiFxContentService;
 import com.panut.centralbanking.transactionservice.application.transactions.line.service.TransactionLineCreateService;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.post.PostTransactionRegisterData;
@@ -18,19 +19,26 @@ public class TransactionCreationPipeline {
     private final TransactionCreateService transactionCreateService;
     private final TransactionProfileCreateService transactionProfileCreateService;
     private final TransactionLineCreateService transactionLineCreateService;
+    private final TransactionMultiFxContentService multiFxContentService;
+
 
     public TransactionCreationPipeline(TransactionCreateService transactionCreateService,
                                        TransactionProfileCreateService transactionProfileCreateService,
-                                       TransactionLineCreateService transactionLineCreateService) {
+                                       TransactionLineCreateService transactionLineCreateService,
+                                       TransactionMultiFxContentService multiFxContentService) {
         this.transactionCreateService = transactionCreateService;
         this.transactionProfileCreateService = transactionProfileCreateService;
         this.transactionLineCreateService = transactionLineCreateService;
+        this.multiFxContentService = multiFxContentService;
     }
 
 
     public Mono<TransactionCreationPipelineResult> create(final PostTransactionRegisterData data) {
         return transactionCreateService.createTransaction(data.getTransactionType())
                 .doOnNext(a -> log.info("Created transaction model."))
+                .flatMap(transaction -> multiFxContentService
+                        .include(data.getTransactionMultiFxContext(),
+                                transaction))
                 .flatMap(transaction -> new CreationPipelineChain().transaction(transaction))
                 .doOnNext(a -> log.info("Transaction model to CreationPipelineChain."))
                 .flatMap(chain -> transactionProfileCreateService

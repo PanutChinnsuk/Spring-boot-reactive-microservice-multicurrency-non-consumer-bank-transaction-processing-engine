@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.post;
 
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.create.data.TransactionLineCreateData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionMultiFxContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionReversalContext;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
@@ -20,6 +21,9 @@ public class PostTransactionRegisterData {
 
     @Nullable
     private final TransactionReversalContext possbileTransactionReversalContext;
+
+    @Nullable
+    private final TransactionMultiFxContext transactionMultiFxContext;
 
 
 

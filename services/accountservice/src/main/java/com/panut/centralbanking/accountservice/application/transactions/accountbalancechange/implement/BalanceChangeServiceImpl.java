@@ -7,8 +7,8 @@ import com.panut.centralbanking.accountservice.application.accounts.accountbalan
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.query.AccountBalanceQuery;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.AccountOverdraftConnectionFactory;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.query.AccountOverdraftQuery;
-import com.panut.centralbanking.accountservice.application.events.balancechange.ProcessedBalanceChangeEventConnectionFactory;
-import com.panut.centralbanking.accountservice.application.events.balancechange.query.ProcessedBalanceChangeEventQuery;
+import com.panut.centralbanking.accountservice.application.events.processedbalancechange.ProcessedBalanceChangeEventConnectionFactory;
+import com.panut.centralbanking.accountservice.application.events.processedbalancechange.query.ProcessedBalanceChangeEventQuery;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.application.worker.WorkerService;

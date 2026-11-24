@@ -5,5 +5,6 @@ public enum FxDirection {
     ASK,
     MID,
     TREASURY,
+    MULTI,
     NONE
 }

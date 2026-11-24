@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.events.balancechange.query;
+package com.panut.centralbanking.accountservice.application.events.processedbalancechange.query;
 
 import com.panut.centralbanking.accountservice.infrastructure.repository.ProcessedBalanceChangeEventRepository;
 import org.springframework.stereotype.Component;

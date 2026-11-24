@@ -1,6 +1,6 @@
-package com.panut.centralbanking.accountservice.application.events.balancechange.implement;
+package com.panut.centralbanking.accountservice.application.events.processedbalancechange.implement;
 
-import com.panut.centralbanking.accountservice.application.events.balancechange.service.ProcessedBalanceChangeEventService;
+import com.panut.centralbanking.accountservice.application.events.processedbalancechange.service.ProcessedBalanceChangeEventService;
 import com.panut.centralbanking.accountservice.application.worker.WorkerService;
 import com.panut.centralbanking.accountservice.core.WorkerName;
 import com.panut.centralbanking.accountservice.infrastructure.repository.ProcessedBalanceChangeEventRepository;

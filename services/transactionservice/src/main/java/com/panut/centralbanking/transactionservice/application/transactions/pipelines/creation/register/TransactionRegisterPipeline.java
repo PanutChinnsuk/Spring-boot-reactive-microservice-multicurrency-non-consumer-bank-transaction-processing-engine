@@ -60,7 +60,8 @@ public class TransactionRegisterPipeline {
                         registerData.getFxRateData().getFxRateId(),
                         registerData.getFxRateData().getFxDirection(),
                         registerData.getUsingAccountIds(),
-                        registerData.getTransactionReversalContext())
+                        registerData.getTransactionReversalContext(),
+                        registerData.getTransactionMultiFxContext())
                 )
                 .doOnNext(a -> log.info("RegisterPipelineChain to " +
                         "PostTransactionRegisterData"))

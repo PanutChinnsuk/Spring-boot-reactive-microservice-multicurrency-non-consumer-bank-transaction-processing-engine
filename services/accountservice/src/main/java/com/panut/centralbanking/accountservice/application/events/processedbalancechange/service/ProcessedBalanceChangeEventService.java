@@ -1,4 +1,4 @@
-package com.panut.centralbanking.accountservice.application.events.balancechange.service;
+package com.panut.centralbanking.accountservice.application.events.processedbalancechange.service;
 
 
 import reactor.core.publisher.Mono;

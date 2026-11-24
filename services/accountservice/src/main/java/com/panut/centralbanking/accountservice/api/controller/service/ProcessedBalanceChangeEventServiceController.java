@@ -1,7 +1,7 @@
 package com.panut.centralbanking.accountservice.api.controller.service;
 
 import com.panut.centralbanking.accountservice.api.request.serviceonly.transactioneventclearing.GetProcessedBalanceEventIdsRequest;
-import com.panut.centralbanking.accountservice.application.events.balancechange.service.ProcessedBalanceChangeEventService;
+import com.panut.centralbanking.accountservice.application.events.processedbalancechange.service.ProcessedBalanceChangeEventService;
 import com.panut.centralbanking.appcore.servicemaps.InternalServiceMapping;
 import com.panut.centralbanking.appcore.servicemaps.map.AccountService;
 import com.panut.centralbanking.appsecuritycore.servicesecurity.aspect.annotations.ServiceHasAuthorityExpectsMono;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Set;
 
 @RestController
