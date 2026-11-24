@@ -13,6 +13,8 @@ import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalan
 import com.panut.centralbanking.accountservice.infrastructure.model.worker.AccountServiceWorker;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
+import com.panut.centralbanking.accountservice.integration.cleanup.RepositoryCleanUp;
+import com.panut.centralbanking.accountservice.integration.isolation.AccountISO;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
@@ -40,16 +42,19 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
     @Autowired
     private AccountQuery accountQuery;
 
-    @Autowired
-    private AccountBalanceCleanUpRepository cleanRepo;
 
     @Autowired
     private AccountBalanceMatcher accountBalanceMatcher;
 
 
+    @Autowired
+    private AccountISO iso;
 
-    private String account1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
-    private String account2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;
+    @Autowired
+    private RepositoryCleanUp cleanRepo;
+
+    private String account1;
+    private String account2;
 
 
     private List<String> accountIds = new ArrayList<>();
@@ -79,10 +84,18 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
 
 
+    @BeforeAll
+    public void setUp() {
+        account1 = iso.accountWithBalance(BigDecimal.valueOf(1000)).getId();
+        account2 = iso.accountWithBalance(BigDecimal.valueOf(1000)).getId();
+
+        accountIds.add(account1);
+        accountIds.add(account2);
+    }
 
     @AfterAll
-    public void setBack() {
-        cleanRepo.setBack(account1, account2);
+    public void cleanUp() {
+        cleanRepo.hardDelete(accountIds);
     }
 
     @Test

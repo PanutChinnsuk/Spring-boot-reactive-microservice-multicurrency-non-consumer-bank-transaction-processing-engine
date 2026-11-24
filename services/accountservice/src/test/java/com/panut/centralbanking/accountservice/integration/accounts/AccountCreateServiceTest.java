@@ -11,6 +11,7 @@ import com.panut.centralbanking.accountservice.core.AccountType;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountProfileRepository;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountRepository;
+import com.panut.centralbanking.accountservice.integration.cleanup.RepositoryCleanUp;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import org.junit.jupiter.api.AfterAll;
@@ -29,13 +30,7 @@ public class AccountCreateServiceTest implements IntegrationDevTest {
     private AccountCreateServiceImpl accountCreateService;
 
     @Autowired
-    private AccountRepository accountRepository;
-
-    @Autowired
-    private AccountProfileRepository accountProfileRepository;
-
-    @Autowired
-    private AccountBalanceRepository accountBalanceRepository;
+    private RepositoryCleanUp cleanRepo;
 
     private AccountProfileCreateData accountProfileCreateData() {
        AccountProfileCreateData data = new AccountProfileCreateData();
@@ -56,9 +51,7 @@ public class AccountCreateServiceTest implements IntegrationDevTest {
     public void cleanUp() {
         if (accountId == null) return;;
 
-        accountBalanceRepository.deleteById(accountId).block();
-        accountProfileRepository.deleteById(accountId).block();
-        accountRepository.deleteById(accountId).block();
+        cleanRepo.hardDelete(accountId);
     }
 
     @Test
@@ -74,5 +67,7 @@ public class AccountCreateServiceTest implements IntegrationDevTest {
         Assertions.assertEquals(AccountStatus.ACTIVE,
                 data.getAccountStatus(),
                 "Default account status != AccountStatus.ACTIVE");
+
+        accountId = data.getAccountId();
     }
 }

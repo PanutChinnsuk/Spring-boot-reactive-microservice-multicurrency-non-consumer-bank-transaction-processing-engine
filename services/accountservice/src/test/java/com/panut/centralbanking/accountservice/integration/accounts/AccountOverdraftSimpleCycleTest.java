@@ -9,6 +9,8 @@ import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountOverdraftRepository;
 import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
+import com.panut.centralbanking.accountservice.integration.cleanup.RepositoryCleanUp;
+import com.panut.centralbanking.accountservice.integration.isolation.AccountOverdraftISO;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountBalanceTestRepository;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountOverdraftTestRepository;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
@@ -23,17 +25,11 @@ import java.util.List;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
-    @Autowired
-    private AccountBalanceCleanUpRepository cleanRepo;
+
 
     @Autowired
     private BalanceChangeServiceImpl balanceChangeService;
 
-    @Autowired
-    private AccountOverdraftRepository overdraftRepository;
-
-    @Autowired
-    private AccountOverdraftTestRepository overdraftTestRepository;
 
     @Autowired
     private AccountBalanceTestRepository accountBalanceTestRepository;
@@ -41,7 +37,13 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
     @Autowired
     private AccountBalanceMatcher accountBalanceMatcher;
 
-    private String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    @Autowired
+    private RepositoryCleanUp cleanRepo;
+
+    @Autowired
+    private AccountOverdraftISO iso;
+
+    private String accountId;
     private BigDecimal amount = BigDecimal.valueOf(77.65);
     private BigDecimal availableBalance = BigDecimal.valueOf(42.05);
     private AccountBalanceChangedData previousResult;
@@ -73,19 +75,21 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
         );
     }
 
+    @BeforeAll
+    public void setUp() {
+       // accountBalanceTestRepository.setDefaultBalance(availableBalance,
+                //List.of(accountId)).block();
+        accountId = iso.twiceOverdrafted(BigDecimal.valueOf(50),
+                BigDecimal.valueOf(50), availableBalance).getId();
+    }
+
     @AfterAll
     public void cleanUp() {
-        cleanRepo.setBack(accountId);
-        overdraftTestRepository.deleteByAccountId(accountId,
-                SeededDatabaseIdFlag.TEST).block();
+        cleanRepo.hardDelete(accountId);
 
     }
 
-    @BeforeAll
-    public void set() {
-        accountBalanceTestRepository.setDefaultBalance(availableBalance,
-                List.of(accountId)).block();
-    }
+
 
 
 

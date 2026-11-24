@@ -32,7 +32,7 @@ public interface AccountOverdraftTestRepository
             od.amount = :total
             WHERE od.id IN (:ids)
             """)
-    Mono<Void> reset(@Param("ids")Set<String> ids,
+    Mono<Void> reset(@Param("ids")Collection<String> ids,
                      @Param("toDefault")BigDecimal toDefault,
                      @Param("total") BigDecimal total);
 

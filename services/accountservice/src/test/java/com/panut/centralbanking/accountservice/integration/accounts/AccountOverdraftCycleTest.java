@@ -15,6 +15,9 @@ import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalan
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountOverdraft;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountOverdraftRepository;
 import com.panut.centralbanking.accountservice.integration.accounts.matcher.AccountBalanceMatcher;
+import com.panut.centralbanking.accountservice.integration.cleanup.RepositoryCleanUp;
+import com.panut.centralbanking.accountservice.integration.isolation.AccountISO;
+import com.panut.centralbanking.accountservice.integration.isolation.AccountOverdraftISO;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountBalanceTestRepository;
 import com.panut.centralbanking.accountservice.integration.testrepository.AccountOverdraftTestRepository;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
@@ -25,6 +28,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -54,33 +58,34 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
     @Autowired
     private AccountBalanceTestRepository accountBalanceTestRepository;
 
-    @Autowired
-    private AccountBalanceCleanUpRepository cleanRepo;
+
 
     @Autowired
     private AccountBalanceMatcher accountBalanceMatcher;
 
+    @Autowired
+    private AccountOverdraftISO iso;
+
+    @Autowired
+    private AccountISO accountISO;
+
+    @Autowired
+    private RepositoryCleanUp cleanRepo;
 
 
 
+    private String accountId;
+    private String ovdId1;
+    private String ovdId2;
+    private List<String> ovdIds = new ArrayList<>();
 
-    private String overdraftId1 = SeededDatabase
-            .ID_ACCOUNT_OVERDRAFT_RECORD_WITH_NO_TRANSACTION_1;
-    private String overdraftId2 = SeededDatabase
-            .ID_ACCOUNT_OVERDRAFT_RECORD_WITH_NO_TRANSACTION_2;
-    private String overdraftAccountOwnerId = SeededDatabase
-            .ID_NORMAL_ACCOUNT_1;
+    private String overdraftAccountOwnerId;
     private BigDecimal totalOverdrafted = BigDecimal.valueOf(50);
     private int digits = SeededDatabase.DATABASE_DECIMAL_DIGITS;
 
-    private Set<String> ids = Set.of(overdraftId1, overdraftId2);
-    private BigDecimal size = BigDecimal.valueOf(ids.size());
+    private BigDecimal size = AccountOverdraftISO.twiceOverdraftedSize;
 
-    private Set<String> accountIds = Set.of(overdraftAccountOwnerId);
-
-
-
-    private void reset(Set<String> ids,
+    private void reset(List<String> ids,
                        BigDecimal toDefault,
                        BigDecimal total) {
         testRepository.reset(ids, toDefault, total).block();
@@ -96,7 +101,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
         accountBalanceTestRepository
                 .setDefaultOverdraft(amount,
                         BigDecimal.ZERO.subtract(amount),
-                        accountIds).block();
+                        List.of(overdraftAccountOwnerId)).block();
     }
 
     private List<BalanceChangeData> clearingData(BigDecimal amount,
@@ -110,7 +115,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
                     LocalDateTime.now(),
                     null)
                     .withOverdraftChangeContext(
-                            new OverdraftChangeContext(List.copyOf(ids))
+                            new OverdraftChangeContext(ovdIds)
                     )
 
         );
@@ -136,18 +141,31 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
         );
     }
 
-    @AfterAll
-    public void setBack() {
-        cleanRepo.setBack(overdraftAccountOwnerId);
+
+
+    @BeforeEach
+    public void perSetUp() {
+        ovdIds.clear();
+        var acc = accountISO.accountWithBalance(BigDecimal.ZERO);
+
+        var ovd1 = iso.accountOverdraft(acc, totalOverdrafted, BigDecimal.ZERO);
+        var ovd2 = iso.accountOverdraft(acc, totalOverdrafted, BigDecimal.ZERO);
+
+        overdraftAccountOwnerId = acc.getId();
+        ovdId1 = ovd1.getId();
+        ovdId2 = ovd2.getId();
+
+        ovdIds.add(ovdId1);
+        ovdIds.add(ovdId2);
+
+
+
+        accountId = acc.getId();
     }
 
     @AfterEach
-    public void cleanUp() {
-        reset(ids ,BigDecimal.ZERO, totalOverdrafted);
-        testRepository.resetStatus(ids,
-                AccountOverdraftStatus.UNPAID).block();
-        testRepository.deleteByAccountId(overdraftAccountOwnerId,
-                SeededDatabaseIdFlag.TEST).block();
+    public void perCleanup() {
+        cleanRepo.hardDelete(accountId);
     }
 
 
@@ -418,13 +436,13 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
     private Common getCommon(BigDecimal currentPaid,
                              BigDecimal totalOverdrafted,
                              List<BalanceChangeData> clearingData) {
-        reset(ids, currentPaid, totalOverdrafted);
+        reset(ovdIds, currentPaid, totalOverdrafted);
         BigDecimal finalTotalOverdrafted = totalOverdrafted.multiply(size)
                 .setScale(digits);
         setBalanceOverdrafted(finalTotalOverdrafted.subtract(currentPaid));
 
         List<AccountOverdraft> preModifiedOverdrafts = testRepository
-                .findByIds(ids).collectList().block();
+                .findByIds(ovdIds).collectList().block();
 
         BigDecimal totalPreModifiedOverdraftsPaid = preModifiedOverdrafts
                 .stream().map(AccountOverdraft::getPaid)
@@ -438,7 +456,7 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
         var result = resultList.getFirst();
 
         List<AccountOverdraft> overdrafts = testRepository
-                .findByIds(ids).collectList().block();
+                .findByIds(ovdIds).collectList().block();
 
         BigDecimal totalOwned = overdrafts
                 .stream().map(AccountOverdraft::getAmount)

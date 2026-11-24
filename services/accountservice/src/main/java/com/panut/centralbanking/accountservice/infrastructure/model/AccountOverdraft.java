@@ -39,11 +39,14 @@ public class AccountOverdraft extends VersionedUUIDStringEntity {
     @Builder
     public AccountOverdraft(String accountId,
                             BigDecimal amount,
+                            BigDecimal paid,
                             String transactionId,
                             LocalDateTime overdraftedAt) {
         this.accountId = accountId;
         this.amount = amount;
-        this.paid = BigDecimal.ZERO;
+        this.paid = paid == null
+                ? BigDecimal.ZERO
+                : paid;
         this.transactionId = transactionId;
         this.accountOverdraftStatus = AccountOverdraftStatus.UNPAID;
         this.overdraftedAt = overdraftedAt;
