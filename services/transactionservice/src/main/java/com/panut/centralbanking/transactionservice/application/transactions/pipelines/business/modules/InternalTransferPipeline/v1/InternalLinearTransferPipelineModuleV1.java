@@ -8,7 +8,6 @@ import com.panut.centralbanking.transactionservice.api.service.account.response.
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateMultiGetLatestRequest;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateMultiGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.ExpectedLedgerTypes;
@@ -17,7 +16,6 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.CustomTransferLedgerPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.TransferLedgerPolicyEnum;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.TransferMultiGetPipelineChain;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.TransferPipelineChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomPerAccountFxTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
@@ -284,10 +282,10 @@ public class InternalLinearTransferPipelineModuleV1 {
                 .get(data.getLedgerCode().getValue());
         TransactionLineDirection direction = data.getDirection();
 
-        var latestConversion = chain.getFxRate(data);
+
 
         if (account.isBaseCurrency()) {
-
+            var latestConversion = chain.getTargetFxRate(data);
 
             if (data.hasFxContext() && data.hasProfitContext()) {
                 log.info("handlePerAccount: account " + account.getId() +
@@ -365,9 +363,11 @@ public class InternalLinearTransferPipelineModuleV1 {
         }
 
 
+        var latestConversion = chain.getMyFxRate(accountCurrency);
         if (latestConversion == null)
             throw new SystemMisused(
-                    "Custom internal transfer data required latest fx rate conversion but is null.");
+                    "Custom internal transfer data required latest fx rate conversion but is null." +
+                            " current account currency: {}" + accountCurrency);
 
         log.info("handlePerAccount: account " + account.getId() + " is not base currency, " +
                 "performing fx rate conversion");

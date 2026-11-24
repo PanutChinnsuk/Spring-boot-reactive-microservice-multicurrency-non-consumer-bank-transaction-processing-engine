@@ -73,10 +73,10 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     private TransactionMultiFxContentTestRepository fxContentTestRepository;
 
 
-    private String fromAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
-    private String toAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_2;
-    private String internal1 = SeededDatabase.ID_INTERNAL_ACCOUNT_1;
-    private String internal2 = SeededDatabase.ID_INTERNAL_ACCOUNT_2;
+    private String fromAccountId = DataBuilder.account1;
+    private String toAccountId = DataBuilder.account2;
+    private String internal1 = DataBuilder.internalAccount1;
+    private String internal2 = DataBuilder.internalAccount2;
 
     private Set<CustomTransferDataPolicy> defaultTransferPolicy() {
         return Set.of(
@@ -235,12 +235,200 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
         );
 
+
+
         return new InternalLinearTransferPipelineData(perAccounts,
                 defaultTransferPolicy(),
                 fillDebitPolicy(internal2));
     }
 
 
+    private InternalLinearTransferPipelineData linearMultiForeignBuyBase(BigDecimal foreignAmount1,
+                                                                         BigDecimal foreignAmount2,
+                                                                         BigDecimal foreignAmount3,
+                                                                    FxDirection fxDirection) {
+        var totalForeign = foreignAmount1.add(foreignAmount2)
+                .add(foreignAmount3);
+
+        String foreign1 = DataBuilder.account1;
+        String foreign2 = DataBuilder.account2;
+        String foreign3 = DataBuilder.emptyAccount1;
+        String foreignTo = DataBuilder.emptyAccount2;
+
+
+
+        List<CustomAccountTransferData> perAccounts = List.of(
+                customAccountTransferData(foreign1, foreignAmount1,
+                        TransactionLineDirection.DEBIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_PRINCIPAL
+                        )),
+
+                customAccountTransferData(foreign2, foreignAmount2,
+                        TransactionLineDirection.DEBIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_PRINCIPAL
+                        )),
+
+                customAccountTransferData(foreign3, foreignAmount3,
+                        TransactionLineDirection.DEBIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_PRINCIPAL
+                        )),
+                customAccountTransferData(foreignTo, foreignAmount1,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
+                                foreign1
+                        )),
+                customAccountTransferData(foreignTo, foreignAmount2,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
+                                foreign2
+                        )),
+                customAccountTransferData(foreignTo, foreignAmount3,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
+                                foreign3
+                        )),
+
+                customAccountTransferData(internal1, foreignAmount1,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
+                                foreign1
+                        ))
+                        .withProfitContext(new
+                                CustomInternalAccountProfitContext(foreignAmount1)),
+
+                customAccountTransferData(internal1, foreignAmount2,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
+                                foreign2
+                        ))
+                        .withProfitContext(new
+                                CustomInternalAccountProfitContext(foreignAmount1)),
+
+                customAccountTransferData(internal1, foreignAmount3,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
+                                foreign3
+                        ))
+                        .withProfitContext(new
+                                CustomInternalAccountProfitContext(foreignAmount1)),
+
+                customAccountTransferData(internal2, totalForeign,
+                        TransactionLineDirection.CLEARING_CREDIT),
+                customAccountTransferData(internal2, BigDecimal.ZERO,
+                        TransactionLineDirection.CLEARING_DEBIT)
+
+        );
+
+
+
+        return new InternalLinearTransferPipelineData(perAccounts,
+                defaultTransferPolicy(),
+                fillDebitPolicy(internal2));
+    }
+
+    private InternalLinearTransferPipelineData linearMultiBaseBuyForeign(BigDecimal baseAmount1,
+                                                                         BigDecimal baseAmount2,
+                                                                         BigDecimal baseAmount3,
+                                                                         FxDirection fxDirection) {
+        var totalBase = baseAmount1.add(baseAmount2)
+                .add(baseAmount3);
+
+        String base1 = DataBuilder.account1;
+        String base2 = DataBuilder.account2;
+        String base3 = DataBuilder.emptyAccount1;
+        String base1To = DataBuilder.emptyAccount2;
+        String base2To = DataBuilder.emptyAccount3;
+        String base3To = DataBuilder.emptyAccount4;
+
+
+
+        List<CustomAccountTransferData> perAccounts = List.of(
+                customAccountTransferData(base1, baseAmount1,
+                        TransactionLineDirection.DEBIT)
+                        .withPerAccountPolicies(defaultPerAccountolicy()),
+                customAccountTransferData(base2, baseAmount2,
+                        TransactionLineDirection.DEBIT)
+                        .withPerAccountPolicies(defaultPerAccountolicy()),
+                customAccountTransferData(base3, baseAmount3,
+                        TransactionLineDirection.DEBIT)
+                        .withPerAccountPolicies(defaultPerAccountolicy()),
+
+                customAccountTransferData(base1To, baseAmount1,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN,
+                                base1
+                        )),
+
+                customAccountTransferData(base2To, baseAmount2,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN,
+                                base2
+                        )),
+
+                customAccountTransferData(base3To, baseAmount3,
+                        TransactionLineDirection.CREDIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN,
+                                base3
+                        )),
+
+                customAccountTransferData(internal1, baseAmount1,
+                        TransactionLineDirection.CLEARING_DEBIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN,
+                                base1To
+                        )),
+                customAccountTransferData(internal1, baseAmount2,
+                        TransactionLineDirection.CLEARING_DEBIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN,
+                                base2To
+                        )),
+                customAccountTransferData(internal1, baseAmount3,
+                        TransactionLineDirection.CLEARING_DEBIT)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                fxDirection,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN,
+                                base3To
+                        )),
+
+
+                customAccountTransferData(internal2, totalBase,
+                        TransactionLineDirection.CLEARING_CREDIT)
+                        .withPerAccountPolicies(defaultPerAccountolicy())
+        );
+
+
+
+        return new InternalLinearTransferPipelineData(perAccounts,
+                defaultTransferPolicy(),
+                null);
+    }
 
 
     private Map<String, TransactionLine> getTransactionLineMap(String transactionId) {
@@ -321,7 +509,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
         var latestConversions = DataBuilder.singleMultiGetLatestConversions(quoteCurrency);
 
-        withFx(baseAmount, preDefinedConverted, preDefinedConverted, latestConversions,
+        withFx(preDefinedConverted, preDefinedConverted, latestConversions,
                 data, response);
 
     }
@@ -344,7 +532,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                         FxRateData.quote(quoteCurrency, fxDirection));
 
 
-        withFx(baseAmount, null, expected, latestConversions,
+        withFx(null, expected, latestConversions,
                 data, response);
 
     }
@@ -365,7 +553,61 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 .V1.convertDivide(foreignAmount, getFirst(latestConversions.getFxRateMap()),
                         FxRateData.quote(quoteCurrency, fxDirection));
 
-        withFx(foreignAmount, null, expected, latestConversions,
+        withFx(null, expected, latestConversions,
+                data, response);
+
+    }
+
+    @Test
+    public void shouldCreateBaseBuyForeignMutliFx() {
+        BigDecimal base1 = BigDecimal.valueOf(1000);
+        BigDecimal base2 = BigDecimal.valueOf(1000);
+        BigDecimal base3 = BigDecimal.valueOf(1000);
+        FxDirection fxDirection = FxDirection.ASK;
+
+        CurrencyCode quote1 = CurrencyCode.CAD;
+        CurrencyCode quote2 = CurrencyCode.THB;
+        CurrencyCode quote3 = CurrencyCode.AED;
+
+
+        InternalLinearTransferPipelineData data =
+                linearMultiBaseBuyForeign(base1,
+                        base2,
+                        base3, fxDirection);
+
+        GetAccountsInfoForTransactionResponse response =
+                FxDataBuilder.multiBaseBuyForeignAccountsInfo(quote1, quote2, quote3);
+        var latestConversions = DataBuilder.multiGetLatestConversions(quote1, quote2,
+                quote3);
+
+
+        withFx(null, null, latestConversions,
+                data, response);
+    }
+
+    @Test
+    public void shouldCreateForeignBuyBaseMultiFx() {
+        BigDecimal foreignAmount1 = BigDecimal.valueOf(257.25);
+        BigDecimal foreignAmount2 = BigDecimal.valueOf(14.02);
+        BigDecimal foreignAmount3 = BigDecimal.valueOf(2.262);
+        FxDirection fxDirection = FxDirection.ASK;
+
+        CurrencyCode quote1 = CurrencyCode.CAD;
+        CurrencyCode quote2 = CurrencyCode.THB;
+        CurrencyCode quote3 = CurrencyCode.AED;
+
+        InternalLinearTransferPipelineData data =
+                linearMultiForeignBuyBase(foreignAmount1,
+                        foreignAmount2,
+                        foreignAmount3, fxDirection);
+
+        GetAccountsInfoForTransactionResponse response =
+                FxDataBuilder.multiForeignBuyBaseAccountsInfo(quote1, quote2, quote3);
+        var latestConversions = DataBuilder.multiGetLatestConversions(quote1, quote2,
+                quote3);
+
+
+        withFx( null, null, latestConversions,
                 data, response);
 
     }
@@ -376,8 +618,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     }
 
 
-    private void withFx(BigDecimal baseAmount,
-                        BigDecimal preDefinedConverted,
+    private void withFx(BigDecimal preDefinedConverted,
                         BigDecimal expectedConverted,
                         FxRateMultiGetResponse fxRateMultiGetResponse,
                         InternalLinearTransferPipelineData data,
@@ -409,7 +650,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         TransactionLine toAccountLine = transactionLineMap.get(toAccountId);
         var toAccountData = customAccountTransferDataMap.get(toAccountId);
 
-        Assertions.assertEquals(expectedConverted.setScale(digits),
+        if (expectedConverted != null)
+            Assertions.assertEquals(expectedConverted.setScale(digits),
                 toAccountLine.getConvertedAmount());
 
         if (preDefinedConverted != null)

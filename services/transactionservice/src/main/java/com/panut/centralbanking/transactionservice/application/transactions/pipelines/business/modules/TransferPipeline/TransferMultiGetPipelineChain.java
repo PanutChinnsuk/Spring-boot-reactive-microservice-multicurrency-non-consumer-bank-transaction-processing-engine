@@ -1,11 +1,11 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline;
 
 import com.panut.centralbanking.appcore.exceptions.SystemMisused;
+import com.panut.centralbanking.appcurrencycore.CurrencyCode;
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateMultiGetResponse;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -23,7 +23,7 @@ public class TransferMultiGetPipelineChain {
     private FxRateGetResponse possibleSingleFxRate;
 
 
-    public FxRateGetResponse getFxRate(final CustomAccountTransferData data) {
+    public FxRateGetResponse getTargetFxRate(final CustomAccountTransferData data) {
         String ofAccountId = null;
 
         if (data.hasFxContext()) {
@@ -51,6 +51,12 @@ public class TransferMultiGetPipelineChain {
                 .getAccount(ofAccountId);
         var accountCurrency = account.getAccountCurrency();
 
+
+
+        return getMyFxRate(accountCurrency);
+    }
+
+    public FxRateGetResponse getMyFxRate(final CurrencyCode accountCurrency) {
         var fxRate = fxRateMultiGetResponse.getFxRateMap()
                 .get(accountCurrency);
 
@@ -80,6 +86,8 @@ public class TransferMultiGetPipelineChain {
             this.fxRateMultiGetResponse = fxRateMultiGetResponse;
 
             var map = fxRateMultiGetResponse.getFxRateMap();
+            log.info("fxRateMulti map size: {}, quotes: {}", map.size(),
+                    map.keySet());
 
             if (map.size() == 1) {
                 possibleSingleFxRate = map

@@ -9,10 +9,19 @@ public class SeededDatabase {
     public static final String ID_INVALID_2 = "T2";
 
     public static final String ID_FX_RATE_USD_THB = "TEST";
+    public static final String ID_FX_RATE_USD_CAD = "TEST2";
+    public static final String ID_FX_RATE_USD_AED = "TEST3";
+
     public static final String ID_CUSTOMER_1 = "TEST";
     public static final String ID_NORMAL_ACCOUNT_1 = "TEST";
     public static final String ID_NORMAL_ACCOUNT_2 = "TEST2";
     public static final String ID_EMPTY_ACCOUNT_1 = "TEST_EMPTY";
+    public static final String ID_EMPTY_ACCOUNT_2 = "TEST_EMPTY2";
+    public static final String ID_EMPTY_ACCOUNT_3 = "TEST_EMPTY3";
+    public static final String ID_EMPTY_ACCOUNT_4 = "TEST_EMPTY4";
+    public static final String ID_EMPTY_ACCOUNT_5 = "TEST_EMPTY5";
+    public static final String ID_EMPTY_ACCOUNT_6 = "TEST_EMPTY6";
+
     public static final String ID_INTERNAL_ACCOUNT_1 = "INTERNAL";
     public static final String ID_INTERNAL_ACCOUNT_2 = "INTERNAL2";
     public static final String ID_TRANSACTION_NO_ASSET_EXPENSE = "TEST_NO_ASSET_EXPENSE";

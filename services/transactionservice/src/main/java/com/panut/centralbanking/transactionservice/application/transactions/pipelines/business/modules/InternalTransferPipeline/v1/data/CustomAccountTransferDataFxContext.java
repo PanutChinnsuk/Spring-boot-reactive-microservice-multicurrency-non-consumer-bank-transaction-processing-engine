@@ -28,4 +28,7 @@ public class CustomAccountTransferDataFxContext {
         this.directionForFx = directionForFx;
         this.policy = policy;
     }
+
+
+
 }
