@@ -8,7 +8,9 @@ import com.panut.centralbanking.transactionservice.api.service.account.request.G
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateMultiGetLatestRequest;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateMultiGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.LedgerCode;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.InternalTransferPipeline;
@@ -22,6 +24,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferDataFxContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.TransactionMultiFxContext;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.FxRateData;
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
@@ -30,6 +33,8 @@ import com.panut.centralbanking.transactionservice.integration.transaction.clean
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.DataBuilder;
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
+import com.panut.centralbanking.transactionservice.testrepository.TransactionMultiFxContentTestRepository;
+import com.panut.centralbanking.transactionservice.testrepository.TransactionProfileTestRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -60,6 +65,12 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
     @Autowired
     private TransactionLineTestRepository transactionLineTestRepository;
+
+    @Autowired
+    private TransactionProfileTestRepository profileTestRepository;
+
+    @Autowired
+    private TransactionMultiFxContentTestRepository fxContentTestRepository;
 
 
     private String fromAccountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
@@ -291,6 +302,8 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         Assertions.assertEquals(fromAccountData.getBaseAmount().setScale(digits), fromAccountLine.getConvertedAmount());
         Assertions.assertEquals(toAccountData.getBaseAmount().setScale(digits), toAccountLine.getConvertedAmount());
 
+        validateProfileDirection(result.getTransactionId(),
+                FxDirection.NONE);
     }
 
 
@@ -299,16 +312,16 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
     @Test
     public void shouldCreateLinearFxWithPredefinedConvertedAmount() {
         BigDecimal baseAmount = BigDecimal.ONE;
-        BigDecimal converted = BigDecimal.valueOf(25);
+        BigDecimal preDefinedConverted = BigDecimal.valueOf(25);
 
         CurrencyCode quoteCurrency = CurrencyCode.CAD;
         InternalLinearTransferPipelineData data =
-                linearBaseBuyForeignWithConvertedAmount(baseAmount, converted);
+                linearBaseBuyForeignWithConvertedAmount(baseAmount, preDefinedConverted);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
-        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
+        var latestConversions = DataBuilder.singleMultiGetLatestConversions(quoteCurrency);
 
-        withFx(baseAmount, converted, converted, latestConversion,
+        withFx(baseAmount, preDefinedConverted, preDefinedConverted, latestConversions,
                 data, response);
 
     }
@@ -324,14 +337,14 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 linearBaseBuyForeign(baseAmount, fxDirection);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.baseBuyForeignAccountsInfo(quoteCurrency);
-        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
+        var latestConversions = DataBuilder.singleMultiGetLatestConversions(quoteCurrency);
 
         BigDecimal expected = FxRateCurrencyConversion
-                .V1.convertMultiply(baseAmount, latestConversion,
+                .V1.convertMultiply(baseAmount, getFirst(latestConversions.getFxRateMap()),
                         FxRateData.quote(quoteCurrency, fxDirection));
 
 
-        withFx(baseAmount, null, expected, latestConversion,
+        withFx(baseAmount, null, expected, latestConversions,
                 data, response);
 
     }
@@ -346,22 +359,27 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 linearForeignBuyBase(foreignAmount, fxDirection);
         GetAccountsInfoForTransactionResponse response =
                 FxDataBuilder.foreignBuyBaseAccountsInfo(quoteCurrency);
-        FxRateGetResponse latestConversion = DataBuilder.latestConversion();
+        var latestConversions = DataBuilder.singleMultiGetLatestConversions(quoteCurrency);
 
         BigDecimal expected = FxRateCurrencyConversion
-                .V1.convertDivide(foreignAmount, latestConversion,
+                .V1.convertDivide(foreignAmount, getFirst(latestConversions.getFxRateMap()),
                         FxRateData.quote(quoteCurrency, fxDirection));
 
-        withFx(foreignAmount, null, expected, latestConversion,
+        withFx(foreignAmount, null, expected, latestConversions,
                 data, response);
 
     }
 
+    private FxRateGetResponse getFirst(Map<CurrencyCode, FxRateGetResponse> map) {
+        return map.values().stream().findFirst()
+                .get();
+    }
+
 
     private void withFx(BigDecimal baseAmount,
-                        BigDecimal converted,
+                        BigDecimal preDefinedConverted,
                         BigDecimal expectedConverted,
-                        FxRateGetResponse latestConversion,
+                        FxRateMultiGetResponse fxRateMultiGetResponse,
                         InternalLinearTransferPipelineData data,
                         GetAccountsInfoForTransactionResponse response) {
 
@@ -371,9 +389,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         doReturn(Mono.just(response))
                 .when(accountServiceController)
                 .getAccountsInfoForTransaction(any(GetAccountsInfoForTransactionRequest.class));
-        doReturn(Mono.just(latestConversion))
+        doReturn(Mono.just(fxRateMultiGetResponse))
                 .when(fxRateServiceController)
-                .getLatestFxRate(any(FxRateGetLatestRequest.class));
+                .multiGetLatestFxRate(any(FxRateMultiGetLatestRequest.class));
 
         TransactionCreationPipelineResult result = internalTransferPipeline
                 .customLinearTransfer(data).block();
@@ -394,5 +412,27 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         Assertions.assertEquals(expectedConverted.setScale(digits),
                 toAccountLine.getConvertedAmount());
 
+        if (preDefinedConverted != null)
+            validateProfileDirection(result.getTransactionId(),
+                FxDirection.NONE);
+
+        if (preDefinedConverted == null) {
+            validateProfileDirection(result.getTransactionId(),
+                    FxDirection.MULTI);
+
+            var contents = fxContentTestRepository
+                    .findByTransactionId(result.getTransactionId()).collectList().block();
+
+            Assertions.assertTrue(!contents.isEmpty());
+        }
+
+
+    }
+
+    private void validateProfileDirection(String transactionId,
+                                          FxDirection fxDirection) {
+        var profile = profileTestRepository.findById(transactionId).block();
+
+        Assertions.assertEquals(fxDirection, profile.getFxDirection());
     }
 }

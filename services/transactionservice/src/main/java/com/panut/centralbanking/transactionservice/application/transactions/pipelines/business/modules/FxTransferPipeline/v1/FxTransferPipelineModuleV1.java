@@ -6,7 +6,7 @@ import com.panut.centralbanking.transactionservice.application.calculations.conv
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.BaseBuyForeignTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.ForeignBuyBaseTransferData;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.TransferPipelineChain;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.TransferPipelineChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.TransactionCreationPipelineResult;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.TransactionRegisterPipeline;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre.AccountData;

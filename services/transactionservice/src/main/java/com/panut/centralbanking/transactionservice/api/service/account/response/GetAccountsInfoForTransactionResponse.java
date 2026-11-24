@@ -47,8 +47,15 @@ public class GetAccountsInfoForTransactionResponse {
     }
 
     public Set<CurrencyCode> getQuoteCurrencies() {
-        return getStream().map(AccountInfoForTransactionQueryResult::getAccountCurrency)
+        return getStreamAsCurrencyCode()
                 .filter(currency -> !currency.equals(
+                        CurrencyCode.getBaseCurrency()
+                )).collect(Collectors.toSet());
+    }
+
+    public Set<CurrencyCode> getBaseCurrencies() {
+        return getStreamAsCurrencyCode()
+                .filter(currency -> currency.equals(
                         CurrencyCode.getBaseCurrency()
                 )).collect(Collectors.toSet());
     }
@@ -205,6 +212,10 @@ public class GetAccountsInfoForTransactionResponse {
 
     private Stream<AccountInfoForTransactionQueryResult> getStream() {
         return queryResult.stream();
+    }
+
+    private Stream<CurrencyCode> getStreamAsCurrencyCode() {
+        return getStream().map(AccountInfoForTransactionQueryResult::getAccountCurrency);
     }
 
     private Stream<AccountInfoForTransactionQueryResult> getInternalStream() {

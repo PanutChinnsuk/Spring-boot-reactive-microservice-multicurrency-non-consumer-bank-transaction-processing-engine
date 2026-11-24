@@ -20,6 +20,7 @@ public class TransactionMultiFxContent extends UUIDBasedStringEntity {
 
 
 
+    @Builder
     public TransactionMultiFxContent(String fxRateId) {
         this.fxRateId = fxRateId;
 

@@ -39,7 +39,6 @@ public class InternalTransferPipeline {
                 .map(response ->
                         response.compact()
                                 .expectedSize(data.getFixedSize())
-                                .limitedQuoteCurrencySize(data.getMaximumQuoteCurrencySize())
                 )
                 .doOnNext(a -> log.info("Validated default requirement " +
                         "for accounts info response"))

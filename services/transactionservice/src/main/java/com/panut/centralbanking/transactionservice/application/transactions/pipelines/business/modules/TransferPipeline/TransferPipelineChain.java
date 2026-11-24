@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1;
+package com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline;
 
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;

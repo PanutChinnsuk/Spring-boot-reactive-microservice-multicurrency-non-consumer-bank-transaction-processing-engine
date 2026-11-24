@@ -27,6 +27,9 @@ public class RepositoryCleanUp {
     @Autowired
     private TransactionOverdraftContentTestRepository overdraftContentTestRepository;
 
+    @Autowired
+    private TransactionMultiFxContentTestRepository fxContentTestRepository;
+
     public List<String> transactionIds = new ArrayList<>();
     public List<String> transactionLineIds = new ArrayList<>();
 
@@ -36,6 +39,7 @@ public class RepositoryCleanUp {
                 .deleteById(id).block());
 
         transactionIds.forEach(id -> {
+            fxContentTestRepository.deleteByTransactionId(id).block();
             profileTestRepository.deleteById(id).block();
             transactionTestRepository.deleteById(id).block();
         });

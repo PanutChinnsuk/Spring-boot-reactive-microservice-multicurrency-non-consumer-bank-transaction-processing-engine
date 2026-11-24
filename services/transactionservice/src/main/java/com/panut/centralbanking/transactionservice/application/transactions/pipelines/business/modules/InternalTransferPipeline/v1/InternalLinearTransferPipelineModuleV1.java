@@ -6,8 +6,9 @@ import com.panut.centralbanking.transactionservice.api.service.account.AccountSe
 import com.panut.centralbanking.transactionservice.api.service.account.response.GetAccountsInfoForTransactionResponse;
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.FxRateServiceController;
-import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateGetLatestRequest;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.request.FxRateMultiGetLatestRequest;
 import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateGetResponse;
+import com.panut.centralbanking.transactionservice.api.service.fxRate.response.FxRateMultiGetResponse;
 import com.panut.centralbanking.transactionservice.application.calculations.conversions.FxRateCurrencyConversion;
 import com.panut.centralbanking.transactionservice.application.calculations.profits.FxRateProfitCalculator;
 import com.panut.centralbanking.transactionservice.application.ledgeraccount.query.ExpectedLedgerTypes;
@@ -15,7 +16,8 @@ import com.panut.centralbanking.transactionservice.application.ledgeraccount.que
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.data.InternalLinearTransferPipelineData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.CustomTransferLedgerPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.ledger.TransferLedgerPolicyEnum;
-import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.v1.TransferPipelineChain;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.TransferMultiGetPipelineChain;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.TransferPipeline.TransferPipelineChain;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.policies.CustomPerAccountFxTransferDataPolicy;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
 import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.repository.BusinessPipelineRepository;
@@ -27,7 +29,6 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
-import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -110,9 +111,9 @@ public class InternalLinearTransferPipelineModuleV1 {
                         .doOnNext(a -> log.info("Get ledger account map, " +
                                 "allowed all type"))
                         .flatMap(ledgerCodeMap ->
-                                new TransferPipelineChain()
+                                new TransferMultiGetPipelineChain()
                                         .ledgerCodeMap(ledgerCodeMap))
-                        .doOnNext(a -> log.info("Start a transfer data chain " +
+                        .doOnNext(a -> log.info("Start a transfer (multiGet) data chain " +
                                 "and put ledger account map into chain"))
                         .flatMap(chain ->
                                 chain.accountsInfoForTransactionResponse(response))
@@ -124,20 +125,17 @@ public class InternalLinearTransferPipelineModuleV1 {
                             log.info("CUSTOM TRANSACTION REQUIRED FX RATE? {}", requiredFxRate);
                             if (requiredFxRate) {
                                 Set<CurrencyCode> quoteCurrencies = response.getQuoteCurrencies();
-                                if (quoteCurrencies.size() != pipelineData.getMaximumQuoteCurrencySize())
-                                    throw new SystemMisused("LinearCustomerTransferModuleV1 REQUIRED FX RATE, " +
-                                            " only allowed maximum and minimum of 1 quote currency " +
-                                            "for fx conversion.");
+                                Set<CurrencyCode> baseCurrencies = response.getBaseCurrencies();
 
-                                CurrencyCode quoteCurrency = quoteCurrencies
-                                        .iterator().next();
+                                var multiGetRequest = new FxRateMultiGetLatestRequest(baseCurrencies,
+                                        quoteCurrencies);
 
-                                return fxRateServiceController.getLatestFxRate(
-                                                FxRateGetLatestRequest.withDefault(quoteCurrency))
+                                return fxRateServiceController.multiGetLatestFxRate(
+                                                multiGetRequest)
                                         .doOnNext(a ->
                                                 log.info("after get fx rate latest conversion"))
-                                        .flatMap(latestConversion ->
-                                                chain.fxRateGetLatestResponse(latestConversion))
+                                        .flatMap(latestConversions ->
+                                                chain.fxRateMultiGetResponse(latestConversions))
                                         .doOnNext(a -> log.info("put fx rate " +
                                                 "latest conversion into chain"));
                             }
@@ -158,7 +156,7 @@ public class InternalLinearTransferPipelineModuleV1 {
                     perAccountDatas.forEach(data -> {
                         var account = response.getAccount(data.getAccountId());
                         var perAccountResult = handlePerAccount(data, account,
-                                chain.getLedgerCodeMap(), chain.getFxRateGetResponse());
+                                chain);
                         var accountData = perAccountResult.getAccountData();
 
                         String key = getAccountDataIdentifierKey(accountData);
@@ -210,11 +208,19 @@ public class InternalLinearTransferPipelineModuleV1 {
 
 
 
+                    var fxRateData = FxRateData.empty();
+
+                    if (chain.hasFxDirection())
+                        fxRateData = FxRateData.empty(FxDirection.MULTI);
+
+                    log.info("final fxRateData direction, [}", fxRateData.getFxDirection());
+
                     return new PreTransactionRegisterData(FIXED_TRANSACTION_TYPE,
                             accountDatas.values()
                                     .stream()
                                     .toList(),
-                            FxRateData.empty());
+                            fxRateData)
+                            .withTransactionMultiFxContext(chain);
                 })
                 .doOnNext(a -> log.info("pre register pipeline"))
                 .flatMap(transactionRegisterPipeline::register);
@@ -268,17 +274,21 @@ public class InternalLinearTransferPipelineModuleV1 {
 
 
 
+
     private PerAccountResult handlePerAccount(final CustomAccountTransferData data,
                                               final AccountInfoForTransactionQueryResult account,
-                                              final Map<String,String> ledgerCodeMap,
-                                              final FxRateGetResponse latestConversion) {
+                                              final TransferMultiGetPipelineChain chain) {
         BigDecimal baseAmount = data.getBaseAmount();
         CurrencyCode accountCurrency = account.getAccountCurrency();
-        String ledgerAccountId = ledgerCodeMap.get(data.getLedgerCode().getValue());
+        String ledgerAccountId = chain.getLedgerCodeMap()
+                .get(data.getLedgerCode().getValue());
         TransactionLineDirection direction = data.getDirection();
 
+        var latestConversion = chain.getFxRate(data);
 
         if (account.isBaseCurrency()) {
+
+
             if (data.hasFxContext() && data.hasProfitContext()) {
                 log.info("handlePerAccount: account " + account.getId() +
                         " is base currency, but forced profit with fx rate conversion");
