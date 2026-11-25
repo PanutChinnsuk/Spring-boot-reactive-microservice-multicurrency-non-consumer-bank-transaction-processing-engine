@@ -124,6 +124,9 @@ public class InternalLinearTransferPipelineModuleV1 {
                             log.info("CUSTOM TRANSACTION REQUIRED FX RATE? {}", requiredFxRate);
                             if (requiredFxRate) {
                                 Set<CurrencyCode> quoteCurrencies = response.getQuoteCurrencies();
+
+                                //support template for future expansion
+                                //eg, cad:thb, aed:thb
                                 Set<CurrencyCode> baseCurrencies = response.getBaseCurrencies();
 
                                 var multiGetRequest = new FxRateMultiGetLatestRequest(baseCurrencies,
