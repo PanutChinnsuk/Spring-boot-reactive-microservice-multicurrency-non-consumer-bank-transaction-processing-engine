@@ -99,23 +99,64 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         );
     }
 
-    private List<CustomTransferLedgerPolicy> fillCreditPolicy(String accountId) {
+    private List<CustomTransferLedgerPolicy> fillDebitPolicyWithContinue(String accountId,
+                                                                         String fromKey,
+                                                                         String toKey,
+                                                                         String toClearingKey,
+                                                                         String toForeign,
+                                                                         String toClearForeign) {
         return List.of(
-                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.FILL_CLEARING_CREDIT)
-                        .withAccountId(accountId)
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.FILL_CLEARING_DEBIT)
+                        .withAccountId(accountId).order(0),
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.CONTINUE_TRANSACTION)
+                        .continueTransaction(fromKey, toKey).order(1),
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.CONTINUE_TRANSACTION)
+                        .continueTransaction(fromKey, toClearingKey).order(2),
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.CONTINUE_TRANSACTION)
+                        .continueTransaction(fromKey, toForeign).order(3),
+                new CustomTransferLedgerPolicy(TransferLedgerPolicyEnum.CONTINUE_TRANSACTION)
+                        .continueTransaction(toForeign, toClearForeign).order(4)
         );
+
     }
+
+
 
 
 
     private CustomAccountTransferData customAccountTransferData(String accountId,
                                                                 BigDecimal amount,
-                                                                TransactionLineDirection direction) {
+                                                                TransactionLineDirection direction,
+                                                                String optionalUniqueIdentityKey) {
         return new CustomAccountTransferData(accountId,
                 amount,
                 null,
                 LedgerCode.COMMON_TRANSFER,
                 direction,
+                optionalUniqueIdentityKey,
+                null,
+                null,
+                null);
+    }
+
+    private CustomAccountTransferData customAccountTransferData(String accountId,
+                                                                BigDecimal amount,
+                                                                TransactionLineDirection direction) {
+        return customAccountTransferData(accountId, amount,
+                direction, null);
+    }
+
+    private CustomAccountTransferData customAccountTransferData(String accountId,
+                                                                BigDecimal amount,
+                                                                BigDecimal convertedAmount,
+                                                                TransactionLineDirection direction,
+                                                                String optionalUniqueIdentityKey) {
+        return new CustomAccountTransferData(accountId,
+                amount,
+                convertedAmount,
+                LedgerCode.COMMON_TRANSFER,
+                direction,
+                optionalUniqueIdentityKey,
                 null,
                 null,
                 null);
@@ -125,15 +166,11 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                                                                 BigDecimal amount,
                                                                 BigDecimal convertedAmount,
                                                                 TransactionLineDirection direction) {
-        return new CustomAccountTransferData(accountId,
-                amount,
-                convertedAmount,
-                LedgerCode.COMMON_TRANSFER,
-                direction,
-                null,
-                null,
+        return customAccountTransferData(accountId, amount, convertedAmount, direction,
                 null);
     }
+
+
 
     private InternalLinearTransferPipelineData linearAtoB() {
         List<CustomAccountTransferData> perAccounts = List.of(
@@ -257,6 +294,12 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
         String foreign3 = DataBuilder.emptyAccount1;
         String foreignTo = DataBuilder.emptyAccount2;
 
+        //middle man included
+        String fromAccountKey = "cont1";
+        String targetAccountKey = "cont2";
+        String targetClearingAccountKey = "cont3";
+        String targetToForeignAccountKey = "cont4";
+        String targetClearForeignAccountKey = "cont5";
 
 
         List<CustomAccountTransferData> perAccounts = List.of(
@@ -295,7 +338,7 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                                 foreign2
                         )),
                 customAccountTransferData(foreignTo, foreignAmount3,
-                        TransactionLineDirection.CREDIT)
+                        TransactionLineDirection.CREDIT, fromAccountKey)
                         .withFxContext(new CustomAccountTransferDataFxContext(
                                 fxDirection,
                                 CustomPerAccountFxTransferDataPolicy.FOREIGN_BUY_BASE,
@@ -335,7 +378,25 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 customAccountTransferData(internal2, totalForeign,
                         TransactionLineDirection.CLEARING_CREDIT),
                 customAccountTransferData(internal2, BigDecimal.ZERO,
-                        TransactionLineDirection.CLEARING_DEBIT)
+                        TransactionLineDirection.CLEARING_DEBIT),
+
+                /// middle man passing
+                customAccountTransferData(internal1, BigDecimal.ZERO,
+                        TransactionLineDirection.CREDIT, targetAccountKey),
+
+                customAccountTransferData(internal1, BigDecimal.ZERO,
+                        TransactionLineDirection.CLEARING_DEBIT, targetClearingAccountKey),
+
+                /// parsed to another fx
+                customAccountTransferData(foreign3, BigDecimal.ZERO,
+                        TransactionLineDirection.CREDIT, targetToForeignAccountKey)
+                        .withFxContext(new CustomAccountTransferDataFxContext(
+                                FxDirection.BID,
+                                CustomPerAccountFxTransferDataPolicy.BASE_BUY_FOREIGN
+                        )),
+                customAccountTransferData(internal1, BigDecimal.ZERO,
+                        TransactionLineDirection.CLEARING_DEBIT,
+                        targetClearForeignAccountKey)
 
         );
 
@@ -343,7 +404,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
         return new InternalLinearTransferPipelineData(perAccounts,
                 defaultTransferPolicy(),
-                fillDebitPolicy(internal2));
+                fillDebitPolicyWithContinue(internal2,
+                        fromAccountKey, targetAccountKey, targetClearingAccountKey,
+                        targetToForeignAccountKey, targetClearForeignAccountKey));
     }
 
     private InternalLinearTransferPipelineData linearMultiBaseBuyForeign(BigDecimal baseAmount1,
@@ -648,13 +711,18 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                 getCustomAccountTransferDataMap(data);
 
 
+        transactionLineMap.forEach((k,v) -> {
+            Assertions.assertTrue(v.getBasedAmount().signum() > 0);
+            Assertions.assertTrue(v.getConvertedAmount().signum() > 0);
+        });
 
-        TransactionLine toAccountLine = transactionLineMap.get(toAccountId);
-        var toAccountData = customAccountTransferDataMap.get(toAccountId);
 
-        if (expectedConverted != null)
+        if (expectedConverted != null) {
+            TransactionLine toAccountLine = transactionLineMap.get(toAccountId);
             Assertions.assertEquals(expectedConverted.setScale(digits),
-                toAccountLine.getConvertedAmount());
+                    toAccountLine.getConvertedAmount());
+
+        }
 
         if (preDefinedConverted != null)
             validateProfileDirection(result.getTransactionId(),

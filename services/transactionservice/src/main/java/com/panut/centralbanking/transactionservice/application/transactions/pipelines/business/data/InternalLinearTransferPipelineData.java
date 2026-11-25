@@ -7,6 +7,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import lombok.Getter;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,7 +31,17 @@ public class InternalLinearTransferPipelineData implements AbstractPipelineTrans
                                               List<CustomTransferLedgerPolicy> ledgerPolicies) {
         this.customDatas = customDatas;
         this.transferPolicies = transferPolicies;
-        this.ledgerPolicies = ledgerPolicies;
+        this.ledgerPolicies = ledgerPolicies == null
+                ? null
+                : ledgerPolicies
+                .stream()
+                .sorted(
+                        Comparator.comparingInt(CustomTransferLedgerPolicy::getOrder)
+
+                )
+                .toList();
+
+
 
         accountIds = customDatas
                 .stream().map(CustomAccountTransferData::getAccountId)

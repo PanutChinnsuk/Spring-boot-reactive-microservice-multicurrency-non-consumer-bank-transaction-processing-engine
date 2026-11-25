@@ -27,6 +27,7 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -142,22 +143,28 @@ public class InternalLinearTransferPipelineModuleV1 {
                         })
 
                 )
+                .flatMap(chain -> chain.customAccountTransferDataMap(
+                        pipelineData
+                                .getCustomDatas()
+                ))
                 .map(chain -> {
                     var response = chain.getGetAccountsInfoForTransactionResponse();
-                    List<CustomAccountTransferData> perAccountDatas = pipelineData
-                            .getCustomDatas();
+                    var perAccountDatas =
+                            chain.getCustomAccountTransferDataMap();
 
 
                     Map<String, AccountData> accountDatas = new HashMap<>();
                     List<PerAccountResult> perAccountResults = new ArrayList<>();
 
-                    perAccountDatas.forEach(data -> {
+                    perAccountDatas.forEach((accountId, data) -> {
                         var account = response.getAccount(data.getAccountId());
                         var perAccountResult = handlePerAccount(data, account,
                                 chain);
                         var accountData = perAccountResult.getAccountData();
 
-                        String key = getAccountDataIdentifierKey(accountData);
+                        String key = getAccountDataIdentifierKey(accountData,
+                                data.uniqueIdentityKey());
+
 
                         if (accountDatas.containsKey(key)) {
                             log.info("put accountDatas key unique");
@@ -175,33 +182,11 @@ public class InternalLinearTransferPipelineModuleV1 {
                     var transferPolicies = pipelineData.getLedgerPolicies();
                     if (transferPolicies != null) {
                         log.info("Applying account datas and ledger policies");
+                        applyingLedgerPolicies(transferPolicies,
+                                accountDatas,
+                                perAccountResults,
+                                chain);
 
-                        transferPolicies.forEach(policy -> {
-                            var policyEnum = policy.getPolicyEnum();
-                            log.info("policyEnum, {}", policy);
-
-                            if (policyEnum.FILL_CLEARING_CREDIT_OR_DEBIT()) {
-                                log.info("is FILL_CLEARING_CREDIT_OR_DEBIT");
-                                AccountData modifying = getModifyingClearingAccountData(policy,
-                                        accountDatas, policyEnum);
-                                log.info("convertedAmount before: {}",
-                                        modifying.getConvertedAmount());
-
-                                perAccountResults.forEach(result -> {
-                                    modifying.incrementConvertedAmount(
-                                            result.getAllAccumelated());
-                                });
-
-                                log.info("convertedAmount after: {}",
-                                        modifying.getConvertedAmount());
-
-                                accountDatas.put(
-                                        getAccountDataIdentifierKey(modifying),
-                                        modifying
-                                );
-
-                            }
-                        });
                     }
 
 
@@ -224,14 +209,97 @@ public class InternalLinearTransferPipelineModuleV1 {
                 .flatMap(transactionRegisterPipeline::register);
     }
 
+    private void applyingLedgerPolicies(final List<CustomTransferLedgerPolicy> transferPolicies,
+                                        Map<String, AccountData> modifiableAccountDatas,
+                                        final List<PerAccountResult> perAccountResults,
+                                        final TransferMultiGetPipelineChain chain) {
+        transferPolicies.forEach(policy -> {
+            var policyEnum = policy.getPolicyEnum();
+            log.info("policy, {}, order, {}", policy, policy.getOrder());
+
+            if (policyEnum.CONTINUE_TRANSACTION()) {
+                log.info("is CONTINUE_TRANSACTION");
+                var fromAccountKey = policy.getFromAccountKey();
+                var targetAccountKey = policy.getTargetAccountKey();
+
+                if (fromAccountKey == null && targetAccountKey == null)
+                    throw new SystemMisused("Ledger policy has CONTINUE_TRANSACTION, " +
+                            "required fromAccountKey and targetAccountKey, but fromAccountKey " +
+                            "is " + fromAccountKey + ", and targetAccountKey is " + targetAccountKey);
+
+
+                var fromData = modifiableAccountDatas.get(fromAccountKey);
+                var targetData = modifiableAccountDatas.get(targetAccountKey);
+
+                if (fromData == null)
+                    throw new SystemMisused("Attempt to get from account with key: " + fromAccountKey +
+                            " but keys are " + modifiableAccountDatas.keySet());
+                if (targetData == null)
+                    throw new SystemMisused("Attempt to get target account with key: " + targetAccountKey +
+                            " but keys are " + modifiableAccountDatas.keySet());
+
+                BigDecimal toPassOn = fromData.getConvertedAmount();
+
+                var targetAccount = chain.getGetAccountsInfoForTransactionResponse()
+                                .getAccount(targetData.getAccountId());
+                var mergingWith = chain.getCustomAccountTransferDataMap()
+                                .get(targetAccountKey).copyFrom(toPassOn);
+                var newResult = handlePerAccount(mergingWith,
+                        targetAccount,
+                        chain);
+
+                log.info("POLICY APPLIED FOR {}, MERGING: {} with {}",targetAccountKey,
+                        targetData,
+                        newResult.getAccountData());
+                targetData.merge(newResult.getAccountData());
+
+                log.info("POLICY APPLIED, MERGED RESULT: {}", targetData);
+
+                modifiableAccountDatas.put(targetAccountKey, targetData);
+            }
+
+            if (policyEnum.FILL_CLEARING_CREDIT_OR_DEBIT()) {
+                log.info("is FILL_CLEARING_CREDIT_OR_DEBIT");
+                AccountData modifying = getModifyingClearingAccountData(policy,
+                        modifiableAccountDatas, policyEnum);
+                log.info("convertedAmount before: {}",
+                        modifying.getConvertedAmount());
+
+                perAccountResults.forEach(result -> {
+                    modifying.incrementAmount(
+                            result.getAllAccumelated());
+                });
+
+                log.info("convertedAmount after: {}",
+                        modifying.getConvertedAmount());
+
+                modifiableAccountDatas.put(
+                        getAccountDataIdentifierKey(modifying,
+                                null),
+                        modifying
+                );
+
+            }
+        });
+    }
+
     private String getAccountDataIdentifierKey(final String accountId,
-                                               final TransactionLineDirection direction) {
+                                               final TransactionLineDirection direction,
+                                               final @Nullable String optionalUniqueIdentityKey) {
+        if (optionalUniqueIdentityKey != null) {
+            log.info("optionalUniqueIdentityKey is not null, return as is");
+            return optionalUniqueIdentityKey;
+        }
+
+
         return accountId + "_" + direction.name();
     }
 
-    private String getAccountDataIdentifierKey(final AccountData accountData) {
+    private String getAccountDataIdentifierKey(final AccountData accountData,
+                                               final @Nullable String optionalUniqueIdentityKey) {
         return getAccountDataIdentifierKey(accountData.getAccountId(),
-                accountData.getDirection());
+                accountData.getDirection(),
+                optionalUniqueIdentityKey);
     }
 
     private AccountData getModifyingClearingAccountData(final CustomTransferLedgerPolicy policy,
@@ -244,7 +312,7 @@ public class InternalLinearTransferPipelineModuleV1 {
 
         if (preferedAccountId == null)
             throw new SystemMisused("Custom transfer has policy of " + policyEnum +
-                    " that requires an account Id that leads to account data whose purpose " +
+                    " that requires an preferedAccountId that leads to account whose purpose " +
                     "is to clear ledger within transaction, but said id is null.");
 
         TransactionLineDirection direction = null;
@@ -259,7 +327,7 @@ public class InternalLinearTransferPipelineModuleV1 {
                     "for getModifyingClearingAccountData");
 
         String key = getAccountDataIdentifierKey(preferedAccountId,
-                direction);
+                direction, null);
         clearing = accountDatas.get(key);
 
         if (clearing == null)
@@ -278,6 +346,7 @@ public class InternalLinearTransferPipelineModuleV1 {
                                               final TransferMultiGetPipelineChain chain) {
         BigDecimal baseAmount = data.getBaseAmount();
         CurrencyCode accountCurrency = account.getAccountCurrency();
+
         String ledgerAccountId = chain.getLedgerCodeMap()
                 .get(data.getLedgerCode().getValue());
         TransactionLineDirection direction = data.getDirection();

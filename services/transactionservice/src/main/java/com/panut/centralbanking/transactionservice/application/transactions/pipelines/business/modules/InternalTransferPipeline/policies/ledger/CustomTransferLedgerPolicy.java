@@ -20,7 +20,15 @@ public class CustomTransferLedgerPolicy {
     private String storedAccountId;
 
     @Nullable
+    private String targetAccountKey;
+
+    @Nullable
+    private String fromAccountKey;
+
+    @Nullable
     private String storedId;
+
+    private int order = 0;
 
     @JsonIgnore
     public CustomTransferLedgerPolicy(TransferLedgerPolicyEnum policyEnum) {
@@ -30,6 +38,22 @@ public class CustomTransferLedgerPolicy {
     @JsonIgnore
     public CustomTransferLedgerPolicy withAccountId(final String  accountId) {
         this.storedAccountId = accountId;
+
+        return this;
+    }
+
+    @JsonIgnore
+    public CustomTransferLedgerPolicy continueTransaction(final String fromAccountKey,
+                                                          final String targetAccountKey) {
+        this.fromAccountKey = fromAccountKey;
+        this.targetAccountKey = targetAccountKey;
+
+        return this;
+    }
+
+    @JsonIgnore
+    public CustomTransferLedgerPolicy order(final int order) {
+        this.order = order;
 
         return this;
     }

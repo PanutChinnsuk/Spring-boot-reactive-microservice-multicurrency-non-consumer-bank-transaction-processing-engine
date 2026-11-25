@@ -10,8 +10,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Getter
@@ -19,6 +23,8 @@ public class TransferMultiGetPipelineChain {
     private FxRateMultiGetResponse fxRateMultiGetResponse;
     private Map<String, String> ledgerCodeMap;
     private GetAccountsInfoForTransactionResponse getAccountsInfoForTransactionResponse;
+    private Map<String, CustomAccountTransferData> customAccountTransferDataMap;
+    private AtomicInteger globalCounter = new AtomicInteger(0);
 
     private FxRateGetResponse possibleSingleFxRate;
 
@@ -115,6 +121,33 @@ public class TransferMultiGetPipelineChain {
             (final GetAccountsInfoForTransactionResponse getAccountsInfoForTransactionResponse) {
         return Mono.defer(() -> {
             this.getAccountsInfoForTransactionResponse = getAccountsInfoForTransactionResponse;
+
+            return Mono.just(this);
+        });
+    }
+
+    public Mono<TransferMultiGetPipelineChain> customAccountTransferDataMap
+            (final List<CustomAccountTransferData> customAccountTransferData) {
+        return Mono.defer(() -> {
+            this.customAccountTransferDataMap = customAccountTransferData
+                    .stream()
+                    .collect(Collectors.toMap(
+                            data -> {
+                                String optionalUniqueIndentityKey = data
+                                        .getOptionalUniqueIdentityKey();
+
+                                if (optionalUniqueIndentityKey != null) {
+                                    log.info("customAccountTransferDataMap set key as " +
+                                            optionalUniqueIndentityKey);
+                                    return optionalUniqueIndentityKey;
+                                }
+
+                                
+                                return data.getAccountId() +
+                                        globalCounter.incrementAndGet();
+                            },
+                            Function.identity()
+                    ));
 
             return Mono.just(this);
         });

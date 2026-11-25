@@ -40,10 +40,35 @@ public class CustomAccountTransferData {
     @NotNull
     private TransactionLineDirection direction;
 
+    @Nullable
+    private String optionalUniqueIdentityKey;
+
     private CustomAccountTransferDataFxContext fxContext;
     private CustomInternalAccountProfitContext profitContext;
 
     private Set<CustomPerAccountTransferDataPolicy> perAccountPolicies;
+
+    public CustomAccountTransferData(String accountId, BigDecimal baseAmount,
+                                     BigDecimal customConvertedAmount,
+                                     LedgerCode ledgerCode,
+                                     TransactionLineDirection direction,
+                                     CustomAccountTransferDataFxContext fxContext,
+                                     CustomInternalAccountProfitContext profitContext) {
+        this.accountId = accountId;
+        this.baseAmount = baseAmount;
+        this.customConvertedAmount = customConvertedAmount;
+        this.ledgerCode = ledgerCode;
+        this.direction = direction;
+        this.fxContext = fxContext;
+        this.profitContext = profitContext;
+    }
+
+    @JsonIgnore
+    public CustomAccountTransferData copyFrom(BigDecimal baseAmount) {
+        return new CustomAccountTransferData(accountId, baseAmount,
+                null, ledgerCode,
+                direction, fxContext, profitContext);
+    }
 
     @Nullable
     @JsonIgnore
@@ -99,5 +124,12 @@ public class CustomAccountTransferData {
     @JsonIgnore
     public boolean hasProfitContext() {
         return this.profitContext != null;
+    }
+
+
+    @Nullable
+    @JsonIgnore
+    public String uniqueIdentityKey() {
+        return optionalUniqueIdentityKey;
     }
 }

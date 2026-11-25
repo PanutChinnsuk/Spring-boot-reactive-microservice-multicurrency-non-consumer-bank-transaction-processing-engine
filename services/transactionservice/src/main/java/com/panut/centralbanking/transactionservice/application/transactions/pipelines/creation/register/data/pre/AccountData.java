@@ -16,10 +16,18 @@ public class AccountData {
     private final String objectIdentity = UUID.randomUUID().toString();
 
     private final String accountId;
-    private final BigDecimal amount;
+    private BigDecimal amount;
     private BigDecimal convertedAmount;
     private final String ledgerAccountId;
     private final TransactionLineDirection direction;
+
+
+    public AccountData incrementAmount(final BigDecimal amount) {
+        incrementBaseAmount(amount);
+        incrementConvertedAmount(amount);
+
+        return this;
+    }
 
     public AccountData incrementConvertedAmount(final BigDecimal amount) {
         this.convertedAmount = this.convertedAmount.add(amount);
@@ -27,6 +35,18 @@ public class AccountData {
         return this;
     }
 
+    public AccountData incrementBaseAmount(final BigDecimal amount) {
+        this.amount = this.amount.add(amount);
+
+        return this;
+    }
+
+    public AccountData merge(final AccountData accountData) {
+        incrementConvertedAmount(accountData.convertedAmount);
+        incrementBaseAmount(accountData.amount);
+
+        return this;
+    }
 
     private static AccountData reverse(final TransactionLine line,
                                       final TransactionLineDirection reversedDirection,
