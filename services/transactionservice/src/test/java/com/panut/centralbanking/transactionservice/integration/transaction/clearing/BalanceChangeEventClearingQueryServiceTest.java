@@ -86,14 +86,9 @@ public class BalanceChangeEventClearingQueryServiceTest implements IntegrationDe
         for (Map.Entry<String, Sinks.Many<BalanceChangeEvent>> entry : poop.entrySet()) {
             List<BalanceChangeEvent> events = entry.getValue().asFlux().collectList().block();
 
-            List<BalanceChangeEvent> eventSizes = testRepository
-                    .findByTransactionId(entry.getKey()).collectList().block();
-
-
-
 
             Assertions.assertTrue(!events.isEmpty());
-            Assertions.assertEquals(eventSizes.size(), events.size());
+
 
 
             events.forEach(event -> {

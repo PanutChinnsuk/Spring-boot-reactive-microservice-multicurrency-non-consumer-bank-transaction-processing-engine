@@ -46,7 +46,11 @@ public class TransactionLine extends UUIDBasedStringEntity {
         this.basedAmount = basedAmount;
         this.convertedAmount = convertedAmount;
         this.ledgerAccountId = ledgerAccountId;
-        setInsert(identity);
+
+        if (identity == null)
+            setInsert();
+        else
+            setInsert(identity);
     }
 
 
