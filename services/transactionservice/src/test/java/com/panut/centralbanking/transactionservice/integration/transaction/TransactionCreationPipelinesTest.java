@@ -39,12 +39,14 @@ public class TransactionCreationPipelinesTest implements IntegrationDevTest {
 
     public AccountData accountData1() {
         return new AccountData(SeededDatabase.ID_NORMAL_ACCOUNT_1, BigDecimal.ONE, BigDecimal.ONE,
-                SeededDatabase.ID_NORMAL_ACCOUNT_1, TransactionLineDirection.CREDIT);
+                SeededDatabase.ID_NORMAL_ACCOUNT_1, TransactionLineDirection.CREDIT,
+                null);
     }
 
     public AccountData accountData2() {
         return new AccountData(SeededDatabase.ID_NORMAL_ACCOUNT_2, BigDecimal.ONE, BigDecimal.ONE,
-                SeededDatabase.ID_NORMAL_ACCOUNT_1, TransactionLineDirection.DEBIT);
+                SeededDatabase.ID_NORMAL_ACCOUNT_1, TransactionLineDirection.DEBIT,
+                null);
     }
 
     public List<AccountData> validAccountDatas() {

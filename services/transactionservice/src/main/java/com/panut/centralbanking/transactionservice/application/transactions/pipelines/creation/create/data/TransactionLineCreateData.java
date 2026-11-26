@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 public class TransactionLineCreateData {
+    private final String identity;
     private final String accountId;
     private final TransactionLineDirection direction;
     private final BigDecimal basedAmount;

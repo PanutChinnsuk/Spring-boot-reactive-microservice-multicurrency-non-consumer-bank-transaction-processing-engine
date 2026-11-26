@@ -1,8 +1,11 @@
 package com.panut.centralbanking.transactionservice.application.transactions.pipelines.creation.register.data.pre;
 
 import com.panut.centralbanking.transactionservice.api.service.account.response.queryresult.AccountInfoForTransactionQueryResult;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferData;
+import com.panut.centralbanking.transactionservice.application.transactions.pipelines.business.modules.InternalTransferPipeline.v1.data.CustomAccountTransferDataFxContext;
 import com.panut.centralbanking.transactionservice.core.TransactionLineDirection;
 import com.panut.centralbanking.transactionservice.infrastructure.model.TransactionLine;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -20,6 +23,20 @@ public class AccountData {
     private BigDecimal convertedAmount;
     private final String ledgerAccountId;
     private final TransactionLineDirection direction;
+
+    @Nullable
+    private CustomAccountTransferDataFxContext passedTransferDataFxContext;
+
+    public AccountData passContexts(final CustomAccountTransferData customAccountTransferData) {
+        this.passedTransferDataFxContext = customAccountTransferData.getFxContext();
+
+        return this;
+    }
+
+    public boolean hasPassedTransferDataFxContext() {
+        return passedTransferDataFxContext != null &&
+                passedTransferDataFxContext.getDirectionForFx().isAppliable();
+    }
 
 
     public AccountData incrementAmount(final BigDecimal amount) {
@@ -55,7 +72,8 @@ public class AccountData {
                 line.getBasedAmount(),
                 revertedConverted,
                 line.getLedgerAccountId(),
-                reversedDirection);
+                reversedDirection,
+                null);
     }
 
 
@@ -81,7 +99,8 @@ public class AccountData {
                     transferingAmount,
                     convertedTransferingAmount,
                     usedLedgerAccountId,
-                    direction);
+                    direction,
+                    null);
         }
 
         public static AccountData linearCredit(final AccountInfoForTransactionQueryResult accountInfo,

@@ -164,6 +164,7 @@ public class InternalLinearTransferPipelineModuleV1 {
                         var perAccountResult = handlePerAccount(data, account,
                                 chain);
                         var accountData = perAccountResult.getAccountData();
+                        accountData.passContexts(data);
 
                         String key = getAccountDataIdentifierKey(accountData,
                                 data.uniqueIdentityKey());
@@ -206,7 +207,7 @@ public class InternalLinearTransferPipelineModuleV1 {
                                     .stream()
                                     .toList(),
                             fxRateData)
-                            .withTransactionMultiFxContext(chain);
+                            .withTransactionMultiFxContext(chain, accountDatas);
                 })
                 .doOnNext(a -> log.info("pre register pipeline"))
                 .flatMap(transactionRegisterPipeline::register);

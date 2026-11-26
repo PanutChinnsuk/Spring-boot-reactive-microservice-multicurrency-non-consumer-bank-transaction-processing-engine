@@ -30,13 +30,21 @@ public class RepositoryCleanUp {
     @Autowired
     private TransactionMultiFxContentTestRepository fxContentTestRepository;
 
+    @Autowired
+    private TransactionMultiFxDirectionContentTestRepository directionContentTestRepository;
+
     public List<String> transactionIds = new ArrayList<>();
     public List<String> transactionLineIds = new ArrayList<>();
 
 
     public void cleanUp() {
-        transactionLineIds.forEach(id -> lineTestRepository
-                .deleteById(id).block());
+        transactionIds.forEach(id -> {
+            directionContentTestRepository.deleteByTransactionId(id).block();
+        });
+
+        transactionLineIds.forEach(id -> {
+            lineTestRepository.deleteById(id).block();
+        });
 
         transactionIds.forEach(id -> {
             fxContentTestRepository.deleteByTransactionId(id).block();

@@ -44,6 +44,7 @@ public class TransactionRegisterPipeline {
                     List<TransactionLineCreateData> lineDatas = registerData.getAccountDatas()
                             .stream()
                             .map(accountData -> new TransactionLineCreateData(
+                                    accountData.getObjectIdentity(),
                                     accountData.getAccountId(),
                                     accountData.getDirection(),
                                     accountData.getAmount(),

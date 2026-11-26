@@ -33,7 +33,8 @@ public class TransactionLine extends UUIDBasedStringEntity {
     private String ledgerAccountId;
 
     @Builder
-    public TransactionLine(String transactionId,
+    public TransactionLine(String identity,
+                           String transactionId,
                            String accountId,
                            TransactionLineDirection direction,
                            BigDecimal basedAmount,
@@ -45,7 +46,7 @@ public class TransactionLine extends UUIDBasedStringEntity {
         this.basedAmount = basedAmount;
         this.convertedAmount = convertedAmount;
         this.ledgerAccountId = ledgerAccountId;
-        setInsert();
+        setInsert(identity);
     }
 
 

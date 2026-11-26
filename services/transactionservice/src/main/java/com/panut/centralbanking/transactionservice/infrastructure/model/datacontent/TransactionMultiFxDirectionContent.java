@@ -1,6 +1,7 @@
 package com.panut.centralbanking.transactionservice.infrastructure.model.datacontent;
 
 import com.panut.centralbanking.appR2dbccore.persistence.UUIDBasedStringEntity;
+import com.panut.centralbanking.transactionservice.core.FxDirection;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,14 +15,25 @@ public class TransactionMultiFxDirectionContent extends UUIDBasedStringEntity {
     @Column("transaction_id")
     private String transactionId;
 
-    @Column("account_id")
-    private String accountId;
+    @Column("transaction_line_id")
+    private String transactionLineId;
+
+    @Column("fx_direction")
+    private FxDirection fxDirection;
 
 
     @Builder
-    public TransactionMultiFxDirectionContent(String transactionId,
-                                              String accountId) {
+    public TransactionMultiFxDirectionContent(String transactionLineId,
+                                              FxDirection fxDirection) {
+        this.transactionLineId = transactionLineId;
+        this.fxDirection = fxDirection;
+        setInsert();
+    }
+
+
+    public TransactionMultiFxDirectionContent withTransactionId(final String transactionId) {
         this.transactionId = transactionId;
-        this.accountId = accountId;
+
+        return this;
     }
 }

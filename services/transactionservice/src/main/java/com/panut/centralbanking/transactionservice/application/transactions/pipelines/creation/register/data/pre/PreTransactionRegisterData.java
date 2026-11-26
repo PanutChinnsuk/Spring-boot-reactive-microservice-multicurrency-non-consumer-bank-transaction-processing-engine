@@ -7,10 +7,12 @@ import com.panut.centralbanking.transactionservice.application.transactions.pipe
 import com.panut.centralbanking.transactionservice.core.FxDirection;
 import com.panut.centralbanking.transactionservice.core.TransactionType;
 import com.panut.centralbanking.transactionservice.infrastructure.model.datacontent.TransactionMultiFxContent;
+import com.panut.centralbanking.transactionservice.infrastructure.model.datacontent.TransactionMultiFxDirectionContent;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,7 +63,8 @@ public class PreTransactionRegisterData {
     }
 
     public PreTransactionRegisterData withTransactionMultiFxContext(
-            final TransferMultiGetPipelineChain chain
+            final TransferMultiGetPipelineChain chain,
+            final Map<String, AccountData> finalizedAccountDatas
             ) {
         var fxRateMultiGetResponse = chain.getFxRateMultiGetResponse();
 
@@ -69,8 +72,6 @@ public class PreTransactionRegisterData {
             log.info("PreTransactionRegisterData does not required auto withTransactionMultiFxContext");
             return this;
         }
-
-
 
 
         List<TransactionMultiFxContent> contents =
@@ -82,13 +83,37 @@ public class PreTransactionRegisterData {
                                 .build()
 
                         ).toList();
-        log.info("fxRateMultiGetResponse required auto withTransactionMultiFxContext, content size: {}",
+
+        List<TransactionMultiFxDirectionContent> directionContents =
+                finalizedAccountDatas
+                        .values()
+                        .stream()
+                        .filter(data -> data.hasPassedTransferDataFxContext())
+                                .map(data -> {
+                                    var passedFxContext = data
+                                            .getPassedTransferDataFxContext();
+
+                                    return TransactionMultiFxDirectionContent
+                                            .builder()
+                                            .fxDirection(passedFxContext.getDirectionForFx())
+                                            .transactionLineId(data.getObjectIdentity())
+                                            .build();
+                                }).toList();
+
+        log.info("fxRateMultiGetResponse required auto withTransactionMultiFxContext, content size: {}, content direction size: {}",
+                directionContents.size(),
                 contents.size());
 
-        var context = new TransactionMultiFxContext(contents);
+        var context = new TransactionMultiFxContext(contents, directionContents);
         this.transactionMultiFxContext = context;
 
 
         return this;
+    }
+
+    public PreTransactionRegisterData withTransactionMultiFxContext(
+            final TransferMultiGetPipelineChain chain
+    ) {
+        return withTransactionMultiFxContext(chain, null);
     }
 }

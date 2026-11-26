@@ -25,27 +25,14 @@ public class TransactionMultiFxContentService {
     public Mono<Transaction> include(final TransactionMultiFxContext context,
                                      final Transaction transaction) {
         return Flux.defer(() -> {
-            if (context == null) {
-                log.info("transaction does not have multi fx context");
+            if (!context.hasContents()) {
+                log.info("transaction has multi fx context but no contents");
                 return Flux.empty();
             }
 
+            log.info("transaction has multi fx context, size: {}", context.getContents().size());
 
-            var contents = context.getContents();
-
-            if (contents == null) {
-                log.info("transaction has multi fx context but contents is null");
-                return Flux.empty();
-            }
-
-            if (contents.isEmpty()) {
-                log.info("transaction has multi fx context but contents is empty");
-                return Flux.empty();
-            }
-
-            log.info("transaction has multi fx context, size: {}", contents.size());
-
-            return manager.saveAll(contents
+            return manager.saveAll(context.getContents()
                             .stream()
                             .map(ctn ->
                                     ctn.withTransactionId(transaction.getId()))

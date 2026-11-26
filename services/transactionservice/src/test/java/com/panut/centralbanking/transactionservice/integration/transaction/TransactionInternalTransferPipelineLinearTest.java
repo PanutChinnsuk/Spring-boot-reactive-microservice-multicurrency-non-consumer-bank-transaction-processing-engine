@@ -34,6 +34,7 @@ import com.panut.centralbanking.transactionservice.integration.transaction.utils
 import com.panut.centralbanking.transactionservice.integration.transaction.utils.FxDataBuilder;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionLineTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionMultiFxContentTestRepository;
+import com.panut.centralbanking.transactionservice.testrepository.TransactionMultiFxDirectionContentTestRepository;
 import com.panut.centralbanking.transactionservice.testrepository.TransactionProfileTestRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,9 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
 
     @Autowired
     private TransactionMultiFxContentTestRepository fxContentTestRepository;
+
+    @Autowired
+    private TransactionMultiFxDirectionContentTestRepository directionContentTestRepository;
 
 
     private String fromAccountId = DataBuilder.account1;
@@ -736,6 +740,26 @@ public class TransactionInternalTransferPipelineLinearTest implements Integratio
                     .findByTransactionId(result.getTransactionId()).collectList().block();
 
             Assertions.assertTrue(!contents.isEmpty());
+
+
+            var trackedDirections = directionContentTestRepository
+                    .findByTransactionId(result.getTransactionId()).collectList()
+                    .block();
+
+            Assertions.assertNotNull(trackedDirections, "track direction");
+            Assertions.assertTrue(!trackedDirections.isEmpty(), "track directions empty");
+
+
+            List<FxDirection> tracked = trackedDirections.stream()
+                    .map(a -> a.getFxDirection()).toList();
+            List<FxDirection> fromData = data.getCustomDatas()
+                    .stream()
+                    .filter(a -> a.getFxContext() != null)
+                    .map(a -> a.getFxContext().getDirectionForFx())
+                    .toList();
+
+            Assertions.assertEquals(tracked.size(), fromData.size(), "tracked size");
+            Assertions.assertTrue(tracked.containsAll(fromData), "contain all tracked");
         }
 
 

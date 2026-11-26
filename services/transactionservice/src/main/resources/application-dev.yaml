@@ -46,7 +46,11 @@ eureka:
 
 logging:
   level:
-
+    io:
+      asyncer:
+        r2dbc:
+          mysql:
+            QUERY: ERROR
     org:
       springframework:
         r2dbc: ERROR

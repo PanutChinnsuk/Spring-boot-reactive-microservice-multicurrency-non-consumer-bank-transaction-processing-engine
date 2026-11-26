@@ -6,5 +6,11 @@ public enum FxDirection {
     MID,
     TREASURY,
     MULTI,
-    NONE
+    NONE;
+
+
+    public boolean isAppliable() {
+        return this != MULTI &&
+                this != NONE;
+    }
 }
