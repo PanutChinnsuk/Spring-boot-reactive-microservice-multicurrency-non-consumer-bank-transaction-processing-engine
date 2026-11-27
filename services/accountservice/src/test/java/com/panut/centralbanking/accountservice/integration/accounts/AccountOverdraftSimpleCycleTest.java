@@ -3,6 +3,7 @@ package com.panut.centralbanking.accountservice.integration.accounts;
 import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
+import com.panut.centralbanking.accountservice.application.kafka.templates.JustProcessedBalanceChangeEventsProducer;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeServiceImpl;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
@@ -17,10 +18,13 @@ import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -42,6 +46,9 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
 
     @Autowired
     private AccountOverdraftISO iso;
+
+    @MockitoSpyBean
+    private JustProcessedBalanceChangeEventsProducer producer;
 
     private String accountId;
     private BigDecimal amount = BigDecimal.valueOf(77.65);
@@ -75,10 +82,14 @@ public class AccountOverdraftSimpleCycleTest implements IntegrationDevTest {
         );
     }
 
+    @BeforeEach
+    public void beforeEach() {
+        Producers.skip(producer);
+    }
+
     @BeforeAll
     public void setUp() {
-       // accountBalanceTestRepository.setDefaultBalance(availableBalance,
-                //List.of(accountId)).block();
+
         accountId = iso.twiceOverdrafted(BigDecimal.valueOf(50),
                 BigDecimal.valueOf(50), availableBalance).getId();
     }

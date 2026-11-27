@@ -7,7 +7,9 @@ import com.panut.centralbanking.transactionservice.api.service.account.request.G
 import com.panut.centralbanking.transactionservice.application.events.balancechange.BalanceChangeEventRepositoryManager;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.schedules.modules.BalanceChangeEventStatusClearingModuleV1;
 import com.panut.centralbanking.transactionservice.application.transactions.clearing.service.BalanceChangeEventClearingQueryService;
+import com.panut.centralbanking.transactionservice.application.worker.WorkerService;
 import com.panut.centralbanking.transactionservice.core.BalanceChangeEventStatus;
+import com.panut.centralbanking.transactionservice.core.WorkerName;
 import com.panut.centralbanking.transactionservice.infrastructure.model.Transaction;
 import com.panut.centralbanking.transactionservice.infrastructure.repository.BalanceChangeEventRepository;
 import com.panut.centralbanking.transactionservice.integration.transaction.cleanrepo.RepositoryCleanUp;
@@ -47,6 +49,9 @@ public class BalanceChangeEventStatusClearingModuleTest implements IntegrationDe
     @Autowired
     private RepositoryCleanUp cleanRepo;
 
+    @MockitoSpyBean
+    private WorkerService workerService;
+
 
     private Transaction transaction;
 
@@ -83,6 +88,7 @@ public class BalanceChangeEventStatusClearingModuleTest implements IntegrationDe
 
         verify(eventRepository).bulkStatusUpdate(anyCollection(),
                 any(BalanceChangeEventStatus.class));
+        verify(workerService).initWorker(any(WorkerName.class));
 
         var event = eventRepository.findById(eventId).block();
         Assertions.assertEquals(BalanceChangeEventStatus.COMPLETED, event.getStatus());

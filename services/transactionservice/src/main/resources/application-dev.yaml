@@ -2,6 +2,7 @@ server:
   port: 8006
 
 spring:
+
   application:
     name: transactionservice
 
@@ -11,6 +12,23 @@ spring:
     username: root
     password: a11211121A_
 
+  kafka:
+    admin:
+      auto-create: false
+      operation-timeout: 1
+    properties:
+      reconnect:
+        backoff:
+          max:
+            ms: 5000
+          ms: 2000
+      metadata:
+        recovery:
+          strategy: NONE
+
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: transactionService
 
 
 

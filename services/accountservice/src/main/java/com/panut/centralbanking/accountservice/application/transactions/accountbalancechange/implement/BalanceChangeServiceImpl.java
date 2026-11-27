@@ -9,6 +9,7 @@ import com.panut.centralbanking.accountservice.application.accounts.accountoverd
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.query.AccountOverdraftQuery;
 import com.panut.centralbanking.accountservice.application.events.processedbalancechange.ProcessedBalanceChangeEventConnectionFactory;
 import com.panut.centralbanking.accountservice.application.events.processedbalancechange.query.ProcessedBalanceChangeEventQuery;
+import com.panut.centralbanking.accountservice.application.kafka.templates.JustProcessedBalanceChangeEventsProducer;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeRecordService;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.application.worker.WorkerService;
@@ -149,6 +150,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
     processedBalanceChangeEventConnectionFactory;
     private final ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery;
     private final WorkerService workerService;
+    private final JustProcessedBalanceChangeEventsProducer justProcessedProducer;
 
 
     public BalanceChangeServiceImpl(AccountBalanceQuery accountBalanceQuery,
@@ -158,7 +160,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
                                     AccountOverdraftQuery accountOverdraftQuery,
                                     ProcessedBalanceChangeEventConnectionFactory processedBalanceChangeEventConnectionFactory,
                                     ProcessedBalanceChangeEventQuery processedBalanceChangeEventQuery,
-                                    WorkerService workerService) {
+                                    WorkerService workerService,
+                                    JustProcessedBalanceChangeEventsProducer justProcessedProducer) {
         this.accountBalanceQuery = accountBalanceQuery;
         this.recordService = recordService;
         this.connectionFactory = connectionFactory;
@@ -167,6 +170,7 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
         this.processedBalanceChangeEventConnectionFactory = processedBalanceChangeEventConnectionFactory;
         this.processedBalanceChangeEventQuery = processedBalanceChangeEventQuery;
         this.workerService = workerService;
+        this.justProcessedProducer = justProcessedProducer;
     }
 
 
@@ -316,6 +320,8 @@ public class BalanceChangeServiceImpl implements BalanceChangeService {
 
                                     return processed;
                                 })
+                                .doOnSuccess(justProcessed ->
+                                        justProcessedProducer.unmandatorySend(justProcessed))
                         )
 
                         .thenReturn(result)

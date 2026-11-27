@@ -67,7 +67,7 @@ public class TransactionStatusClearingModuleV1 {
                     var upNextStatus = pending.getUpnextStatus();
                     log.info("checking if upNextStatus required further action, {}",
                             upNextStatus);
-                    if (upNextStatus.equals(TransactionStatus.POSTED)) {
+                    if (upNextStatus.equals(TransactionStatus.POSTED) && !ids.isEmpty()) {
                         log.info("upNextStatus is POSTED updating posted timestamp for " +
                                 "transaction profile");
                         return transactionProfileRepository.setPosted(ids,

@@ -1,10 +1,5 @@
 package com.panut.centralbanking.accountservice;
 
-import com.panut.centralbanking.accountservice.api.controller.service.AccountStateServiceController;
-import com.panut.centralbanking.accountservice.api.request.serviceonly.VerifyAccountsStateRequest;
-import com.panut.centralbanking.accountservice.api.service.transaction.TransactionClearingServiceController;
-import com.panut.centralbanking.appcore.util.ListIndex;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,10 +7,6 @@ import org.springframework.boot.security.autoconfigure.ReactiveUserDetailsServic
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 @SpringBootApplication(exclude = {
 		UserDetailsServiceAutoConfiguration.class,
@@ -32,8 +23,6 @@ public class AccountserviceApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
-
-
 			System.out.println("Account service started///////////////////////");
 		};
 	}

@@ -6,6 +6,7 @@ import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.data.context.OverdraftChangeContext;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.accounts.accountoverdraft.AccountOverdraftConnectionFactory;
+import com.panut.centralbanking.accountservice.application.kafka.templates.JustProcessedBalanceChangeEventsProducer;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeServiceImpl;
 import com.panut.centralbanking.accountservice.core.AccountOverdraftStatus;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
@@ -50,15 +51,10 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
     private BalanceChangeServiceImpl balanceChangeService;
 
     @Autowired
-    private AccountOverdraftRepository repository;
-
-    @Autowired
     private AccountOverdraftTestRepository testRepository;
 
     @Autowired
     private AccountBalanceTestRepository accountBalanceTestRepository;
-
-
 
     @Autowired
     private AccountBalanceMatcher accountBalanceMatcher;
@@ -72,6 +68,8 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
     @Autowired
     private RepositoryCleanUp cleanRepo;
 
+    @MockitoSpyBean
+    private JustProcessedBalanceChangeEventsProducer producer;
 
 
     private String accountId;
@@ -161,6 +159,8 @@ public class AccountOverdraftCycleTest implements IntegrationDevTest {
 
 
         accountId = acc.getId();
+
+        Producers.skip(producer);
     }
 
     @AfterEach

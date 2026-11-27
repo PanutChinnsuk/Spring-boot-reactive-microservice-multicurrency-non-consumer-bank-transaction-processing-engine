@@ -4,6 +4,7 @@ import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.api.data.BalanceChangeData;
 import com.panut.centralbanking.accountservice.api.response.AccountBalanceChangedData;
 import com.panut.centralbanking.accountservice.application.accounts.account.query.AccountQuery;
+import com.panut.centralbanking.accountservice.application.kafka.templates.JustProcessedBalanceChangeEventsProducer;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.implement.BalanceChangeServiceImpl;
 import com.panut.centralbanking.accountservice.application.transactions.accountbalancechange.service.BalanceChangeService;
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
@@ -20,6 +21,7 @@ import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -30,6 +32,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
@@ -52,6 +56,9 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
 
     @Autowired
     private RepositoryCleanUp cleanRepo;
+
+    @MockitoSpyBean
+    private JustProcessedBalanceChangeEventsProducer producer;
 
     private String account1;
     private String account2;
@@ -82,7 +89,11 @@ public class AccountBalanceChangeServiceTest implements IntegrationDevTest {
         return data;
     }
 
+    @BeforeEach
+    public void beforeEach() {
+        Producers.skip(producer);
 
+    }
 
     @BeforeAll
     public void setUp() {

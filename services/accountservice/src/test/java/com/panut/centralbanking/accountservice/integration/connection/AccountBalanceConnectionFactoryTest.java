@@ -4,7 +4,6 @@ import com.panut.centralbanking.accountservice.IntegrationDevTest;
 import com.panut.centralbanking.accountservice.application.accounts.accountbalance.AccountBalanceConnectionFactory;
 import com.panut.centralbanking.accountservice.infrastructure.model.AccountBalance;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
-import com.panut.centralbanking.accountservice.integration.accounts.AccountBalanceCleanUpRepository;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import io.r2dbc.spi.Result;
 import org.junit.jupiter.api.Assertions;
@@ -24,9 +23,6 @@ public class AccountBalanceConnectionFactoryTest implements IntegrationDevTest {
 
     @Autowired
     private AccountBalanceRepository accountBalanceRepository;
-
-    @Autowired
-    private AccountBalanceCleanUpRepository cleanRepo;
 
     String accountId1 = SeededDatabase.ID_NORMAL_ACCOUNT_1;
     String accountId2 = SeededDatabase.ID_NORMAL_ACCOUNT_2;

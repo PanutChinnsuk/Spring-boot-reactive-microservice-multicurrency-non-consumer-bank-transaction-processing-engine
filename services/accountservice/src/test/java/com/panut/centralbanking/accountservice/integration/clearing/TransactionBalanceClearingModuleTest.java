@@ -11,7 +11,8 @@ import com.panut.centralbanking.accountservice.application.transactions.clearing
 import com.panut.centralbanking.accountservice.core.BalanceChangeType;
 import com.panut.centralbanking.accountservice.core.BalanceImpact;
 import com.panut.centralbanking.accountservice.infrastructure.repository.AccountBalanceRepository;
-import com.panut.centralbanking.accountservice.integration.accounts.AccountBalanceCleanUpRepository;
+import com.panut.centralbanking.accountservice.integration.cleanup.RepositoryCleanUp;
+import com.panut.centralbanking.accountservice.integration.isolation.AccountISO;
 import com.panut.centralbanking.appcore.common.response.CommonResult;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabase;
 import com.panut.centralbanking.appcore.integrationtest.SeededDatabaseIdFlag;
@@ -38,8 +39,7 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
     @Autowired
     private AccountBalanceRepository repository;
 
-    @Autowired
-    private AccountBalanceCleanUpRepository cleanRepo;
+
 
     @MockitoSpyBean
     private TransactionClearingServiceController transactionController;
@@ -47,7 +47,13 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
     @MockitoSpyBean
     private BalanceChangeServiceImpl balanceChangeService;
 
-    private String accountId = SeededDatabase.ID_NORMAL_ACCOUNT_1;
+    @Autowired
+    private AccountISO iso;
+
+    @Autowired
+    private RepositoryCleanUp cleanRepo;
+
+    private String accountId;
 
 
     private Flux<BalanceChangeData> balanceChangeDataFlux(BigDecimal amount) {
@@ -69,10 +75,15 @@ public class TransactionBalanceClearingModuleTest implements IntegrationDevTest 
         );
     }
 
+    @BeforeAll
+    public void setUp() {
+        accountId = iso
+                .accountWithBalance(BigDecimal.valueOf(100)).getId();
+    }
 
     @AfterAll
-    public void setBack() {
-        cleanRepo.setBack(accountId);
+    public void cleanUp() {
+        cleanRepo.hardDelete(accountId);
     }
 
     @Test
