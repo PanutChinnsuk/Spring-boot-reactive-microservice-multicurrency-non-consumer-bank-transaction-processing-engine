@@ -12,6 +12,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 
 import java.util.HashMap;
@@ -61,8 +62,6 @@ public class BalanceChangeEventTopics {
         var listener = new ConcurrentKafkaListenerContainerFactory<String,
                 JustProcessedBalanceChangeEvents>();
         listener.setConsumerFactory(processedBalanceChangeEventConsumerFactory);
-
-
 
         return listener;
     }
