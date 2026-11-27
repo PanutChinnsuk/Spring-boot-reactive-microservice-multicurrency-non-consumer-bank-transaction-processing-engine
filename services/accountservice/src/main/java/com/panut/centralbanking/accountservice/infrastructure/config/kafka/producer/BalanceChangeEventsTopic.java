@@ -29,7 +29,8 @@ public class BalanceChangeEventsTopic {
                 StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JacksonJsonSerializer.class);
-        config.put(ProducerConfig.RETRIES_CONFIG, false);
+        config.put(ProducerConfig.RETRIES_CONFIG, 1);
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
 
 

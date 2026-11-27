@@ -30,7 +30,8 @@ public class JustProcessedBalanceChangeEventsProducer {
             template.send(topic, data);
             log.info("Send kafka topic, {}", topic);
         }catch (Exception e) {
-            log.info("Failed to send kafka topic, {}", topic);
+            log.info("Failed to send kafka topic, {}, {}", topic,
+                    e.getLocalizedMessage());
         }
 
 

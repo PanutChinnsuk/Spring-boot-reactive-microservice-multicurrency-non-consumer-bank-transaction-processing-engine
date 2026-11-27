@@ -1,4 +1,4 @@
-package com.panut.centralbanking.transactionservice.infrastructure.kafka.data;
+package com.panut.centralbanking.transactionservice.application.kafkalistener.data;
 
 
 import lombok.AllArgsConstructor;

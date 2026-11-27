@@ -17,6 +17,8 @@ spring:
       auto-create: false
       operation-timeout: 1
     properties:
+      enable:
+        idempotence: true
       reconnect:
         backoff:
           max:

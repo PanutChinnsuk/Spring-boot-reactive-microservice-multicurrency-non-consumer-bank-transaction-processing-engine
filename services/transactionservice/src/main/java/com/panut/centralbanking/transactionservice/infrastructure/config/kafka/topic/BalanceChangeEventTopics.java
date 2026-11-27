@@ -1,15 +1,13 @@
-package com.panut.centralbanking.transactionservice.infrastructure.kafka.topic;
+package com.panut.centralbanking.transactionservice.infrastructure.config.kafka.topic;
 
-import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.panut.centralbanking.appcore.kafka.topics.SharedKafkaTopics;
-import com.panut.centralbanking.transactionservice.infrastructure.kafka.data.JustProcessedBalanceChangeEvents;
+import com.panut.centralbanking.transactionservice.application.kafkalistener.data.JustProcessedBalanceChangeEvents;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -63,6 +61,7 @@ public class BalanceChangeEventTopics {
         var listener = new ConcurrentKafkaListenerContainerFactory<String,
                 JustProcessedBalanceChangeEvents>();
         listener.setConsumerFactory(processedBalanceChangeEventConsumerFactory);
+
 
 
         return listener;
